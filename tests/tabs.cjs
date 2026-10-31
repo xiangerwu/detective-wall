@@ -54,6 +54,14 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await reload(page);
     ok(await page.locator(`.wall-tab[data-id="${c}"]`).evaluate(el => el.classList.contains('c-red') && getComputedStyle(el).borderTopColor !== getComputedStyle(document.querySelector(`.wall-tab:not(.c-red)`)).borderTopColor), 'tab color survives reload and shows on the top border');
     await page.screenshot({ path: path.join(OUT, 'tabs.png'), clip: { x: 0, y: 0, width: 1400, height: 120 } });
+    // slate is the cards' default tone, so it needs its own class for tabs to pick it up
+    await openTabMenu(page, c); await page.click('#tab-colors [data-color="slate"]');
+    // buttons ease border colours over .15s, so wait for the transition to settle
+    const slateShown = await page.waitForFunction(id => {
+      const el = document.querySelector(`.wall-tab[data-id="${id}"]`);
+      return el.classList.contains('c-slate') && getComputedStyle(el).borderTopColor === 'rgb(58, 209, 255)';
+    }, c, {timeout: 2000}).then(() => true, () => false);
+    ok(slateShown, 'slate (blue) also shows on the tab top border');
     await openTabMenu(page, c); await page.click('#tab-colors [data-color=""]');
     ok(await page.locator(`.wall-tab[data-id="${c}"]`).evaluate(el => !/\bc-/.test(el.className)), 'no-color clears the tint');
 
