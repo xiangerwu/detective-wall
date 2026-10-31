@@ -1,0 +1,15 @@
+node_modules/
+data/
+test-results*/
+graphify-out/
+tests/artifacts/
+docs/CODEX_TASKS.md
+.mcp.json
+.claude/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+docs/p13-visual-plan.html
