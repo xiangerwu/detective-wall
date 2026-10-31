@@ -45,6 +45,10 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
 
     await openTabMenu(page, c);
     ok(await page.isVisible('#tabmenu') && await page.locator('#tab-colors .swatch').count() === 7, 'right-click opens the menu with no-color plus six colors');
+    ok(await page.evaluate(() => [...document.querySelectorAll('#tab-colors .swatch:not(.no-color):not(.on)')].every(el => {
+      const style = getComputedStyle(el);
+      return style.borderTopColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+    })), 'every colour swatch shows its fill and ring');
     await page.click('#tab-colors [data-color="red"]');
     ok(!(await page.isVisible('#tabmenu')) && await page.locator(`.wall-tab[data-id="${c}"]`).evaluate(el => el.classList.contains('c-red')), 'choosing a color tints the tab');
     await reload(page);

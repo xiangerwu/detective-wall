@@ -62,6 +62,9 @@ button:hover{border-color:var(--ui-accent);background:var(--ui-hover)}
 /* only the top toolbar stays frameless until hover; panels keep visible buttons */
 header button:not(.on):not(.wall-tab){background:transparent;border-color:transparent}
 header button:not(.on):not(.wall-tab):hover{border-color:var(--ui-border);background:var(--ui-hover)}
+/* the tab menu lives inside header but is a popup panel, so its buttons keep their frames and swatch colours */
+#tabmenu button:not(.swatch){background:var(--ui-raised);border-color:var(--ui-border)}
+#tabmenu button.swatch{background:var(--c-bg);border-color:var(--c-top)}
 button:disabled{opacity:.4;cursor:default}
 button.on{border-color:var(--ui-accent);background:var(--ui-active)}
 button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
