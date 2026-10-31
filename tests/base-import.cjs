@@ -15,6 +15,15 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   await page.goto(PAGE); await ready(page); await openActivity(page, 'files');
   const seed = await page.evaluate(() => structuredClone(data));
 
+  // line weight survives wall JSON import and a JSON Canvas round trip; unknown weights are dropped
+  ok(await page.evaluate(() => {
+    const d = structuredClone(data), [e0, e1] = d.edges;
+    e0.weight = 'thick'; e1.weight = 'huge';
+    const viaJson = normalize(d).edges, viaCanvas = normalize(fromCanvas(toCanvas(d))).edges;
+    const weightOf = (edges, e) => edges.find(x => x.from === e.from && x.to === e.to)?.weight;
+    return weightOf(viaJson, e0) === 'thick' && weightOf(viaJson, e1) === undefined && weightOf(viaCanvas, e0) === 'thick';
+  }), 'line weight survives JSON and Canvas import, invalid weights are dropped');
+
   // file from "AI A": rename mine, add n1 (+ edge to mine), add n2 without position (+ edge to dt), retype dt-q1, one bad edge
   const a = structuredClone(seed);
   a.cards.find(c => c.id === 'mine').title = 'My Paper（A 版）';

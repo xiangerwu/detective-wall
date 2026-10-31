@@ -138,7 +138,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .str{fill:none;stroke-linecap:round}
 .str-builds{filter:drop-shadow(0 1px 1px color-mix(in srgb,var(--builds) 35%,transparent))}
 .str-uses,.str-question{filter:drop-shadow(0 0 var(--glow-r) var(--glow))}
-.str.sel{stroke-width:3px!important;filter:drop-shadow(0 0 var(--glow-r) var(--glow)) brightness(1.15)}
+.str.sel{filter:drop-shadow(0 0 var(--glow-r) var(--glow)) brightness(1.15)}
 .str.review-edge{filter:drop-shadow(0 0 4px var(--ui-warning)) brightness(1.2)}
 .hit{fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:pointer}
 .str-label-group{pointer-events:all;cursor:pointer}
@@ -230,6 +230,9 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #panel label,#panel .field{display:flex;flex-direction:column;gap:var(--space-1);font-size:var(--font-xs);color:var(--ui-muted)}
 #panel input,#panel select,#panel textarea,#edge-label,#band-title,#tag-name{font:inherit;font-size:var(--font-body);color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:var(--radius-sm);padding:6px 8px}
 #edge-label,#band-title{width:180px}
+.edge-weights{display:flex;border:1px solid var(--ui-border);border-radius:5px;overflow:hidden}
+.edge-weights button{border:0;border-radius:0;padding:4px 8px}
+.edge-weights button + button{border-left:1px solid var(--ui-border)}
 #panel textarea{resize:vertical}
 #panel .row{display:flex;justify-content:space-between}
 #importer,#backups{width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px);padding:16px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:8px}
@@ -248,13 +251,11 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .ai-info{min-width:0}
 .ai-info b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-weight:600}
 .ai-row small{display:block;color:var(--ui-muted);white-space:pre-wrap;overflow-wrap:anywhere}
-#chat-section .chat-client{display:flex;align-items:center;gap:6px;justify-content:space-between;padding-right:28px;color:var(--ui-muted);font-size:12px}
+.chat-client-row{display:flex;align-items:center;gap:10px}
+#chat-section .chat-client{flex:1;display:flex;align-items:center;gap:6px;justify-content:space-between;color:var(--ui-muted);font-size:12px}
 #chat-client{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:4px 6px}
 #chat-client-state,#chat-status{display:block;min-height:1.5em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-status.error{color:var(--ui-danger)}
-.chat-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-right:28px}  /* clear the absolute sidebar toggle */
-#sidebar .chat-head h2{margin:0}
-.chat-head button{padding:3px 8px;font-size:12px}
 .chat-actions{justify-content:flex-end}
 #chat-messages{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding:4px 0}
 .chat-line{display:flex;align-items:flex-end;gap:6px}
@@ -628,14 +629,17 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
 <div id="sidebar-resize" role="separator" aria-orientation="vertical" aria-controls="sidebar" aria-label="調整側欄寬度（可用左右鍵）" tabindex="0"></div>
 <aside id="sidebar">
   <section id="chat-section">
-    <div class="chat-head"><h2>AI 對話</h2><button id="chat-new" type="button">開新對話</button></div>
+    <h2>AI 對話</h2>
     <p class="section-help">和目前這面牆的 AI 對話；修改仍會先變成提案。</p>
-    <label class="chat-client">客戶端
-      <select id="chat-client" aria-label="AI 客戶端">
-        <option value="claude">Claude Code</option>
-        <option value="codex">codex</option>
-      </select>
-    </label>
+    <div class="chat-client-row">
+      <label class="chat-client">客戶端
+        <select id="chat-client" aria-label="AI 客戶端">
+          <option value="claude">Claude Code</option>
+          <option value="codex">codex</option>
+        </select>
+      </label>
+      <button id="chat-new" type="button">開新對話</button>
+    </div>
     <small id="chat-client-state" role="status"></small>
     <div id="chat-messages" role="log" aria-live="polite"></div>
     <div id="chat-progress" role="status" hidden>
@@ -1153,6 +1157,8 @@ const TYPES = {
   uses:     {label: '使用技術',   width: 2, dash: '8 6'},
   question: {label: '待驗證疑問', width: 2, dash: '1 5'},
 };  // colors come from the theme's --builds / --uses / --question
+// Per-edge line weight; an edge without `weight` draws at its type's width.
+const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size';
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
 const colorOf = c => COLORS[c.color] ? c.color : c.kind === 'note' ? 'amber' : 'slate';
@@ -1593,14 +1599,15 @@ function curve(a, b, extra = 0) {
   return {d: `M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`,
     x: 0.25 * a.x + 0.5 * cx + 0.25 * b.x, y: 0.25 * a.y + 0.5 * cy + 0.25 * b.y};
 }
-function mkPath(cls, d, type) {
+function mkPath(cls, d, type, weight) {
   const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   p.setAttribute('class', cls);
   p.setAttribute('d', d);
   if (type) {
     const t = TYPES[type];
     p.classList.add('str-' + type);
-    p.setAttribute('stroke-width', t.width);
+    // a selected line is drawn one step heavier than its own weight
+    p.setAttribute('stroke-width', (WEIGHTS[weight]?.width ?? t.width) + (p.classList.contains('sel') ? 1 : 0));
     if (t.dash) p.setAttribute('stroke-dasharray', t.dash);
     p.style.stroke = `var(--${type})`;
     p.style.setProperty('--glow', `var(--${type})`);
@@ -1616,7 +1623,7 @@ function renderStrings() {
     const hit = mkPath('hit', d);
     hit.dataset.id = e.id;
     const dim = isDim(a) || isDim(b) ? ' dim' : '';
-    nodes.push(mkPath('str' + (e.id === selEdge ? ' sel' : '') + (reviewEdgeMarks.has(e.id) ? ' review-edge' : '') + dim, d, e.type), hit);
+    nodes.push(mkPath('str' + (e.id === selEdge ? ' sel' : '') + (reviewEdgeMarks.has(e.id) ? ' review-edge' : '') + dim, d, e.type, e.weight), hit);
     if (e.label) {
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       group.setAttribute('class', 'str-label-group' + dim);
@@ -2138,9 +2145,10 @@ function selectEdge(id, p) {
   if (!id) return;
   pop.style.left = p.x + 'px';
   pop.style.top = p.y + 'px';
-  const {type, label} = data.edges.find(e => e.id === id);
+  const {type, label, weight = 'normal'} = data.edges.find(e => e.id === id);
   $('#edge-label').value = label || '';
   pop.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('on', b.dataset.type === type));
+  pop.querySelectorAll('[data-weight]').forEach(b => { b.classList.toggle('on', b.dataset.weight === weight); b.setAttribute('aria-pressed', b.dataset.weight === weight); });
 }
 function deleteEdge() {
   data.edges = data.edges.filter(e => e.id !== selEdge);
@@ -2150,8 +2158,11 @@ function deleteEdge() {
 pop.addEventListener('click', ev => {
   const b = ev.target.closest('button');
   if (!b) return;
-  if (!b.dataset.type) return deleteEdge();
-  data.edges.find(e => e.id === selEdge).type = b.dataset.type;
+  const edge = data.edges.find(e => e.id === selEdge);
+  if (b.dataset.weight) {
+    if (b.dataset.weight === 'normal') delete edge.weight; else edge.weight = b.dataset.weight;
+  } else if (b.dataset.type) edge.type = b.dataset.type;
+  else return deleteEdge();
   save();
   selectEdge(selEdge, {x: parseFloat(pop.style.left), y: parseFloat(pop.style.top)});
 });
@@ -2184,6 +2195,17 @@ function buildTypeButtons() {
     $('#types').append(b);
     pop.append(b.cloneNode(true));
   }
+  const weights = mk('div', 'edge-weights');
+  weights.setAttribute('role', 'group');
+  weights.setAttribute('aria-label', '線條粗細');
+  for (const [k, w] of Object.entries(WEIGHTS)) {
+    const b = mk('button', '', w.label);
+    b.type = 'button';
+    b.dataset.weight = k;
+    b.title = b.ariaLabel = '線條粗細：' + w.label;
+    weights.append(b);
+  }
+  pop.append(weights);
   const label = mk('input');
   label.id = 'edge-label';
   label.type = 'text';
@@ -2589,7 +2611,7 @@ function toCanvas(snapshot) {
   });
   const edges = snapshot.edges.map(e => ({id: unique(e.id), fromNode: e.from, toNode: e.to,
     fromSide: 'top', toSide: 'top', toEnd: 'arrow', color: CANVAS_EDGES[e.type],
-    ...(e.label ? {label: e.label} : {}), detective: {type: e.type}}));
+    ...(e.label ? {label: e.label} : {}), detective: {type: e.type, ...(e.weight ? {weight: e.weight} : {})}}));
   return {nodes: [...bands, ...cards], edges, detective: {version: 1, tags: snapshot.tags}};
 }
 function fromCanvas(canvas) {
@@ -2644,7 +2666,7 @@ function fromCanvas(canvas) {
     .map(e => ({from: e.fromNode, to: e.toNode,
       type: typeof e.detective?.type === 'string' && Object.hasOwn(TYPES, e.detective.type) ? e.detective.type
         : Object.keys(CANVAS_EDGES).find(type => CANVAS_EDGES[type] === e.color) || 'uses',
-      label: typeof e.label === 'string' ? e.label : ''}));
+      label: typeof e.label === 'string' ? e.label : '', weight: e.detective?.weight}));
   return cards.length || bands.some(validBand) ? {cards, bands, edges, tags: canvas.detective?.tags, images: canvas.detective?.images, skippedLinks} : null;
 }
 async function exportWall(format) {
@@ -2761,7 +2783,8 @@ function normalize(d) {
   for (const e of d.edges) {
     if (!e?.from || !e.to || e.from === e.to || !TYPES[e.type] || seen.has(edgeKey(e))) continue;
     seen.add(edgeKey(e));
-    edges.push({id: nid('e'), from: String(e.from), to: String(e.to), type: e.type, label: String(e.label ?? '').trim().slice(0, 200)});
+    edges.push({id: nid('e'), from: String(e.from), to: String(e.to), type: e.type, label: String(e.label ?? '').trim().slice(0, 200),
+      ...(Object.hasOwn(WEIGHTS, e.weight) && e.weight !== 'normal' ? {weight: e.weight} : {})});
   }
   const bands = Array.isArray(d.bands) ? d.bands.filter((b, i, all) => validBand(b) && all.findIndex(x => validBand(x) && x.id === b.id) === i)
     .map(({id, title, y}) => ({id, title, y})) : undefined;

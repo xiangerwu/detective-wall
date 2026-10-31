@@ -44,6 +44,23 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.click(text);
     ok(await page.isVisible('#edgepop') && await page.inputValue(input) === '共享基礎' && await page.evaluate(() => selEdge) === 'e1', 'clicking label selects edge and fills input');
 
+    const lineWidth = () => page.locator('.hit[data-id="e1"]').evaluate(el => Number(el.previousElementSibling.getAttribute('stroke-width')));
+    ok(await page.locator('#edgepop [data-weight="normal"]').evaluate(el => el.classList.contains('on')) && await lineWidth() === 3, 'edge starts at normal weight (selected draws one step heavier)');
+    await page.click('#edgepop [data-weight="heavy"]');
+    ok((await edge()).weight === 'heavy' && await lineWidth() === 6 && await page.locator('#edgepop [data-weight="heavy"]').evaluate(el => el.classList.contains('on')), 'choosing 特粗 stores the weight and thickens the line');
+    await page.keyboard.press('Escape');
+    ok(await lineWidth() === 5, 'unselected heavy line keeps its own width');
+    await page.evaluate(() => undo());
+    ok(!(await edge()).weight, 'undo restores the previous weight');
+    await page.evaluate(() => redo());
+    ok((await edge()).weight === 'heavy', 'redo reapplies the weight');
+    await page.evaluate(() => save(true));
+    await reload(page);
+    ok((await edge()).weight === 'heavy' && await lineWidth() === 5, 'line weight persists after reload');
+    await page.click(text);
+    await page.click('#edgepop [data-weight="normal"]');
+    ok(!('weight' in await edge()) && await lineWidth() === 3, 'choosing 標準 removes the stored weight');
+
     await page.fill(input, 'ABC');
     await page.press(input, 'Home'); await page.press(input, 'Delete');
     ok(await page.inputValue(input) === 'BC' && (await edge()).label === 'BC' && await page.evaluate(() => data.edges.length) === seed.edges.length, 'Delete edits text without deleting edge');
@@ -89,7 +106,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const payload = '<img src=x onerror=alert(1)>';
     await page.fill(input, payload);
     const visiblePayload = [...payload].slice(0, 11).join('') + '…';
-    ok(await page.textContent(text) === visiblePayload && await page.locator('img').count() === 0 && dialogs.length === 0, 'HTML-like label renders truncated text only');
+    ok(await page.textContent(text) === visiblePayload && await page.locator('img:not(#chat-section img)').count() === 0 && dialogs.length === 0, 'HTML-like label renders truncated text only');
     await page.press(input, 'Escape');
     await openActivity(page, 'theme');
     for (const theme of ['moon', 'whiteboard', 'wood', 'paper', 'cyber']) {
