@@ -37,7 +37,7 @@ const base = process.env.WALL_TEST_URL;
     await reload(page);
     assert.equal(await page.evaluate(() => activityPanel.offsetWidth), widened);
     await openSidebar(page);
-    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-section', 'ai-section']);
+    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel', 'chat-mascot-panel']);
     assert.ok(await page.isVisible('#activity-resize') && await page.isVisible('#sidebar-resize'));
     assert.equal(await page.evaluate(() => {
       const visible = el => getComputedStyle(el).display !== 'none';

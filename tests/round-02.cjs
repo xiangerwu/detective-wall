@@ -129,7 +129,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await open({cards: [], edges: [], bands: [{id: 'incoming', title: payload, y: -200}]});
     ok((await page.textContent('#im-list')).includes(payload) && await page.locator('#im-list img').count() === 0, 'malicious title is text in import preview');
     await page.click('#im-apply'); await settled(page);
-    ok(await label('incoming').textContent() === payload && await page.locator('img').count() === 0 && dialogs.length === 0, 'malicious title renders only as text on wall');
+    ok(await label('incoming').textContent() === payload && await page.locator('img:not(#sidebar img)').count() === 0 && dialogs.length === 0, 'malicious title renders only as text on wall');
 
     const download = page.waitForEvent('download');
     await page.click('#export');

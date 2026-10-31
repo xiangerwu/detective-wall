@@ -128,7 +128,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok((await page.textContent('#im-list')).includes(payload) && await page.locator('#im-list img').count() === 0, 'malicious tag name is literal text in preview');
     await page.click('#im-apply'); await settled(page); await openActivity(page, 'tags');
     await page.evaluate(() => openPanel('new-card'));
-    ok(await card('new-card').locator('.tag-chip').textContent() === payload && (await page.textContent('#f-tags')).includes(payload) && await chip('new-tag').locator('.tag-toggle').textContent() === payload && await page.locator('img').count() === 0 && dialogs.length === 0, 'malicious tag name stays text on card, panel and filter');
+    ok(await card('new-card').locator('.tag-chip').textContent() === payload && (await page.textContent('#f-tags')).includes(payload) && await chip('new-tag').locator('.tag-toggle').textContent() === payload && await page.locator('img:not(#sidebar img)').count() === 0 && dialogs.length === 0, 'malicious tag name stays text on card, panel and filter');
     await page.click('#f-close');
     const download = page.waitForEvent('download');
     await openActivity(page, 'files'); await page.click('#export');

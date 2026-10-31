@@ -274,7 +274,7 @@ async function themeStyles(page, theme) {
     await openSidebar(page);
     await page.evaluate(() => showActivity(null));
     await page.locator('#sidebar').screenshot({path: path.join(out, 'ai-area.png')});
-    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-section', 'ai-section']);
+    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel', 'chat-mascot-panel']);
     console.log('PASS right AI area screenshot is captured');
     assert.equal(errors.length, 0, 'page errors: ' + errors.join('; '));
     console.log('PASS no page errors');

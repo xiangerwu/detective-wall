@@ -243,24 +243,23 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .backup-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px;border-bottom:1px solid var(--ui-border)}
 #ai-section .ai-toggle{display:flex;flex-direction:row;align-items:center;gap:6px;color:var(--ui-text)}
 #ai-pending-count{color:var(--ui-accent);font-weight:400}
-#ai-proposal-list,#ai-audit-list{display:flex;flex-direction:column;gap:4px;max-height:260px;overflow:auto}
-#ai-section .ai-empty{margin:0;color:var(--ui-muted);font-size:12px}
-#history-section .ai-empty{margin:0;color:var(--ui-muted);font-size:12px}
+#ai-proposal-list,#ai-audit-list{display:flex;flex-direction:column;gap:4px;flex:1;min-height:0;overflow:auto}
+#sidebar .ai-empty{margin:0;color:var(--ui-muted);font-size:12px}
 .ai-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--ui-border)}
 .ai-row button{flex:none}
 .ai-info{min-width:0}
 .ai-info b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-weight:600}
 .ai-row small{display:block;color:var(--ui-muted);white-space:pre-wrap;overflow-wrap:anywhere}
 .chat-client-row{display:flex;align-items:center;gap:10px}
-#chat-section .chat-client{flex:1;display:flex;align-items:center;gap:6px;justify-content:space-between;color:var(--ui-muted);font-size:12px}
+#chat-client-panel .chat-client{flex:1;display:flex;align-items:center;gap:6px;justify-content:space-between;color:var(--ui-muted);font-size:12px}
 #chat-client{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:4px 6px}
 #chat-client-state,#chat-status{display:block;min-height:1.5em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-status.error{color:var(--ui-danger)}
 .chat-actions{justify-content:flex-end}
-#chat-messages{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow:auto;padding:4px 0}
+#chat-messages{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;overflow:auto;padding:4px 0}
 .chat-line{display:flex;align-items:flex-end;gap:6px}
 .chat-line.user{justify-content:flex-end}
-.chat-avatar{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--ui-border);background:var(--ai-avatar,var(--ui-raised)) center/cover;color:var(--ui-muted);font-size:11px;font-weight:600}
+.chat-avatar{flex:none;width:32px;height:32px;display:block;border-radius:50%;border:1px solid var(--ui-border);background:var(--ui-raised);object-fit:cover;object-position:center}
 .chat-message{position:relative;max-width:85%;padding:7px 10px;border:1px solid var(--ui-border);border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .chat-message.user{background:var(--ui-active);border-bottom-right-radius:3px}
 .chat-message.assistant{background:var(--ui-raised)}
@@ -280,11 +279,21 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .chat-message.error{border-color:var(--ui-danger-strong);color:var(--ui-danger);background:var(--ui-danger-soft)}
 .chat-message.stopped{border-color:var(--ui-warning);background:color-mix(in srgb,var(--ui-warning) 12%,transparent)}
 .chat-message small{display:block;margin-bottom:2px;color:var(--ui-muted);font-size:11px}
-#chat-input{width:100%;min-height:70px;resize:vertical}
+#chat-form{display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
+#chat-input{width:100%;flex:1;min-height:70px;resize:none}  /* the panel grip sets its height */
 #chat-progress{display:flex;flex-direction:column;gap:4px;padding:7px 8px;border:1px solid var(--ui-border);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--ui-active) 65%,transparent)}
 #chat-progress-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ui-text);font-size:12px}
-#chat-progress-list{display:flex;flex-direction:column;gap:2px;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
+#chat-progress-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-stop{padding:3px 8px}
+#sidebar > .side-panel{position:relative;flex:none;min-height:40px;overflow:auto;resize:vertical}  /* native grip: each row's height is user-adjustable */
+#sidebar > .side-panel.dragging{opacity:.65}
+#sidebar > .side-panel[data-name]{padding-top:24px}  /* headingless rows: keep the drag handle off their content */
+#sidebar .side-panel-drag{position:absolute;top:4px;right:40px;z-index:1;width:28px;height:24px;padding:0;border:1px solid transparent;background:transparent;color:var(--ui-muted);font-size:14px;line-height:1;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none}
+#sidebar .side-panel-drag:hover,#sidebar .side-panel-drag:focus-visible{border-color:var(--ui-border);background:var(--ui-hover);color:var(--ui-text)}
+#sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
+#chat-section{height:260px}
+#chat-mascot-panel{flex:1 0 auto;min-height:120px;overflow:hidden}  /* fills leftover sidebar height */
+#chat-mascot{flex:1;min-height:0;width:100%;object-fit:contain;object-position:center bottom}
 #template-list,#template-custom-list{display:flex;flex-direction:column;gap:4px}
 .template-row{display:flex;align-items:center;gap:4px}
 .template-row button:first-child{flex:1;text-align:left}
@@ -514,10 +523,8 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
   </section>
   <section id="history-section" data-activity-panel="history">
     <h2>版本</h2>
-    <p class="section-help">查看備份與 AI 套用紀錄，必要時回復。</p>
+    <p class="section-help">查看備份，必要時回復。</p>
     <div class="row"><button id="show-backups">備份</button></div>
-    <h3>AI 紀錄</h3>
-    <div id="ai-audit-list"></div>
   </section>
   <section id="template-section" data-activity-panel="templates">
     <h2>起手範本</h2>
@@ -628,9 +635,8 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
 
 <div id="sidebar-resize" role="separator" aria-orientation="vertical" aria-controls="sidebar" aria-label="調整側欄寬度（可用左右鍵）" tabindex="0"></div>
 <aside id="sidebar">
-  <section id="chat-section">
-    <h2>AI 對話</h2>
-    <p class="section-help">和目前這面牆的 AI 對話；修改仍會先變成提案。</p>
+  <section id="chat-client-panel" class="side-panel">
+    <h2>模型選擇</h2>
     <div class="chat-client-row">
       <label class="chat-client">客戶端
         <select id="chat-client" aria-label="AI 客戶端">
@@ -641,22 +647,36 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
       <button id="chat-new" type="button">開新對話</button>
     </div>
     <small id="chat-client-state" role="status"></small>
+  </section>
+  <section id="ai-section" class="side-panel">
+    <h2>AI 提案 <span id="ai-pending-count">(0)</span></h2>
+    <p class="section-help">逐項檢視並套用 AI 提出的變更。</p>
+    <label class="ai-toggle"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label>
+    <div id="ai-proposal-list"></div>
+  </section>
+  <section id="ai-audit-section" class="side-panel">
+    <h2>AI 紀錄</h2>
+    <p class="section-help">已套用的 AI 變更，必要時可回復。</p>
+    <div id="ai-audit-list"></div>
+  </section>
+  <section id="chat-progress" class="side-panel" data-name="執行中進度" role="status" hidden>
+    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.png" alt="" aria-hidden="true"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
+    <ol id="chat-progress-list"></ol>
+  </section>
+  <section id="chat-section" class="side-panel">
+    <h2>AI 對話</h2>
+    <p class="section-help">和目前這面牆的 AI 對話；修改仍會先變成提案。</p>
     <div id="chat-messages" role="log" aria-live="polite"></div>
-    <div id="chat-progress" role="status" hidden>
-      <div id="chat-progress-head"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
-      <ol id="chat-progress-list"></ol>
-    </div>
+  </section>
+  <section id="chat-input-panel" class="side-panel" data-name="輸入框">
     <form id="chat-form">
       <textarea id="chat-input" maxlength="12000" placeholder="請輸入給 AI 的訊息" aria-label="AI 訊息"></textarea>
       <div class="row chat-actions"><button id="chat-send" class="on">送出</button></div>
     </form>
     <div id="chat-status" role="status"></div>
   </section>
-  <section id="ai-section">
-    <h2>AI 提案 <span id="ai-pending-count">(0)</span></h2>
-    <p class="section-help">逐項檢視並套用 AI 提出的變更。</p>
-    <label class="ai-toggle"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label>
-    <div id="ai-proposal-list"></div>
+  <section id="chat-mascot-panel" class="side-panel" data-name="立繪">
+    <img id="chat-mascot" src="/assets/avatars/claude-body-sleep.png" alt="" aria-hidden="true">
   </section>
 </aside>
 <button id="toggle-sidebar" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="收合 AI 對話側欄" title="收合 AI 對話側欄">‹</button>
@@ -1159,7 +1179,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order';
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
 const colorOf = c => COLORS[c.color] ? c.color : c.kind === 'note' ? 'amber' : 'slate';
 let cardStyle = 'tech';
@@ -1316,7 +1336,7 @@ const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), ghostSvg = $('#prop
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
-let chatClient = 'claude', chatClients = new Map(), chatBusy = false, chatSeq = 0, chatProgressTimer = 0, chatProgressStarted = 0, chatProgressLines = [], chatStopRequested = false;
+let chatClient = 'claude', chatClients = new Map(), chatBusy = false, chatSeq = 0, chatProgressTimer = 0, chatProgressStarted = 0, chatProgressLines = [], chatStopRequested = false, chatMessages = [];
 let view = {s: 1, x: 0, y: 0}, curType = 'builds', selCard = null, selEdge = null, drag = null, tempLine = null, uid = Date.now();
 let lastJSON = JSON.stringify(data), lastChange = -Infinity;
 let initialJSON;
@@ -3488,6 +3508,71 @@ let savedSidebar = null, savedWidth = null;
 try { savedSidebar = localStorage.getItem(SIDEBAR_KEY); savedWidth = localStorage.getItem(SIDEBAR_W_KEY); } catch {}
 showSidebar(savedSidebar !== '0');
 setSidebarWidth(Number(savedWidth) || 300);
+// Row heights come from each panel's native resize grip; remember the ones the user set.
+const sidebar = $('#sidebar');
+const sidePanels = [...sidebar.children].filter(panel => panel.matches('.side-panel'));
+const defaultSidePanelOrder = sidePanels.map(panel => panel.id);
+const normalizeSidePanelOrder = order => {
+  const seen = new Set();
+  return [...(Array.isArray(order) ? order : []), ...defaultSidePanelOrder].filter(id => defaultSidePanelOrder.includes(id) && !seen.has(id) && seen.add(id));
+};
+function saveSidePanelOrder() {
+  const order = [...sidebar.children].filter(panel => panel.matches('.side-panel')).map(panel => panel.id);
+  try { localStorage.setItem(SIDE_PANEL_ORDER_KEY, JSON.stringify(order)); } catch {}
+}
+function moveSidePanel(panel, direction) {
+  const panels = [...sidebar.children].filter(item => item.matches('.side-panel'));
+  const target = panels[panels.indexOf(panel) + direction];
+  if (!target) return false;
+  sidebar.insertBefore(panel, direction < 0 ? target : target.nextElementSibling);
+  saveSidePanelOrder();
+  return true;
+}
+let savedSidePanelOrder = null;
+try { savedSidePanelOrder = JSON.parse(localStorage.getItem(SIDE_PANEL_ORDER_KEY)); } catch {}
+const panelsById = new Map(sidePanels.map(panel => [panel.id, panel]));
+for (const id of normalizeSidePanelOrder(savedSidePanelOrder)) sidebar.append(panelsById.get(id));
+const sidePanelName = panel => panel.dataset.name || panel.querySelector('h2').firstChild.textContent.trim();
+for (const panel of sidePanels) {
+  const handle = document.createElement('button'), name = sidePanelName(panel);
+  handle.type = 'button'; handle.className = 'side-panel-drag'; handle.textContent = '⋮⋮';
+  handle.title = `拖曳調整「${name}」順序`; handle.setAttribute('aria-label', handle.title);
+  handle.onkeydown = ev => {
+    const direction = {ArrowUp: -1, ArrowDown: 1}[ev.key];
+    if (!direction) return;
+    ev.preventDefault(); moveSidePanel(panel, direction); handle.focus();
+  };
+  panel.prepend(handle);
+}
+let sidePanelDrag = null, sidePanelDragged = false;
+sidebar.onpointerdown = ev => {
+  const handle = ev.target.closest('.side-panel-drag');
+  sidePanelDrag = null; sidePanelDragged = false;
+  if (!handle || ev.button !== 0) return;
+  sidePanelDrag = {panel: handle.closest('.side-panel'), sy: ev.clientY};
+};
+sidebar.onpointermove = ev => {
+  if (!sidePanelDrag || (!sidePanelDragged && Math.abs(ev.clientY - sidePanelDrag.sy) < 5)) return;
+  if (!sidePanelDragged) sidebar.setPointerCapture(ev.pointerId);
+  sidePanelDragged = true;
+  ev.preventDefault();
+  sidePanelDrag.panel.classList.add('dragging');
+  const over = [...sidebar.children].filter(panel => panel.matches('.side-panel') && panel !== sidePanelDrag.panel && !panel.hidden)
+    .find(panel => ev.clientY < panel.getBoundingClientRect().top + panel.offsetHeight / 2);
+  if (over !== sidePanelDrag.panel.nextElementSibling) sidebar.insertBefore(sidePanelDrag.panel, over || null);
+};
+sidebar.onpointerup = sidebar.onpointercancel = () => {
+  if (!sidePanelDrag) return;
+  sidePanelDrag.panel.classList.remove('dragging');
+  sidePanelDrag = null;
+  if (sidePanelDragged) saveSidePanelOrder();
+};
+try { for (const [id, height] of Object.entries(JSON.parse(localStorage.getItem(SIDE_PANELS_KEY)) || {})) { const p = document.getElementById(id); if (p) p.style.height = height; } } catch {}
+const panelHeights = new ResizeObserver(() => {
+  const heights = Object.fromEntries(sidePanels.filter(p => p.style.height).map(p => [p.id, p.style.height]));
+  try { localStorage.setItem(SIDE_PANELS_KEY, JSON.stringify(heights)); } catch {}
+});
+for (const p of sidePanels) panelHeights.observe(p);
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
@@ -3585,8 +3670,19 @@ function chatProgressEvent(type, value) {
   if (type === 'stopped') { chatStopRequested = true; chatStatus('已停止'); }
   if (type === 'failed' && value?.error) chatStatus('錯誤：' + value.error, true);
 }
+function updateChatMascot() {
+  const last = chatMessages[chatMessages.length - 1];
+  const running = chatBusy && !$('#chat-progress').hidden;
+  const mood = running ? 'thinking'
+    : !chatMessages.length ? 'sleep'
+    : last.status === 'stopped' || last.error ? 'sweat'
+    : last.role === 'assistant' ? 'happy'
+    : 'idle';
+  $('#chat-mascot').src = `/assets/avatars/${chatClient}-body-${mood}.png`;
+}
 function updateChatControls() {
   const info = chatClients.get(chatClient), enabled = !!currentWall && !!info?.available && !chatBusy;
+  $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.png`;
   $('#chat-input').disabled = !enabled;
   $('#chat-send').disabled = !enabled;
   $('#chat-new').disabled = !enabled;
@@ -3595,23 +3691,32 @@ function updateChatControls() {
   $('#chat-stop').disabled = !chatBusy || chatStopRequested;
   const state = $('#chat-client-state');
   state.textContent = info?.available ? '' : '此客戶端無法使用，請確認已安裝並登入。';
+  updateChatMascot();
 }
 function renderChat(history) {
   const list = $('#chat-messages');
+  const messages = chatMessages = history?.messages || [];
   list.replaceChildren();
-  for (const message of history?.messages || []) {
+  for (const [index, message] of messages.entries()) {
     const kind = message.status === 'stopped' ? 'stopped' : message.error ? 'error' : message.role === 'user' ? 'user' : 'assistant';
     const side = message.role === 'user' ? 'user' : 'ai';
     const line = mk('div', 'chat-line ' + side), bubble = mk('div', 'chat-message ' + kind);
     bubble.append(mk('small', '', message.status === 'stopped' ? '已停止' : message.error ? '錯誤' : message.role === 'user' ? '你' : (chatClients.get(chatClient)?.name || 'AI')));
     if (message.error || message.role === 'user') bubble.append(document.createTextNode(message.error || message.text));
     else bubble.append(renderNote(message.text));
-    // ponytail: avatar slot shows "AI" until a chibi image exists; set --ai-avatar to its url() to use it.
-    if (side === 'ai') line.append(mk('div', 'chat-avatar', 'AI'));
+    if (side === 'ai') {
+      const mood = message.status === 'stopped' || message.error ? 'sweat' : index === messages.length - 1 ? 'happy' : 'idle';
+      const avatar = mk('img', 'chat-avatar');
+      avatar.src = `/assets/avatars/${chatClient}-${mood}.png`;
+      avatar.alt = '';
+      avatar.setAttribute('aria-hidden', 'true');
+      line.append(avatar);
+    }
     line.append(bubble);
     list.append(line);
   }
   list.scrollTop = list.scrollHeight;
+  updateChatMascot();
 }
 async function loadChatHistory() {
   if (!currentWall || !chatClients.size) return;
@@ -3650,6 +3755,7 @@ async function refreshChatClients() {
 $('#chat-client').onchange = () => {
   if (chatBusy) return;
   chatClient = $('#chat-client').value;
+  chatMessages = [];
   chatStatus('');
   updateChatControls();
   loadChatHistory();

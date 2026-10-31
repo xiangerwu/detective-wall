@@ -205,31 +205,60 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await openSidebar(page);
     await page.waitForFunction(() => document.querySelector('#chat-client')?.options.length === 2);
     await page.selectOption('#chat-client', 'claude');
+    await page.click('#chat-new');
+    await page.waitForFunction(() => document.querySelectorAll('#chat-messages .chat-message').length === 0);
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/claude-body-sleep\.png$/);
+    assert.ok(await page.locator('#chat-mascot').evaluate(img => img.complete && img.naturalWidth > 0));
+    await page.fill('#chat-input', 'warmup');
+    await page.click('#chat-send');
+    await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
+      && [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('warmup')));
     await page.fill('#chat-input', 'UI message');
     await page.click('#chat-send');
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
+    await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
+      && document.querySelector('#chat-mascot')?.getAttribute('src').endsWith('/assets/avatars/claude-body-happy.png'));
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/claude-body-happy\.png$/);
+    const claudeAvatars = page.locator('#chat-messages .chat-line.ai .chat-avatar');
+    assert.ok(await claudeAvatars.count() >= 2);
+    assert.match(await claudeAvatars.first().getAttribute('src'), /\/assets\/avatars\/claude-idle\.png$/);
+    assert.match(await claudeAvatars.last().getAttribute('src'), /\/assets\/avatars\/claude-happy\.png$/);
+    assert.equal(await claudeAvatars.last().getAttribute('alt'), '');
+    await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-avatar')].every(img => img.complete && img.naturalWidth === 128));
     await page.reload();
     await page.waitForFunction(() => window.wallReady === true);
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
     await page.fill('#chat-input', 'fail');
     await page.click('#chat-send');
     await page.waitForFunction(() => document.querySelector('#chat-status.error')?.textContent.includes('fake CLI failure'));
+    await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
+      && document.querySelector('#chat-mascot')?.getAttribute('src').endsWith('/assets/avatars/claude-body-sweat.png'));
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/claude-body-sweat\.png$/);
+    await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-line.ai .chat-avatar')].at(-1)?.getAttribute('src').endsWith('/assets/avatars/claude-sweat.png'));
     await page.fill('#chat-input', 'progress sleep');
     await page.click('#chat-send');
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/claude-body-thinking\.png$/);
+    assert.ok(await page.locator('#chat-mascot').evaluate(img => img.complete && img.naturalWidth > 0));
+    assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/claude-thinking\.png$/);
     assert.deepEqual(await page.locator('#chat-progress-list li').allTextContents(), [
       '讀取 README.md', '搜尋卡片：方法', '送出提案（41 項）',
     ]);
     await page.screenshot({path: path.join(out, 'chat-progress.png')});
     await page.waitForFunction(() => document.querySelector('#chat-progress').hidden);
     await page.selectOption('#chat-client', 'codex');
+    await page.waitForFunction(() => document.querySelector('#chat-mascot')?.getAttribute('src').includes('/assets/avatars/codex-body-'));
     await page.fill('#chat-input', 'progress sleep');
     await page.click('#chat-send');
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/codex-body-thinking\.png$/);
+    assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/codex-thinking\.png$/);
     assert.deepEqual(await page.locator('#chat-progress-list li').allTextContents(), [
       '讀取 README.md', '搜尋卡片：方法', '送出提案（41 項）',
     ]);
     await page.waitForFunction(() => document.querySelector('#chat-progress').hidden);
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/codex-body-happy\.png$/);
+    assert.match(await page.locator('#chat-messages .chat-line.ai .chat-avatar').last().getAttribute('src'), /\/assets\/avatars\/codex-happy\.png$/);
     await page.selectOption('#chat-client', 'claude');
 
     await page.fill('#chat-input', 'stop');
@@ -237,6 +266,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     await page.click('#chat-stop');
     await page.waitForFunction(() => document.querySelector('#chat-status')?.textContent === '已停止');
+    await page.waitForFunction(() => document.querySelector('#chat-mascot')?.getAttribute('src').endsWith('/assets/avatars/claude-body-sweat.png'));
+    assert.match(await page.locator('#chat-mascot').getAttribute('src'), /\/assets\/avatars\/claude-body-sweat\.png$/);
     const stoppedHistory = (await request('/api/chat/chat-wall?client=claude')).body;
     assert.equal(stoppedHistory.messages.at(-1).status, 'stopped');
     console.log('PASS UI streams mapped tool progress, captures a progress screenshot, and stops with persisted status');

@@ -106,7 +106,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const payload = '<img src=x onerror=alert(1)>';
     await page.fill(input, payload);
     const visiblePayload = [...payload].slice(0, 11).join('') + '…';
-    ok(await page.textContent(text) === visiblePayload && await page.locator('img:not(#chat-section img)').count() === 0 && dialogs.length === 0, 'HTML-like label renders truncated text only');
+    ok(await page.textContent(text) === visiblePayload && await page.locator('img:not(#sidebar img)').count() === 0 && dialogs.length === 0, 'HTML-like label renders truncated text only');
     await page.press(input, 'Escape');
     await openActivity(page, 'theme');
     for (const theme of ['moon', 'whiteboard', 'wood', 'paper', 'cyber']) {

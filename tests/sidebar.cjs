@@ -17,8 +17,29 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await page.isVisible('#sidebar') && Math.round(side.x + side.width) === 1400 && await page.getAttribute('#toggle-sidebar', 'aria-expanded') === 'true', 'sidebar open by default on the right');
     for (const id of ['export', 'export-canvas', 'import', 'reset'])
       if (!await page.locator('#activity-panel #' + id).count()) ok(false, id + ' is in the files activity panel');
-    ok(await page.locator('#sidebar > section').count() === 2 && await page.locator('#sidebar #chat-section').count() === 1
-      && await page.locator('#sidebar #ai-section').count() === 1 && !(await page.locator('#sidebar #export').count()), 'right sidebar contains only AI conversation and proposals');
+    ok(JSON.stringify(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id))) === JSON.stringify(['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel', 'chat-mascot-panel'])
+      && !(await page.locator('#sidebar #export').count()), 'right sidebar rows run model, proposals, audit, progress, conversation, input, image');
+    ok(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(p => getComputedStyle(p).resize === 'vertical')), 'every sidebar row has a vertical resize grip');
+    await page.evaluate(() => { $('#chat-section').style.height = '150px'; $('#chat-mascot-panel').style.height = '200px'; });
+    await page.waitForTimeout(100);
+    await page.reload(); await ready(page);
+    ok(await page.evaluate(() => $('#chat-section').offsetHeight === 150), 'a row height set with its grip survives reload');
+    ok(await page.evaluate(() => { const panel = $('#chat-mascot-panel'), img = $('#chat-mascot'); return panel.offsetHeight >= 200 && Math.abs(img.offsetHeight - panel.clientHeight) <= 2 * parseFloat(getComputedStyle(panel).paddingTop || 0) + 2; }), 'the image scales to its row height');
+    await page.evaluate(() => { $('#chat-section').style.height = $('#chat-mascot-panel').style.height = ''; localStorage.removeItem('thesis-detective-wall-side-panel-heights'); });
+    const panelOrderKey = 'thesis-detective-wall-side-panel-order';
+    ok(await page.locator('#sidebar > .side-panel > .side-panel-drag').count() === 7
+      && await page.locator('#sidebar > .side-panel > .side-panel-drag').evaluateAll(handles => handles.every(handle => handle.title.includes('拖曳調整') && handle.getAttribute('aria-label').includes('拖曳調整'))), 'every sidebar row has a labelled order handle');
+    const source = await page.locator('#ai-section .side-panel-drag').boundingBox(), target = await page.locator('#chat-client-panel').boundingBox();
+    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2); await page.mouse.down();
+    await page.mouse.move(target.x + target.width / 2, target.y + 1, {steps: 5}); await page.mouse.up();
+    const draggedOrder = await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id));
+    ok(draggedOrder[0] === 'ai-section' && draggedOrder[1] === 'chat-client-panel', 'dragging a row handle moves it before another row');
+    await page.reload(); await ready(page);
+    ok((await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id))).slice(0, 2).join(',') === 'ai-section,chat-client-panel', 'row order survives reload');
+    await page.focus('#ai-section .side-panel-drag'); await page.keyboard.press('ArrowDown');
+    ok((await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id))).slice(0, 2).join(',') === 'chat-client-panel,ai-section'
+      && await page.evaluate(() => document.activeElement === $('#ai-section .side-panel-drag')), 'arrow key moves a row and keeps focus on its handle');
+    await page.evaluate(key => localStorage.removeItem(key), panelOrderKey);
     ok(await page.locator('#activitybar button').count() === 7 && await page.locator('#activitybar button[title][aria-label]').count() === 7
       && await page.locator('#activitybar svg').count() === 7, 'activity bar has seven titled, labelled inline SVG icons');
 
