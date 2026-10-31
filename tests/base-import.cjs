@@ -84,8 +84,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
 
   // invalid file
   const fbad = path.join(OUT, 'bad.json'); fs.writeFileSync(fbad, '{"foo":1}');
-  await page.setInputFiles('#import-file', fbad); await page.waitForFunction(() => /不是偵探牆/.test(document.querySelector('#import').textContent));
-  ok(!(await page.isVisible('#importer')) && /不是偵探牆/.test(await page.textContent('#import')), 'invalid JSON rejected');
+  await page.setInputFiles('#import-file', fbad); await page.waitForFunction(() => /不是案件圖譜/.test(document.querySelector('#import').textContent));
+  ok(!(await page.isVisible('#importer')) && /不是案件圖譜/.test(await page.textContent('#import')), 'invalid JSON rejected');
 
   ok(errs.length === 0, 'no page errors ' + errs.join('; '));
   await b.close();

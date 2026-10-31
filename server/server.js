@@ -127,9 +127,9 @@ function tomlTable(values) {
 
 function chatSystemPrompt(wall) {
   return [
-    '你是偵探牆的助手。',
+    '你是案件圖譜（CaseGraph）的助手。',
     `目前協助的牆是「${wall.name}」（牆 ID：${wall.id}）。`,
-    '只能透過偵探牆 MCP 工具讀取這面牆、提出修改。',
+    '只能透過案件圖譜 MCP 工具讀取這面牆、提出修改。',
     '修改一律使用 propose_changes 提出待審提案，不會直接生效。',
     '引用卡片時請附上 MCP 回傳的 ref。',
     '請清楚區分「牆上記載」和「你的推論」。',

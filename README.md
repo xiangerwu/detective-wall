@@ -1,4 +1,4 @@
-# 論文偵探牆 / Detective Wall
+# CaseGraph 案件圖譜
 
 **繁體中文** | [English](README.en.md)
 
@@ -14,6 +14,10 @@
 - **Firefox**：主要驗證的瀏覽器。
 - **CLI（選用）**：測試過 Claude Code 2.1.314、codex-cli 0.153.4；較舊版本可能不認得本專案使用的旗標。
 - 選用，要讓 AI 幫忙時才需要：已登入的 [Claude Code](https://claude.com/claude-code) 或 codex CLI，至少一個。
+
+最快的方式：Windows 雙擊 `start.cmd`；macOS／Linux 執行 `./start.sh`。腳本會檢查 Node 版本、第一次自動安裝套件、啟動服務並打開瀏覽器。
+
+也可以手動執行：
 
 ```sh
 npm install
@@ -73,7 +77,7 @@ AI 不會直接改你的牆：它只能**提出修改**，由你逐項勾選套�
 
 ### 用其他 AI 客戶端（選用）
 
-任何支援 MCP 的客戶端（例如另開一個 Claude Code session）都能連上偵探牆：
+任何支援 MCP 的客戶端（例如另開一個 Claude Code session）都能連上案件圖譜：
 
 ```json
 {
@@ -133,7 +137,7 @@ WALL_DB=/path/to/my-research/wall.db npm start
 ## 安全與限制
 
 - 服務只綁 127.0.0.1，並拒絕其他網站送來的請求。
-- AI 只能透過偵探牆工具讀取**目前這面牆**和**你授權的資料夾**，不能執行 shell、不能用 CLI 自己的讀檔或上網工具。
+- AI 只能透過案件圖譜工具讀取**目前這面牆**和**你授權的資料夾**，不能執行 shell、不能用 CLI 自己的讀檔或上網工具。
 - 授權資料夾的限制：
   - 不能用 `..` 或符號連結跳出授權範圍，也不讀網路共用路徑。
   - 只讀文字檔，單檔上限 1 MiB。

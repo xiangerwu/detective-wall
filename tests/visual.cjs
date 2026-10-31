@@ -232,7 +232,8 @@ async function themeStyles(page, theme) {
     assert.equal(await page.evaluate(async () => (await store.getMeta('sourceFolders')).length), 1);
     await reload(page);
     await openActivity(page, 'sources');
-    assert.equal(await page.locator('#source-folder-list .source-folder-row').count(), 1);
+    // the folder list loads from the server after the panel opens
+    await page.waitForFunction(() => document.querySelectorAll('#source-folder-list .source-folder-row').length === 1);
     await page.fill('#source-folders', folder);
     await page.click('#source-folders-add');
     assert.match(await page.textContent('#source-folders-status'), /已在清單/);

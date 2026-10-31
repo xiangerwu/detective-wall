@@ -470,7 +470,7 @@ function createMcpServer({store, proposalWriter, scope = parseWallScope(), port 
   const boardLimit = z.number().int().min(1).optional();
   const searchLimit = z.number().int().min(1).optional();
 
-  mcp.registerTool('list_boards', {description: 'List authorized detective walls.', annotations}, handler(() => ({boards: listBoards(store, scope)})));
+  mcp.registerTool('list_boards', {description: 'List authorized CaseGraph walls.', annotations}, handler(() => ({boards: listBoards(store, scope)})));
   mcp.registerTool('get_board', {
     description: 'Read one authorized wall with paginated cards and touching edges.',
     inputSchema: {wallId, cursor, limit: boardLimit}, annotations,

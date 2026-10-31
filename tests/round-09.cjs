@@ -235,7 +235,7 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
       {nodes: [null, node('bad', 'text', {x: null})]}, {nodes: {}}, null, '{bad JSON',
       '{"nodes":[{"id":"infinite","type":"text","x":1e999,"y":0,"text":"bad"}]}']) {
       await upload(external, value);
-      await external.waitForFunction(() => document.querySelector('#import').textContent === '不是偵探牆或 Canvas 檔');
+      await external.waitForFunction(() => document.querySelector('#import').textContent === '不是案件圖譜或 Canvas 檔');
       assert.equal(await external.isVisible('#importer'), false);
       assert.deepEqual(await external.evaluate(() => data), unchanged);
     }

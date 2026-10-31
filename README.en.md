@@ -1,4 +1,4 @@
-# Detective Wall
+# CaseGraph
 
 [繁體中文](README.md) | **English**
 
@@ -14,6 +14,10 @@ Requirements:
 - **Firefox**: the primary validation browser.
 - **CLI (optional)**: tested with Claude Code 2.1.314 and codex-cli 0.153.4; older versions may not recognize the flags used here.
 - Optional, only needed when having AI help: a logged-in [Claude Code](https://claude.com/claude-code) or codex CLI, at least one.
+
+Quickest: on Windows double-click `start.cmd`; on macOS/Linux run `./start.sh`. The script checks the Node version, installs packages on the first run, starts the service and opens the browser.
+
+Or run it by hand:
 
 ```sh
 npm install
@@ -73,7 +77,7 @@ Ask directly in the right sidebar 「AI 對話」(AI conversation), for example,
 
 ### Using other AI clients (optional)
 
-Any MCP-compatible client (for example, another Claude Code session) can connect to Detective Wall:
+Any MCP-compatible client (for example, another Claude Code session) can connect to CaseGraph:
 
 ```json
 {
@@ -133,7 +137,7 @@ WALL_DB=/path/to/my-research/wall.db npm start
 ## Security and limitations
 
 - The service binds only to 127.0.0.1 and rejects requests sent by other websites.
-- AI can read only **the current board** and **the folders you authorized** through Detective Wall tools; it cannot execute shell commands or use the CLI's own file-reading or web tools.
+- AI can read only **the current board** and **the folders you authorized** through CaseGraph tools; it cannot execute shell commands or use the CLI's own file-reading or web tools.
 - Authorized-folder restrictions:
   - It cannot use `..` or symlinks to escape the authorized scope, and does not read network shares.
   - Only text files are read, with a per-file limit of 1 MiB.

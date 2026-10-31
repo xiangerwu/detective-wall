@@ -17,14 +17,14 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const current = () => page.evaluate(() => currentWall.id);
 
     const header = await page.locator('header').boundingBox(), tab0 = await page.locator('.wall-tab').boundingBox();
-    ok(JSON.stringify(await names()) === '["論文偵探牆"]' && await page.getAttribute('.wall-tab', 'aria-selected') === 'true', 'one selected tab at startup');
+    ok(JSON.stringify(await names()) === '["案件圖譜"]' && await page.getAttribute('.wall-tab', 'aria-selected') === 'true', 'one selected tab at startup');
     ok(Math.abs(tab0.y + tab0.height - (header.y + header.height)) <= 2, 'tabs sit on the header bottom edge');
     ok(!(await page.isVisible('#storage-warning')) && await page.locator('#tabrow #storage-warning').count() === 1, 'storage warning shares the tab row');
 
     await page.click('#add-wall'); await settled(page);
     await page.click('#add-wall'); await settled(page);
     const [a, b, c] = await ids();
-    ok(JSON.stringify(await names()) === '["論文偵探牆","新的牆 1","新的牆 2"]' && await current() === c, '＋ appends a tab and switches to it');
+    ok(JSON.stringify(await names()) === '["案件圖譜","新的牆 1","新的牆 2"]' && await current() === c, '＋ appends a tab and switches to it');
     await chooseWall(page, a);
     ok(await current() === a && await page.getAttribute(`.wall-tab[data-id="${a}"]`, 'aria-selected') === 'true', 'clicking a tab switches walls');
 

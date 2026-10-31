@@ -21,12 +21,12 @@ const options = {viewport: {width: 1400, height: 900}, downloadsPath: OUT, timeo
     await page.goto(PAGE); await ready(page);
     ok(await page.evaluate(async d => {
       const saved = await store.getWall('w-main'), listed = await store.listWalls();
-      return currentWall.id === 'w-main' && currentWall.name === '論文偵探牆' && saved.data.cards[0].title === d.cards[0].title &&
+      return currentWall.id === 'w-main' && currentWall.name === '案件圖譜' && saved.data.cards[0].title === d.cards[0].title &&
         saved.data.bands.length === SEED.bands.length && saved.data.tags.length === 0 &&
         listed.length === 1 && Object.keys(listed[0]).sort().join(',') === 'id,name,updated' && Number.isFinite(listed[0].updated) &&
         await store.getMeta('currentWall') === 'w-main' && localStorage.getItem(KEY) === JSON.stringify(d);
     }, legacy), 'first run migrates legacy data and defaults into w-main, preserving the old localStorage key');
-    ok(await page.title() === '論文偵探牆｜論文偵探牆' && await page.isDisabled('#delete-wall') && !(await page.isVisible('#storage-warning')), 'startup renders title and protects the only wall without a storage warning');
+    ok(await page.title() === '案件圖譜｜CaseGraph 案件圖譜' && await page.isDisabled('#delete-wall') && !(await page.isVisible('#storage-warning')), 'startup renders title and protects the only wall without a storage warning');
     await page.evaluate(() => openPanel('legacy'));
     await page.fill('#f-title', '重新啟動後保留');
     await page.evaluate(() => store.getWall(currentWall.id));
@@ -64,7 +64,7 @@ const options = {viewport: {width: 1400, height: 900}, downloadsPath: OUT, timeo
     ok(await page.evaluate(() => currentWall.name === '新的牆 2'), 'new wall numbering avoids existing names');
     await choose(second);
     await renameWall(page, '研究 B');
-    ok(await page.title() === '研究 B｜論文偵探牆' && await page.locator('.wall-tab[aria-selected=true]').textContent() === '研究 B' &&
+    ok(await page.title() === '研究 B｜CaseGraph 案件圖譜' && await page.locator('.wall-tab[aria-selected=true]').textContent() === '研究 B' &&
       await page.evaluate(async () => (await store.getWall(currentWall.id)).name === '研究 B'), 'rename updates storage, tab and document title');
     await page.click('#add-card');
     await page.fill('#f-title', 'B 的卡片');
