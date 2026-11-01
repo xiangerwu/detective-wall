@@ -135,7 +135,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 #bg{position:absolute;background:var(--wall-bg)}
 .band{position:absolute;border-top:1px dashed var(--band-line);pointer-events:none}
 .band-label{position:absolute;left:14px;top:12px;font-size:16px;font-weight:700;line-height:1.35;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 30%,transparent);border-radius:4px;padding:2px 8px;transition:none;white-space:nowrap;pointer-events:auto;cursor:ns-resize;user-select:none;transform-origin:0 0;transform:scale(var(--inv,1))}
-#strings{position:absolute;z-index:1;pointer-events:none;overflow:visible}
+#strings,#strings-live{position:absolute;z-index:1;pointer-events:none;overflow:visible}
 #proposal-ghost-strings{position:absolute;z-index:3;pointer-events:none;overflow:visible}
 #proposal-ghosts{position:absolute;left:0;top:0;z-index:3;pointer-events:none}
 .proposal-ghost-card{position:absolute;width:200px;min-height:94px;padding:12px;background:color-mix(in srgb,var(--ui-accent) 20%,transparent);border:2px dashed var(--ui-accent);border-radius:6px;opacity:.62;overflow:hidden}
@@ -173,7 +173,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .card.review-mark-modified{outline:3px solid var(--ui-warning);outline-offset:4px}
 .card.review-mark-deleted{outline:3px solid var(--ui-danger-strong);outline-offset:4px;opacity:.72}
 .card.review-focus{outline-width:5px;outline-style:solid;outline-color:var(--ui-accent);outline-offset:6px}
-.card.dragging{z-index:5;cursor:grabbing;transform:rotate(var(--tilt))}
+.card.dragging{z-index:5;cursor:grabbing;transform:rotate(var(--tilt));will-change:transform}
 .card h3{margin:0 0 6px;padding-right:16px;font-size:15px;color:var(--c-title)}
 .card .fold{position:absolute;top:6px;right:5px;width:22px;height:22px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--c-title);font-size:12px;cursor:pointer;opacity:.75}
 .card .fold:hover{opacity:1;background:color-mix(in srgb,var(--c-top) 20%,transparent)}
@@ -247,7 +247,6 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #anchor-nav button[data-anchor-filter=true][aria-pressed=true]{border-color:var(--ui-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 30%,transparent)}
 .anchor-group{display:flex;flex-direction:column;gap:3px}
 .anchor-group h3{margin:3px 0 0;color:var(--band-label-ink);font-size:11px;font-weight:600}
-.anchor-button-label{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #pick-toolbar{position:absolute;z-index:10;display:flex;gap:4px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 8px 24px var(--ui-shadow);white-space:nowrap}
 #pick-toolbar button{font-size:12px;padding:4px 8px}
 #card-menu{position:fixed;z-index:45;display:flex;flex-direction:column;gap:2px;min-width:132px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 10px 30px var(--ui-shadow)}
@@ -472,7 +471,6 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
 #f-tag-list{position:absolute;z-index:20;top:100%;left:0;right:0;display:flex;flex-direction:column;gap:2px;margin-top:2px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-sm);box-shadow:0 10px 24px var(--ui-shadow-soft)}
 #f-tag-list [role=option]{padding:6px 8px;text-align:left;border:0;background:transparent;color:var(--ui-text)}
 #f-tag-list [role=option]:hover,#f-tag-list [role=option]:focus-visible{background:var(--ui-hover)}
-.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 
 /* P15: shared chrome tokens keep controls and floating panels visually aligned. */
 input:not([type=checkbox]):not([type=radio]),select,textarea,
@@ -726,6 +724,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <div id="wall">
     <div id="bg"></div>
     <svg id="strings"></svg>
+    <svg id="strings-live" aria-hidden="true"></svg>
     <div id="edge-handles" class="edge-handle-layer" aria-hidden="true"></div>
     <svg id="proposal-ghost-strings" aria-hidden="true"></svg>
     <div id="proposal-ghosts" aria-hidden="true"></div>
@@ -789,7 +788,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <div id="ai-audit-list"></div>
   </section>
   <section id="chat-progress" class="side-panel" data-name="執行中進度" role="status" hidden>
-    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.png" alt="" aria-hidden="true" decoding="async"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
+    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.webp" alt="" aria-hidden="true" decoding="async"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
     <ol id="chat-progress-list"></ol>
   </section>
   <section id="chat-section" class="side-panel" data-name="AI 對話">
@@ -807,9 +806,9 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </aside>
 <div id="mascot" aria-label="AI 桌寵">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
-  <img id="mascot-image" src="/assets/avatars/claude-body-sleep.png" alt="AI 桌寵（可拖曳）" decoding="async">
-  <img id="mascot-blink" src="/assets/avatars/claude-body-blink.png" alt="" aria-hidden="true" decoding="async">
-  <img id="mascot-transition" src="/assets/avatars/claude-body-sleep.png" alt="" aria-hidden="true" decoding="async">
+  <img id="mascot-image" src="/assets/avatars/claude-body-sleep.webp" alt="AI 桌寵（可拖曳）" decoding="async">
+  <img id="mascot-blink" src="/assets/avatars/claude-body-blink.webp" alt="" aria-hidden="true" decoding="async">
+  <img id="mascot-transition" src="/assets/avatars/claude-body-sleep.webp" alt="" aria-hidden="true" decoding="async">
   <button id="mascot-resize" type="button" aria-label="調整桌寵大小" title="調整桌寵大小"></button>
 </div>
 <button id="toggle-sidebar" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="收合 AI 對話側欄" title="收合 AI 對話側欄">‹</button>
@@ -1471,7 +1470,7 @@ const BUILTIN_TEMPLATES = [
 ];
 
 const $ = s => document.querySelector(s);
-const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
+const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
@@ -1569,6 +1568,8 @@ function applyView() {
   Object.assign(bg.style, box, {backgroundPosition: `${-L}px ${-T}px`});  // pattern stays anchored to the wall
   Object.assign(svg.style, box);
   svg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
+  Object.assign(liveSvg.style, box);
+  liveSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   Object.assign(ghostSvg.style, box);
   ghostSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   for (const b of wall.querySelectorAll('.band')) Object.assign(b.style, {left: box.left, width: box.width});
@@ -1743,7 +1744,7 @@ function cardHeight(c, el) {
 }
 function cardBox(c, el) {
   const element = el || wall.querySelector(`.card[data-id="${CSS.escape(c.id)}"]`);
-  const width = element?.offsetWidth || cardW(c), height = cardHeight(c, element);
+  const size = cardSizes.get(c.id), width = size?.width || element?.offsetWidth || cardW(c), height = size?.height || cardHeight(c, element);
   return {x: c.x, y: c.y, width, height, cx: c.x + width / 2, cy: c.y + height / 2};
 }
 function pointAt(c, at, box = cardBox(c)) {
@@ -1813,6 +1814,7 @@ function renderNote(note) {
   return el;
 }
 
+const cardElements = new Map(), cardSizes = new Map();
 const imageURLs = new Map();
 function renderImage(c) {
   const holder = mk('span', 'image-missing', '圖片載入中');
@@ -1841,6 +1843,7 @@ function renderImage(c) {
   return holder;
 }
 function renderCards() {
+  cardElements.clear(); cardSizes.clear();
   wall.querySelectorAll('.card').forEach(n => n.remove());
   for (const c of data.cards) {
     const photo = typeof c.image === 'string' && !(c.note || '').trim();
@@ -1910,6 +1913,11 @@ function renderCards() {
       el.append(fold);
     }
     wall.append(el);
+    cardElements.set(c.id, el);
+  }
+  for (const c of data.cards) {
+    const el = cardElements.get(c.id);
+    if (el && typeof c.image !== 'string') cardSizes.set(c.id, {width: el.offsetWidth, height: el.offsetHeight});
   }
   const displayed = new Set(data.cards.map(c => c.image));
   for (const [id, entry] of imageURLs) if (!displayed.has(id)) {
@@ -1961,6 +1969,10 @@ function curve(a, b, extra = 0) {
   return {d: `M${a.x} ${a.y} Q${cx} ${cy} ${b.x} ${b.y}`,
     x: 0.25 * a.x + 0.5 * cx + 0.25 * b.x, y: 0.25 * a.y + 0.5 * cy + 0.25 * b.y};
 }
+function edgeLabelMetrics(value) {
+  const chars = [...value], visible = chars.length > 12 ? chars.slice(0, 11).join('') + '…' : value;
+  return {visible, width: Math.max(32, [...visible].reduce((sum, ch) => sum + (ch.codePointAt(0) > 0x2e80 ? 12.5 : 7), 0) + 14)};
+}
 function mkPath(cls, d, type, weight) {
   const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   p.setAttribute('class', cls);
@@ -1976,29 +1988,88 @@ function mkPath(cls, d, type, weight) {
   }
   return p;
 }
-function renderStrings() {
+const stringNodes = new Map();
+function renderStrings(changedCards = null, changedEdges = null) {
+  const cardsById = new Map(data.cards.map(card => [card.id, card]));
+  const boxes = new Map();
+  const rectFor = card => {
+    let box = boxes.get(card.id);
+    if (!box) {
+      box = cardBox(card, cardElements.get(card.id));
+      boxes.set(card.id, box);
+    }
+    return box;
+  };
+  const autoMap = autoEndpointMap(data.edges, data.cards, rectFor);
+  const incremental = changedCards || changedEdges;
+  const needsUpdate = edge => !incremental || changedEdges?.has(edge.id) || changedCards?.has(edge.from) || changedCards?.has(edge.to);
+  const renderHandles = () => {
+    edgeHandles.replaceChildren();
+    if (!selEdge) return;
+    const edge = data.edges.find(value => value.id === selEdge);
+    if (!edge) return;
+    for (const end of ['from', 'to']) {
+      const endpoint = edgeEndpoint(edge, end, autoMap, cardsById, rectFor);
+      if (!endpoint) continue;
+      const handle = mk('button', 'edge-handle');
+      handle.type = 'button'; handle.dataset.edgeId = edge.id; handle.dataset.end = end;
+      handle.title = `${end === 'from' ? '起點' : '終點'}接點`;
+      handle.ariaLabel = handle.title;
+      Object.assign(handle.style, {left: endpoint.point.x + 'px', top: endpoint.point.y + 'px'});
+      edgeHandles.append(handle);
+    }
+  };
+
+  if (incremental) {
+    for (const e of data.edges) {
+      if (!needsUpdate(e)) continue;
+      const existing = stringNodes.get(e.id), a = cardsById.get(e.from), b = cardsById.get(e.to);
+      if (!existing || !a || !b || !TYPES[e.type]) return renderStrings();
+      const from = edgeEndpoint(e, 'from', autoMap, cardsById, rectFor), to = edgeEndpoint(e, 'to', autoMap, cardsById, rectFor);
+      if (!from || !to) return renderStrings();
+      const {d, x, y} = curve(from.point, to.point, spring[e.id]?.s || 0);
+      existing.line.setAttribute('d', d);
+      existing.hit.setAttribute('d', d);
+      if (e.label) {
+        if (!existing.labelGroup) return renderStrings();
+        const {visible, width} = edgeLabelMetrics(e.label);
+        existing.labelGroup.setAttribute('aria-label', e.label);
+        existing.labelBox.setAttribute('x', x - width / 2);
+        existing.labelBox.setAttribute('y', y - 10);
+        existing.labelBox.setAttribute('width', width);
+        existing.labelText.setAttribute('x', x);
+        existing.labelText.setAttribute('y', y);
+        existing.labelText.textContent = visible;
+        existing.labelText.setAttribute('title', e.label);
+      } else if (existing.labelGroup) return renderStrings();
+    }
+    renderHandles();
+    return;
+  }
+
   const nodes = [];
-  const autoMap = autoEndpointMap();
+  stringNodes.clear();
   for (const e of data.edges) {
-    const a = byId(e.from), b = byId(e.to);
+    const a = cardsById.get(e.from), b = cardsById.get(e.to);
     if (!a || !b || !TYPES[e.type]) continue;
-    const from = edgeEndpoint(e, 'from', autoMap), to = edgeEndpoint(e, 'to', autoMap);
+    const from = edgeEndpoint(e, 'from', autoMap, cardsById, rectFor), to = edgeEndpoint(e, 'to', autoMap, cardsById, rectFor);
     if (!from || !to) continue;
     const {d, x, y} = curve(from.point, to.point, spring[e.id]?.s || 0);
+    const line = mkPath('str' + (e.id === selEdge ? ' sel' : '') + (reviewEdgeMarks.has(e.id) ? ' review-edge' : '') + (isDim(a) || isDim(b) ? ' dim' : ''), d, e.type, e.weight);
+    line.dataset.id = e.id;
     const hit = mkPath('hit', d);
     hit.dataset.id = e.id;
-    const dim = isDim(a) || isDim(b) ? ' dim' : '';
-    nodes.push(mkPath('str' + (e.id === selEdge ? ' sel' : '') + (reviewEdgeMarks.has(e.id) ? ' review-edge' : '') + dim, d, e.type, e.weight), hit);
+    const existing = {line, hit, labelGroup: null, labelBox: null, labelText: null};
+    nodes.push(line, hit);
     if (e.label) {
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const dim = isDim(a) || isDim(b) ? ' dim' : '';
       group.setAttribute('class', 'str-label-group' + dim);
       group.dataset.id = e.id;
       group.setAttribute('aria-label', e.label);
       group.style.setProperty('--label-color', `var(--${e.type})`);
-      const text = [...e.label];
-      const visible = text.length > 12 ? text.slice(0, 11).join('') + '…' : e.label;
+      const {visible, width} = edgeLabelMetrics(e.label);
       // ponytail: estimated 12px glyph widths (CJK full width, Latin ~7px); measure with getBBox if fonts change.
-      const width = Math.max(32, [...visible].reduce((sum, ch) => sum + (ch.codePointAt(0) > 0x2e80 ? 12.5 : 7), 0) + 14);
       const box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       box.setAttribute('class', 'str-label-bg');
       box.setAttribute('x', x - width / 2);
@@ -2016,23 +2087,21 @@ function renderStrings() {
       label.setAttribute('title', e.label);
       group.append(box, label);
       nodes.push(group);
+      existing.labelGroup = group; existing.labelBox = box; existing.labelText = label;
     }
+    stringNodes.set(e.id, existing);
   }
   if (tempLine) nodes.push(mkPath('str', tempLine, curType));
+  liveSvg.replaceChildren();
   svg.replaceChildren(...nodes);
-  edgeHandles.replaceChildren();
-  if (selEdge) {
-    const edge = data.edges.find(value => value.id === selEdge);
-    if (edge) for (const end of ['from', 'to']) {
-      const endpoint = edgeEndpoint(edge, end, autoMap);
-      if (!endpoint) continue;
-      const handle = mk('button', 'edge-handle');
-      handle.type = 'button'; handle.dataset.edgeId = edge.id; handle.dataset.end = end;
-      handle.title = `${end === 'from' ? '起點' : '終點'}接點`;
-      handle.ariaLabel = handle.title;
-      Object.assign(handle.style, {left: endpoint.point.x + 'px', top: endpoint.point.y + 'px'});
-      edgeHandles.append(handle);
-    }
+  renderHandles();
+}
+function promoteStringNodes(cardIds) {
+  for (const edge of data.edges) if (cardIds.has(edge.from) || cardIds.has(edge.to)) {
+    const nodes = stringNodes.get(edge.id);
+    if (!nodes) continue;
+    liveSvg.append(nodes.line, nodes.hit);
+    if (nodes.labelGroup) liveSvg.append(nodes.labelGroup);
   }
 }
 function clearProposalGhosts() {
@@ -2362,13 +2431,15 @@ const kick = () => { if (!raf) raf = requestAnimationFrame(swing); };
 function swing() {
   raf = 0;
   let live = false;
+  const changed = new Set();
   for (const id in spring) {
+    changed.add(id);
     const s = spring[id];
     s.v = (s.v - 0.08 * s.s) * 0.9;
     s.s += s.v;
     if (Math.abs(s.s) > 0.2 || Math.abs(s.v) > 0.2) live = true; else delete spring[id];
   }
-  renderStrings();
+  renderStrings(null, changed);
   if (live) kick();
 }
 
@@ -2410,6 +2481,7 @@ vp.addEventListener('pointerdown', ev => {
     vp.focus({preventScroll: true});
     const start = toWall(ev);
     drag = {mode: 'endpoint', edge, end, card, at: {...endpoint.at}, sx: start.x, sy: start.y, moved: false};
+    promoteStringNodes(new Set([card.id]));
     vp.setPointerCapture(ev.pointerId);
     ev.preventDefault();
     return;
@@ -2433,6 +2505,7 @@ vp.addEventListener('pointerdown', ev => {
     drag = {mode: 'band', b, el, sy: ev.clientY, y0: b.y, moved: false};
   } else if (ev.target.closest?.('.resize-handle')) {
     drag = {mode: 'resize', c: byId(el.dataset.id), el, w0: el.offsetWidth, h0: el.offsetHeight, sx: ev.clientX, sy: ev.clientY, moved: false};
+    promoteStringNodes(new Set([el.dataset.id]));
     vp.setPointerCapture(ev.pointerId);
     return;
   } else if (ev.target.classList.contains('pin')) {
@@ -2442,6 +2515,7 @@ vp.addEventListener('pointerdown', ev => {
     const els = picked.size ? [...wall.querySelectorAll('.card.picked')] : [el];
     const group = els.map(el => { const c = byId(el.dataset.id); return {c, el, x0: c.x, y0: c.y}; });
     drag = {mode: 'move', c: byId(el.dataset.id), group, ids: new Set(group.map(g => g.c.id)), sx: p.x, sy: p.y, lx: p.x, moved: false};
+    promoteStringNodes(drag.ids);
     els.forEach(el => el.classList.add('dragging'));
   } else if (ev.target.matches('.hit, .str-label') || ev.target.closest('.str-label-group')) {
     const target = ev.target.closest('.str-label-group') || ev.target;
@@ -2484,7 +2558,7 @@ vp.addEventListener('pointermove', ev => {
     const next = endpointAtPointer(drag.card, p, ev.shiftKey);
     drag.at = {side: next.side, t: next.t};
     if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 4) drag.moved = true;
-    renderStrings();
+    renderStrings(null, new Set([drag.edge.id]));
     return;
   }
   if (drag.mode === 'resize') {
@@ -2492,8 +2566,9 @@ vp.addEventListener('pointermove', ev => {
     drag.c.w = clamp(Math.round(drag.w0 + dx), CARD_MIN_W, CARD_MAX_W);
     drag.c.h = clamp(Math.round(drag.h0 + dy), CARD_MIN_H, CARD_MAX_H);
     drag.el.style.width = drag.c.w + 'px'; drag.el.style.height = drag.c.h + 'px';
+    cardSizes.set(drag.c.id, {width: drag.c.w, height: drag.c.h});
     if (Math.hypot(dx, dy) > 4) drag.moved = true;
-    renderStrings();
+    renderStrings(new Set([drag.c.id]));
     return;
   }
   if (drag.mode === 'move') {
@@ -2501,8 +2576,7 @@ vp.addEventListener('pointermove', ev => {
     for (const g of drag.group) {
       g.c.x = g.x0 + dx;
       g.c.y = g.y0 + dy;
-      g.el.style.left = g.c.x + 'px';
-      g.el.style.top = g.c.y + 'px';
+      g.el.style.transform = `translate3d(${dx}px,${dy}px,0) rotate(var(--tilt))`;
     }
     if (Math.hypot(dx, dy) > 4) drag.moved = true;
     const push = Math.abs(p.x - drag.lx) * 0.15;
@@ -2515,7 +2589,7 @@ vp.addEventListener('pointermove', ev => {
   } else {
     tempLine = curve(pinPos(byId(drag.from)), p).d;
   }
-  renderStrings();
+  renderStrings(drag.ids);
 });
 
 vp.addEventListener('pointerup', ev => {
@@ -2551,17 +2625,25 @@ vp.addEventListener('pointerup', ev => {
     if (d.moved && point.x >= box.x && point.x <= box.x + box.width && point.y >= box.y && point.y <= box.y + box.height) {
       d.edge[d.end + 'At'] = {...d.at};
     }
-    renderStrings();
+    renderStrings(null, new Set([d.edge.id]));
   } else if (d.mode === 'resize') {
     if (d.moved) { render(); save(true); }
   } else if (d.mode === 'move') {
-    d.group.forEach(g => g.el.classList.remove('dragging'));
+    d.group.forEach(g => {
+      g.el.style.left = g.c.x + 'px';
+      g.el.style.top = g.c.y + 'px';
+      g.el.style.transform = '';
+      g.el.classList.remove('dragging');
+    });
     if (!d.moved) openPanel(d.c.id);
     else {
       const moving = data.cards.filter(card => d.ids.has(card.id));
       data.cards = data.cards.filter(card => !d.ids.has(card.id));
       data.cards.push(...moving);
-      render();
+      for (const group of d.group) {
+        const el = cardElements.get(group.c.id);
+        if (el) wall.append(el);
+      }
     }
   } else {
     tempLine = null;
@@ -4507,7 +4589,7 @@ function playMascotTransition(from, to) {
   clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning', 'crossfading');
   const frames = mascotTransitions[`${from}-${to}`];
   if (!mascotMotionAllowed() || mascotClient !== chatClient || !frames) return;
-  const source = frame => `/assets/avatars/${chatClient}-tr-${from}-${to}-${frame}.png`;
+  const source = frame => `/assets/avatars/${chatClient}-tr-${from}-${to}-${frame}.webp`;
   let index = 0;
   mascotTransition.src = source(frames[index]); mascotTransition.decoding = 'async'; mascot.classList.add('transitioning');
   mascotTransitionTimer = setInterval(() => {
@@ -4583,9 +4665,9 @@ function updateChatMascot() {
   const previousMood = mascotMood, previousClient = mascotClient, previousSource = mascotImage.getAttribute('src');
   mascotMood = mood; mascotClient = chatClient;
   mascot.classList.remove('mood-idle', 'mood-thinking', 'mood-happy', 'mood-sweat', 'mood-sleep'); mascot.classList.add('mood-' + mood);
-  const source = `/assets/avatars/${chatClient}-body-${mood}.png`;
+  const source = `/assets/avatars/${chatClient}-body-${mood}.webp`;
   mascotImage.src = source; mascotImage.decoding = 'async';
-  mascotBlink.src = `/assets/avatars/${chatClient}-body-blink.png`; mascotBlink.decoding = 'async';
+  mascotBlink.src = `/assets/avatars/${chatClient}-body-blink.webp`; mascotBlink.decoding = 'async';
   mascot.classList.remove('blinking');
   if (previousSource && previousSource !== source) {
     if (previousMood && previousClient === chatClient && previousMood !== mood && mascotTransitions[`${previousMood}-${mood}`]) playMascotTransition(previousMood, mood);
@@ -4597,7 +4679,7 @@ function updateChatMascot() {
 }
 function updateChatControls() {
   const info = chatClients.get(chatClient), enabled = !!currentWall && !!info?.available && !chatBusy;
-  $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.png`; $('#chat-progress-avatar').decoding = 'async';
+  $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.webp`; $('#chat-progress-avatar').decoding = 'async';
   $('#chat-input').disabled = !enabled;
   $('#chat-send').disabled = !enabled;
   $('#chat-new').disabled = !enabled;
@@ -4622,7 +4704,7 @@ function renderChat(history) {
     if (side === 'ai') {
       const mood = message.status === 'stopped' || message.error ? 'sweat' : index === messages.length - 1 ? 'happy' : 'idle';
       const avatar = mk('img', 'chat-avatar');
-      avatar.src = `/assets/avatars/${chatClient}-${mood}.png`;
+      avatar.src = `/assets/avatars/${chatClient}-${mood}.webp`;
       avatar.decoding = 'async';
       avatar.alt = '';
       avatar.setAttribute('aria-hidden', 'true');

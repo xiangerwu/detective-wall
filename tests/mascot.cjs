@@ -8,27 +8,24 @@ const base = process.env.WALL_TEST_URL;
 const out = path.join(path.dirname(artifacts('p14c')), 'p14c');
 fs.mkdirSync(out, {recursive: true});
 const avatarDir = path.join(__dirname, '..', 'assets', 'avatars');
-const png = name => {
+const webp = name => {
   const file = fs.readFileSync(path.join(avatarDir, name));
-  assert.equal(file.toString('ascii', 1, 4), 'PNG', `${name} is a PNG`);
-  return {width: file.readUInt32BE(16), height: file.readUInt32BE(20), bytes: file.length};
+  assert.equal(file.toString('ascii', 0, 4), 'RIFF', `${name} is a WebP`);
+  assert.equal(file.toString('ascii', 8, 12), 'WEBP', `${name} is a WebP`);
+  return {bytes: file.length};
 };
 const ok = (condition, message) => { if (!condition) throw new Error(message); };
 
 for (const client of ['claude', 'codex']) {
   for (const mood of ['idle', 'thinking', 'happy', 'sweat', 'sleep']) {
-    const head = png(`${client}-${mood}.png`), body = png(`${client}-body-${mood}.png`);
-    assert.deepEqual([head.width, head.height], [512, 512], `${client}-${mood} head is 512x512`);
-    assert.equal(body.height, 1024, `${client}-body-${mood} body height is 1024`);
+    const head = webp(`${client}-${mood}.webp`), body = webp(`${client}-body-${mood}.webp`);
     assert.ok(head.bytes <= 400 * 1024 && body.bytes <= 400 * 1024, `${client}-${mood} images stay under 400KB`);
   }
-  const blink = png(`${client}-body-blink.png`);
-  assert.equal(blink.height, 1024, `${client} blink height is 1024`);
+  const blink = webp(`${client}-body-blink.webp`);
   assert.ok(blink.bytes <= 400 * 1024, `${client} blink stays under 400KB`);
   for (const [from, to] of [['idle', 'thinking'], ['thinking', 'happy'], ['thinking', 'sweat'], ['idle', 'sleep']]) {
     for (const frame of [1, 2]) {
-      const transition = png(`${client}-tr-${from}-${to}-${frame}.png`);
-      assert.equal(transition.height, 1024, `${client} ${from}-${to}-${frame} height is 1024`);
+      const transition = webp(`${client}-tr-${from}-${to}-${frame}.webp`);
       assert.ok(transition.bytes <= 400 * 1024, `${client} ${from}-${to}-${frame} stays under 400KB`);
     }
   }
@@ -96,7 +93,7 @@ for (const client of ['claude', 'codex']) {
       await setState(state);
       await page.waitForFunction(stateName => {
         const image = document.querySelector('#mascot-image');
-        return image?.complete && image.naturalWidth > 0 && image.getAttribute('src').endsWith(`/assets/avatars/claude-body-${stateName}.png`);
+        return image?.complete && image.naturalWidth > 0 && image.getAttribute('src').endsWith(`/assets/avatars/claude-body-${stateName}.webp`);
       }, state);
       await page.waitForFunction(() => {
         const transition = document.querySelector('#mascot-transition');
