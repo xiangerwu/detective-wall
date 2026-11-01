@@ -1,10 +1,20 @@
+// @ts-check
+/** @type {any} */
+const process = /** @type {any} */ (globalThis).process;
+/** @type {any} */
+const Buffer = /** @type {any} */ (globalThis).Buffer;
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const fs = require('node:fs');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const path = require('node:path');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const {randomUUID} = require('node:crypto');
 const {McpServer} = require('@modelcontextprotocol/sdk/server/mcp.js');
 const {StdioServerTransport} = require('@modelcontextprotocol/sdk/server/stdio.js');
 const {z} = require('zod');
 const {createDatabase, createProposalWriter, normalizeProposalOps, ProposalError, proposalPayload, validateProposal, safeSourceHref} = require('./db.js');
+// @ts-ignore CommonJS provides __dirname at runtime.
+const projectDir = /** @type {string} */ (__dirname);
 
 const DEFAULT_PORT = 3000;
 const SOURCE_FILE_LIMIT = 1024 * 1024;
@@ -16,7 +26,7 @@ const SOURCE_WALK_LIMIT = 20000;  // stops a too-broad authorized folder (e.g. a
 
 class ToolError extends Error {}
 
-function resolveDbPath(filename = process.env.WALL_DB || path.join(process.cwd(), 'data', 'wall.db')) {
+function resolveDbPath(filename = process.env.WALL_DB || path.join(projectDir, '..', 'data', 'wall.db')) {
   return path.resolve(filename);
 }
 
@@ -155,6 +165,7 @@ function walkFiles(root) {
   return files;
 }
 
+/** @param {any} store @param {{path?: string, cursor?: string}} [options={}] */
 function listFiles(store, {path: value, cursor} = {}) {
   if (value !== undefined && (typeof value !== 'string' || !value.trim())) throw new ToolError('source path required');
   if (typeof value === 'string' && isUncPath(value.trim())) throw new ToolError('network paths are not allowed');
@@ -177,6 +188,7 @@ function listFiles(store, {path: value, cursor} = {}) {
   return result;
 }
 
+/** @param {any} store @param {{path?: string, offset?: number, limit?: number}} [options={}] */
 function readFile(store, {path: value, offset = 0, limit = SOURCE_READ_LIMIT} = {}) {
   if (!Number.isSafeInteger(offset) || offset < 0) throw new ToolError('invalid file offset');
   if (!Number.isSafeInteger(limit) || limit < 1 || limit > SOURCE_READ_LIMIT) throw new ToolError('invalid file read limit');
@@ -441,6 +453,7 @@ function getChangeStatus(store, scope, proposalId) {
   };
 }
 
+/** @returns {any} */
 function jsonResult(value) {
   return {
     content: [{type: 'text', text: JSON.stringify(value)}],
@@ -448,12 +461,14 @@ function jsonResult(value) {
   };
 }
 
+/** @returns {any} */
 function errorResult(error) {
   const message = error instanceof ToolError || error instanceof ProposalError ? error.message : isBusy(error) ? 'DB busy' : 'database error';
   if (!(error instanceof ToolError) && !(error instanceof ProposalError) && !isBusy(error)) console.error(`MCP tool error: ${error?.message || error}`);
   return {isError: true, content: [{type: 'text', text: message}]};
 }
 
+/** @param {(args: any) => any} action @returns {(args: any, extra?: any) => Promise<any>} */
 function handler(action) {
   return async args => {
     try { return jsonResult(await action(args || {})); }
@@ -461,6 +476,7 @@ function handler(action) {
   };
 }
 
+/** @param {{store?: any, proposalWriter?: any, scope?: Set<string>|null, port?: number}} [options={}] */
 function createMcpServer({store, proposalWriter, scope = parseWallScope(), port = Number(process.env.WALL_PORT || DEFAULT_PORT)} = {}) {
   if (!store) throw new Error('MCP store required');
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('WALL_PORT must be an integer from 0 to 65535');
@@ -550,6 +566,7 @@ async function main() {
   }
 }
 
+// @ts-ignore CommonJS provides require/module at runtime.
 if (require.main === module) main();
 
 module.exports = {createMcpServer, decodeCursor, encodeCursor, openMcpDatabase, openMcpProposalWriter, parseWallScope, resolveDbPath};

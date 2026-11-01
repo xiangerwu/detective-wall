@@ -1,9 +1,21 @@
+// @ts-check
+/** @type {any} */
+const process = /** @type {any} */ (globalThis).process;
+/** @type {any} */
+const Buffer = /** @type {any} */ (globalThis).Buffer;
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const fs = require('node:fs');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const http = require('node:http');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const path = require('node:path');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const { spawn } = require('node:child_process');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const {fileURLToPath} = require('node:url');
 const { createDatabase, VersionConflict, safeSourceHref } = require('./db.js');
+// @ts-ignore CommonJS provides __dirname at runtime.
+const projectDir = /** @type {string} */ (__dirname);
 
 const HOST = '127.0.0.1';
 const MAX_BODY = 32 * 1024 * 1024;
@@ -142,7 +154,7 @@ function chatSystemPrompt(wall) {
 function mcpConfig(databasePath, port, wallId) {
   return JSON.stringify({mcpServers: {'detective-wall': {
     command: process.execPath,
-    args: [path.join(__dirname, 'mcp.js')],
+    args: [path.join(projectDir, 'mcp.js')],
     env: {WALL_DB: databasePath, WALL_PORT: String(port), WALL_MCP_WALLS: wallId},
   }}});
 }
@@ -164,7 +176,7 @@ function codexArgs(wall, databasePath, port, sessionId) {
   args.push('--json', '--disable', 'shell_tool', '--ignore-user-config', '--skip-git-repo-check');
   args.push(
     '-c', `mcp_servers.detective-wall.command=${tomlString(process.execPath)}`,
-    '-c', `mcp_servers.detective-wall.args=${tomlArray([path.join(__dirname, 'mcp.js')])}`,
+    '-c', `mcp_servers.detective-wall.args=${tomlArray([path.join(projectDir, 'mcp.js')])}`,
     '-c', `mcp_servers.detective-wall.env=${tomlTable({WALL_DB: databasePath, WALL_PORT: port, WALL_MCP_WALLS: wall.id})}`,
     '-c', `developer_instructions=${tomlString(chatSystemPrompt(wall))}`);
   if (sessionId) args.push(sessionId);
@@ -245,10 +257,12 @@ function progressText(event) {
   return `使用工具：${name}`;
 }
 
-function runCli(command, args, message, cwd, timeout = cliTimeout(), {onEvent} = {}) {
+/** @param {{onEvent?: (event: any) => void}} [options={}] */
+function runCli(command, args, message, cwd, timeout = cliTimeout(), options = {}) {
+  const {onEvent} = options;
   const spec = spawnSpec(command, args);
   let stopProcess = null;
-  const promise = new Promise((resolve, reject) => {
+  const promise = /** @type {Promise<any> & {stop?: () => Promise<void>}} */ (new Promise((resolve, reject) => {
     let stdout = '', stderr = '', lineBuffer = '', truncated = false, settled = false, timingOut = false, stopping = false;
     const child = spawn(spec.command, spec.args, {cwd, env: process.env, shell: spec.shell, windowsHide: true, detached: process.platform !== 'win32'});
     const append = (target, chunk) => {
@@ -293,7 +307,7 @@ function runCli(command, args, message, cwd, timeout = cliTimeout(), {onEvent} =
       await terminateProcessTree(child);
       if (!settled) finish({code: null, signal: 'SIGTERM', stdout, stderr, truncated, stopped: true});
     };
-  });
+  }));
   promise.stop = () => stopProcess?.();
   return promise;
 }
@@ -456,7 +470,7 @@ function sanitizeDataLinks(data) {
   return copy;
 }
 
-function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd(), 'data', 'wall.db'), port = Number(process.env.WALL_PORT || 3000)} = {}) {
+function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir, '..', 'data', 'wall.db'), port = Number(process.env.WALL_PORT || 3000)} = {}) {
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('WALL_PORT must be an integer from 0 to 65535');
   const databasePath = path.resolve(dbPath);
   const store = createDatabase(databasePath);
@@ -492,11 +506,11 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd
     channel.clients.clear();
   };
   let pickBusy = false;
-  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'));
-  const layoutScript = fs.readFileSync(path.join(__dirname, 'layout.js'));
-  const corkImage = fs.readFileSync(path.join(__dirname, '..', 'assets', 'cork.jpg'));
-  const paperGrain = fs.readFileSync(path.join(__dirname, '..', 'assets', 'paper-grain.png'));
-  const avatarDir = path.join(__dirname, '..', 'assets', 'avatars');
+  const html = fs.readFileSync(path.join(projectDir, '..', 'index.html'));
+  const layoutScript = fs.readFileSync(path.join(projectDir, 'layout.js'));
+  const corkImage = fs.readFileSync(path.join(projectDir, '..', 'assets', 'cork.jpg'));
+  const paperGrain = fs.readFileSync(path.join(projectDir, '..', 'assets', 'paper-grain.png'));
+  const avatarDir = path.join(projectDir, '..', 'assets', 'avatars');
   const avatars = new Map(fs.readdirSync(avatarDir).filter(name => name.endsWith('.png')).map(name => ['/assets/avatars/' + name, fs.readFileSync(path.join(avatarDir, name))]));
   let server;
 
@@ -515,7 +529,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd
       if (!spec) throw new RequestError(501, pickFolderUnavailableMessage());
       pickBusy = true;
       try {
-        const result = await runCli(spec.command, spec.args, '', process.cwd(), PICK_FOLDER_TIMEOUT);
+        const result = await runCli(spec.command, spec.args, '', path.join(projectDir, '..'), PICK_FOLDER_TIMEOUT);
         json(res, 200, pickFolderResult(result));
       } finally {
         pickBusy = false;
@@ -832,6 +846,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd
   return server;
 }
 
+// @ts-ignore CommonJS provides require/module at runtime.
 if (require.main === module) {
   try {
     const server = createWallServer();

@@ -9,10 +9,12 @@
   "scripts": {
     "start": "node server/server.js",
     "mcp": "node server/mcp.js",
-    "test": "node tests/run.cjs"
+    "test": "node tests/run.cjs",
+    "typecheck": "tsc -p ."
   },
   "devDependencies": {
-    "playwright-core": "1.60.0"
+    "playwright-core": "1.60.0",
+    "typescript": "5.5.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",

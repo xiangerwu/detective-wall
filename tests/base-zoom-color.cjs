@@ -1,4 +1,4 @@
-const { ready, reload, openActivity, artifacts, profile } = require('./wall-ready.cjs');
+const { ready, reload, settled, openActivity, artifacts, profile } = require('./wall-ready.cjs');
 const playwright = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -17,14 +17,22 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   await page.selectOption('#theme', 'paper');
   await page.click('#activity-theme');
   await page.click('#toggle-sidebar');  // canvas geometry below assumes the full 1400px viewport
+  await settled(page);
   const view = () => page.evaluate(() => ({ ...view }));
-  const box = id => page.locator(`.card[data-id="${id}"]`).boundingBox();
+  const box = async id => {
+    await page.waitForFunction(id => {
+      const rect = document.querySelector(`.card[data-id="${id}"]`)?.getBoundingClientRect();
+      return !!rect && rect.width > 0 && rect.height > 0;
+    }, id);
+    return page.locator(`.card[data-id="${id}"]`).boundingBox();
+  };
 
   // wheel zoom keeps the point under the cursor fixed
   const v0 = await view();
   const b0 = await box('eskm');
   await page.mouse.move(b0.x + 20, b0.y + 20);
   await page.mouse.wheel(0, -300);
+  await page.waitForFunction(previous => view.s > previous, v0.s);
   const v1 = await view(), b1 = await box('eskm');
   ok(v1.s > v0.s, `wheel zoom in ${v0.s.toFixed(2)} -> ${v1.s.toFixed(2)}`);
   const wx0 = (b0.x + 20), wx1 = b1.x + 20 * v1.s / v0.s;
@@ -35,9 +43,12 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   const vp = await page.locator('#viewport').boundingBox();
   const grid = [];
   for (let y = vp.height - 40; y > 40; y -= 30) for (let x = 40; x < vp.width - 160; x += 30) grid.push([vp.x + x, vp.y + y]);
-  const [sx, sy] = await page.evaluate(pts => pts.find(([x, y]) => document.elementFromPoint(x, y).id === 'bg'), grid);
+  const point = await page.waitForFunction(pts => pts.find(([x, y]) => document.elementFromPoint(x, y)?.id === 'bg'), grid)
+    .then(handle => handle.jsonValue());
+  const [sx, sy] = point;
   const hit = await page.evaluate(([x, y]) => document.elementFromPoint(x, y).id || document.elementFromPoint(x, y).className, [sx, sy]);
   await page.mouse.move(sx, sy); await page.mouse.down(); await page.mouse.move(sx + 120, sy - 80, { steps: 5 }); await page.mouse.up();
+  await page.waitForFunction(({x, y}) => Math.abs(view.x - x - 120) < 1 && Math.abs(view.y - y + 80) < 1, v1);
   const v2 = await view();
   ok(Math.abs(v2.x - v1.x - 120) < 1 && Math.abs(v2.y - v1.y + 80) < 1, `pan moves view by (120,-80) from ${hit}: got (${(v2.x - v1.x).toFixed(0)},${(v2.y - v1.y).toFixed(0)})`);
 
@@ -45,11 +56,16 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   const c0 = await page.evaluate(() => ({ ...data.cards.find(c => c.id === 'dt') }));
   const bd = await box('dt');
   await page.mouse.move(bd.x + 60, bd.y + 30); await page.mouse.down(); await page.mouse.move(bd.x + 60 + 100, bd.y + 30 + 50, { steps: 5 }); await page.mouse.up();
+  await page.waitForFunction(({x, y}) => {
+    const card = data.cards.find(value => value.id === 'dt');
+    return !!card && Math.abs(card.x - x) > 1 && Math.abs(card.y - y) > 1 && !wallBusy;
+  }, c0);
   const c1 = await page.evaluate(() => ({ ...data.cards.find(c => c.id === 'dt') }));
   ok(Math.abs((c1.x - c0.x) - 100 / v2.s) < 2 && Math.abs((c1.y - c0.y) - 50 / v2.s) < 2, `card drag at zoom: moved (${(c1.x - c0.x).toFixed(1)},${(c1.y - c0.y).toFixed(1)}) expected (${(100 / v2.s).toFixed(1)},${(50 / v2.s).toFixed(1)})`);
 
   // buttons
   await page.click('#zoom-fit');
+  await settled(page);
   const vf = await view();
   const inside = await page.evaluate(([vx, vy, vw, vh]) => [...document.querySelectorAll('.card')].every(e => {
     const r = e.getBoundingClientRect(); return r.left >= vx - 1 && r.top >= vy - 1 && r.right <= vx + vw + 1 && r.bottom <= vy + vh + 1;
@@ -96,12 +112,16 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
 
   // infinite board: zoom far out and pan far away, background and bands still fill the viewport
   for (let i = 0; i < 6; i++) await page.click('#zoom-out');
+  await page.waitForFunction(() => view.s < 1);
+  const farBefore = await view();
   await page.mouse.move(vp.x + 30, vp.y + 30); await page.mouse.down(); await page.mouse.move(vp.x + 30 + 600, vp.y + 30 + 400, { steps: 5 }); await page.mouse.up();
-  const cover = await page.evaluate(() => {
-    const v = vp.getBoundingClientRect(), b = bg.getBoundingClientRect(), d = document.querySelector('.band:nth-of-type(3)').getBoundingClientRect();
+  await page.waitForFunction(({x, y}) => Math.abs(view.x - x) > 1 || Math.abs(view.y - y) > 1, farBefore);
+  const cover = await page.evaluate(({x, y, width, height}) => {
+    const v = {left: x, top: y, width, height}, b = document.querySelector('#bg').getBoundingClientRect();
+    const d = document.querySelector('.band:nth-of-type(3)').getBoundingClientRect();
     return Math.abs(b.left - v.left) < 1 && Math.abs(b.top - v.top) < 1 && Math.abs(b.width - v.width) < 1 && Math.abs(b.height - v.height) < 1
       && Math.abs(d.left - v.left) < 1 && Math.abs(d.width - v.width) < 1;
-  });
+  }, vp);
   ok(cover, `background and band lines fill viewport at s=${(await view()).s.toFixed(2)} after far pan`);
   // drag a card into negative wall coordinates (outside the old 1000x1500 board)
   const bs = await box('shoup');

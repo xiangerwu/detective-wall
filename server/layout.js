@@ -1,7 +1,8 @@
+// @ts-check
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) module.exports = api;
-  else root.WallLayout = api;
+  else /** @type {any} */ (root).WallLayout = api;
 })(typeof self === 'object' ? self : this, function () {
   const constants = Object.freeze({
     gap: 24,
@@ -175,7 +176,7 @@
     return true;
   }
 
-  function layoutCards(inputCards, inputEdges) {
+  function layoutCards(inputCards, inputEdges, options) {
     const nodes = normalizeCards(inputCards);
     const byId = new Map(nodes.map(node => [node.id, node]));
     const edges = [];
