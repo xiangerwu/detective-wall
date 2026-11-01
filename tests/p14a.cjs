@@ -47,9 +47,9 @@ fs.mkdirSync(OUT, {recursive: true});
     await page.evaluate(() => localStorage.removeItem(SIDE_PANEL_COLLAPSED_KEY));
     console.log('PASS A2 sidebar title rows, collapse state, aria-expanded, and reload persistence');
 
-    const bandCount = await page.locator('#band-nav button').count();
+    const bandCount = await page.locator('#band-nav button[data-band-id]').count();
     assert.equal(bandCount, await page.evaluate(() => data.bands.length), 'A3 band nav has one item per band');
-    await page.locator('#band-nav button').nth(1).click();
+    await page.locator('#band-nav button[data-band-id]').nth(1).click();
     await page.screenshot({path: path.join(OUT, 'band-nav.png')});
     const secondBand = await page.evaluate(() => [...data.bands].sort((a, b) => a.y - b.y)[1]);
     assert.ok(await page.evaluate(y => Math.abs(view.y - (24 - y * view.s)) < 1, secondBand.y));

@@ -267,7 +267,7 @@ function cardForBoard(wall, card, port, full = false) {
       image: Boolean(card.image),
       ref: refFor(wall.id, card.id, port),
     };
-    for (const field of ['color', 'w', 'h', 'mount']) if (card[field] !== undefined) result[field] = card[field];
+    for (const field of ['color', 'w', 'h', 'mount', 'level']) if (card[field] !== undefined) result[field] = card[field];
     return result;
   }
   const note = typeof card.note === 'string' ? card.note : '';
@@ -281,6 +281,7 @@ function cardForBoard(wall, card, port, full = false) {
     links: sources,
     fold: Boolean(card.fold),
     image: Boolean(card.image),
+    level: card.level === 'source' || card.level === 'key' ? card.level : undefined,
     ref: refFor(wall.id, card.id, port),
   };
 }

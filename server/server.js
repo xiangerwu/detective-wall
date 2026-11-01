@@ -495,6 +495,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'));
   const layoutScript = fs.readFileSync(path.join(__dirname, 'layout.js'));
   const corkImage = fs.readFileSync(path.join(__dirname, '..', 'assets', 'cork.jpg'));
+  const paperGrain = fs.readFileSync(path.join(__dirname, '..', 'assets', 'paper-grain.png'));
   const avatarDir = path.join(__dirname, '..', 'assets', 'avatars');
   const avatars = new Map(fs.readdirSync(avatarDir).filter(name => name.endsWith('.png')).map(name => ['/assets/avatars/' + name, fs.readFileSync(path.join(avatarDir, name))]));
   let server;
@@ -792,6 +793,12 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(process.cwd
         if (req.method !== 'GET') throw new RequestError(405, 'method not allowed');
         res.writeHead(200, {'content-type': 'image/jpeg', 'cache-control': 'public, max-age=31536000, immutable', 'content-length': corkImage.length});
         res.end(corkImage);
+        return;
+      }
+      if (url.pathname === '/assets/paper-grain.png') {
+        if (req.method !== 'GET') throw new RequestError(405, 'method not allowed');
+        res.writeHead(200, {'content-type': 'image/png', 'cache-control': 'public, max-age=31536000, immutable', 'content-length': paperGrain.length});
+        res.end(paperGrain);
         return;
       }
       if (avatars.has(url.pathname)) {

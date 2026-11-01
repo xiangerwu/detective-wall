@@ -46,10 +46,10 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
       const chunks = [];
       res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
-        const text = Buffer.concat(chunks).toString('utf8');
-        let parsed = text;
-        try { parsed = JSON.parse(text); } catch {}
-        resolve({status: res.statusCode, body: parsed});
+        const raw = Buffer.concat(chunks), text = raw.toString('utf8');
+        let parsed = res.headers['content-type']?.startsWith('image/') ? raw : text;
+        try { if (!Buffer.isBuffer(parsed)) parsed = JSON.parse(text); } catch {}
+        resolve({status: res.statusCode, headers: res.headers, body: parsed});
       });
     });
     req.on('error', reject);
@@ -77,6 +77,11 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     console.log('PASS malformed URL returns 400');
 
     const port = new URL(server.url).port;
+    response = await request(server.url, '/assets/paper-grain.png');
+    assert.equal(response.status, 200);
+    assert.equal(response.headers?.['content-type'], 'image/png');
+    assert.equal(response.body instanceof Buffer, true, 'paper grain is served as binary');
+    console.log('PASS paper grain asset route');
     response = await request(server.url, '/api', 'GET', undefined, {host: 'localhost:' + port, origin: 'http://localhost:' + port});
     assert.equal(response.status, 200, 'localhost Host and Origin are accepted');
     response = await request(server.url, '/api', 'GET', undefined, {host: 'evil.example:' + port});

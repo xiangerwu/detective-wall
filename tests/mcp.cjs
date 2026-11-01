@@ -57,8 +57,8 @@ const wallA = {
   bands: [{id: 'band-a', title: 'Methods', y: 0}],
   tags: [{id: 'tag-a', name: 'Important', color: 'slate'}],
   cards: [
-    {id: 'a-one', kind: 'card', x: 10, y: 20, title: 'Needle one', note: 'needle ' + 'x'.repeat(2200), tags: ['tag-a'], links: [{label: 'Paper', href: 'https://example.test/paper', locator: 'p. 2', quote: 'stored quote'}], fold: true, image: 'image-a'},
-    {id: 'a-two', kind: 'note', x: 300, y: 20, title: 'Second needle', note: 'another needle', tags: [], links: []},
+    {id: 'a-one', kind: 'card', x: 10, y: 20, title: 'Needle one', note: 'needle ' + 'x'.repeat(2200), tags: ['tag-a'], links: [{label: 'Paper', href: 'https://example.test/paper', locator: 'p. 2', quote: 'stored quote'}], fold: true, image: 'image-a', level: 'source'},
+    {id: 'a-two', kind: 'note', x: 300, y: 20, title: 'Second needle', note: 'another needle', tags: [], links: [], level: 'key'},
     {id: 'a-three', kind: 'card', x: 600, y: 20, title: 'Third card', note: '', tags: [], links: []},
   ],
   edges: [{id: 'edge-a1', from: 'a-one', to: 'a-two', type: 'builds', label: 'needle edge'}, {id: 'edge-a2', from: 'a-two', to: 'a-three', type: 'uses', label: 'next edge'}],
@@ -115,6 +115,7 @@ const wallB = {
     assert.equal(boardPages[0].note.length, 2000);
     assert.equal(boardPages[0].truncated, true);
     assert.equal(boardPages[0].image, true);
+    assert.equal(boardPages[0].level, 'source');
     assert.match(boardPages[0].ref.url, /#wall=wall-a&card=a-one$/);
     const cappedBoard = dataOf(await call(connection.client, 'get_board', {wallId: 'wall-a', limit: 999}));
     assert.ok(cappedBoard.cards.length <= 200);
@@ -123,6 +124,7 @@ const wallB = {
     const cards = dataOf(await call(connection.client, 'get_cards', {wallId: 'wall-a', cardIds: ['a-one', 'a-two']}));
     assert.equal(cards.cards[0].note.length, wallA.cards[0].note.length);
     assert.deepEqual(cards.cards[0].sources, wallA.cards[0].links);
+    assert.equal(cards.cards[0].level, 'source');
     assert.equal(cards.cards[0].ref.cardId, 'a-one');
     assert.deepEqual(dataOf(await call(connection.client, 'get_cards', {wallId: 'wall-a', cardIds: ['a-three']})).cards[0].sources, []);
     console.log('PASS get_cards returns full notes, stored sources and refs');

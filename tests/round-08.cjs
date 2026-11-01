@@ -78,8 +78,12 @@ const transfer = async (page, options = {}) => {
       alt: img.alt, draggable: img.draggable, fit: getComputedStyle(img).objectFit,
       max: getComputedStyle(img).maxHeight, width: img.offsetWidth, content: img.closest('.card').clientWidth - 28,
     }));
-    assert.deepEqual(style, {alt: 'evidence', draggable: false, fit: 'contain', max: '220px', width: style.content, content: style.content});
-    pass('paste creates a centered image card with the required rendering attributes');
+    assert.equal(style.alt, 'evidence');
+    assert.equal(style.draggable, false);
+    assert.equal(style.fit, 'cover');
+    assert.equal(style.max, '220px');
+    assert.equal(style.width, style.content + 8, 'polaroid image includes its frame content width');
+    pass('paste creates a centered polaroid card with the required rendering attributes');
 
     await page.click('#undo');
     assert.equal(await page.evaluate(id => !!byId(id), first.id), false);

@@ -120,6 +120,9 @@ async function themeStyles(page, theme) {
     const cork = await page.context().request.get(base + '/assets/cork.jpg');
     assert.equal(cork.status(), 200);
     assert.equal(cork.headers()['content-type'], 'image/jpeg');
+    const grain = await page.context().request.get(base + '/assets/paper-grain.png');
+    assert.equal(grain.status(), 200);
+    assert.equal(grain.headers()['content-type'], 'image/png');
     const traversal = await page.context().request.get(base + '/assets/../server/db.js');
     assert.equal(traversal.status(), 404);
     await page.evaluate(() => setTheme('cork'));
@@ -134,6 +137,19 @@ async function themeStyles(page, theme) {
       assert.equal(await page.getAttribute('html', 'data-theme'), theme);
       assert.equal(await page.getAttribute('html', 'data-card-style'), style);
       assert.equal(await page.locator(`.card.card-${style}`).count(), 7);
+      if (style === 'paper') {
+        const contrast = await page.evaluate(() => {
+          const rgb = value => value.match(/\d+(?:\.\d+)?/g).slice(0, 3).map(Number);
+          const luminance = value => value.map(channel => channel / 255).map(channel => channel <= .03928 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4)
+            .reduce((sum, channel, index) => sum + channel * [.2126, .7152, .0722][index], 0);
+          const card = document.querySelector('.card-paper'), heading = card.querySelector('h3');
+          const light = Math.max(luminance(rgb(getComputedStyle(heading).color)), luminance(rgb(getComputedStyle(card).backgroundColor)));
+          const dark = Math.min(luminance(rgb(getComputedStyle(heading).color)), luminance(rgb(getComputedStyle(card).backgroundColor)));
+          return {ratio: (light + .05) / (dark + .05), grain: getComputedStyle(card).backgroundImage};
+        });
+        assert.ok(contrast.ratio >= 4.5, `${theme}: paper heading contrast ${contrast.ratio.toFixed(2)} < 4.5`);
+        assert.match(contrast.grain, /paper-grain\.png/);
+      }
       await page.screenshot({path: path.join(out, `theme-${theme}-${style}.png`)});
       await page.evaluate(() => openPanel('mine'));
       await page.screenshot({path: path.join(p13, `theme-${theme}-${style}.png`)});
