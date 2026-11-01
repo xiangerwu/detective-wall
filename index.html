@@ -11,6 +11,7 @@
 :root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;
   --radius-sm:5px;--radius-md:6px;--radius-lg:8px;
   --font-xs:12px;--font-sm:13px;--font-body:14px;--font-title:16px;
+  --control-font:var(--font-sm);--control-pad-y:5px;--control-pad-x:8px;--popup-shadow:0 12px 40px var(--ui-shadow);
   --paper-shadow-top:var(--ui-shadow-soft);--paper-shadow-near:var(--ui-shadow-soft);--paper-shadow-bottom:var(--ui-shadow);--paper-shadow-drag:var(--ui-shadow);--paper-curl-shadow:var(--ui-shadow-soft);
   --photo-frame:#fffdf7;--photo-ink:#302b25}
 :root,[data-theme=moon]{--ui-bg:#283642;--ui-panel:#1b2530;--ui-bar:#121c25;--ui-surface:#24313d;--ui-raised:#31424f;--ui-input:#111c25;
@@ -23,7 +24,7 @@
 [data-theme=whiteboard]{--wall-bg:linear-gradient(#e2e7eb 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#e2e7eb 1px,transparent 1px) 0 0/18px 18px,#f7f9fa;
   --ui-bg:#2e3a44;--ui-panel:#26323b;--ui-bar:#202a31;--ui-surface:#364650;--ui-raised:#445863;--ui-input:#1f2c35;
   --ui-text:#e8eef2;--ui-muted:#d2e0e7;--ui-border:#71828d;--ui-hover:#51646f;--ui-accent:#64b5f6;--ui-active:#2a5d8f;
-  --ui-danger:#ffb0b4;--ui-danger-strong:#d32f2f;--ui-danger-soft:#4b2025;--ui-success:#a8e5bd;--ui-warning:#e08e0b;
+  --ui-danger:#ffccd1;--ui-danger-strong:#d32f2f;--ui-danger-soft:#4b2025;--ui-success:#a8e5bd;--ui-warning:#e08e0b;
   --ui-shadow:rgba(35,45,52,.32);--ui-shadow-soft:rgba(35,45,52,.2);--ui-backdrop:rgba(34,42,48,.45);--ui-selection:#8bc4ef;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
   --wall-color:#f7f9fa;--wall-label-bg:#ffffff;--band:#2e3a44;--band-line:#b4c0cb;--band-label-bg:#f7f9fa;--band-label-ink:#2e3a44;--builds:#d32f2f;--uses:#1565c0;--question:#e08e0b;--glow-r:0px}
@@ -36,8 +37,8 @@
   --wall-color:#6b4a2f;--wall-label-bg:#f2e6d0;--band:#e8d29a;--band-line:rgba(255,230,190,.35);--band-label-bg:#2a1d14;--band-label-ink:#f2e6d0;--builds:#e0303f;--uses:#7fc4e8;--question:#e8d29a;--glow-r:1px}
 [data-theme=paper]{--wall-bg:linear-gradient(rgba(150,110,40,.18) 1px,transparent 1px) 0 0/100% 18px,#f1e4bf;
   --ui-bg:#3b2a1e;--ui-panel:#493527;--ui-bar:#2e2118;--ui-surface:#594331;--ui-raised:#6d5139;--ui-input:#2b1f17;
-  --ui-text:#f3e9d2;--ui-muted:#d8c7a6;--ui-border:#8b7054;--ui-hover:#75553c;--ui-accent:#8db4dc;--ui-active:#2a5d8f;
-  --ui-danger:#ffb0b4;--ui-danger-strong:#b3202a;--ui-danger-soft:#5a2026;--ui-success:#b5e5bc;--ui-warning:#e6c275;
+  --ui-text:#f3e9d2;--ui-muted:#e5d5bc;--ui-border:#8b7054;--ui-hover:#75553c;--ui-accent:#8db4dc;--ui-active:#2a5d8f;
+  --ui-danger:#ffccd1;--ui-danger-strong:#b3202a;--ui-danger-soft:#5a2026;--ui-success:#b5e5bc;--ui-warning:#e6c275;
   --ui-shadow:rgba(63,45,20,.34);--ui-shadow-soft:rgba(63,45,20,.22);--ui-backdrop:rgba(63,45,20,.5);--ui-selection:#8db7d8;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
   --wall-color:#f1e4bf;--wall-label-bg:#fbf7ee;--band:#7a5c2e;--band-line:#c4a766;--band-label-bg:#fbf7ee;--band-label-ink:#3b2a1e;--builds:#b3202a;--uses:#2a5d8f;--question:#7a6a4f;--glow-r:0px}
@@ -337,6 +338,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #mascot{position:fixed;z-index:18;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
 #mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:auto}
 #mascot-image{cursor:grab}
+body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.dragging #mascot-image{cursor:grabbing}
 #mascot-blink,#mascot-transition{pointer-events:none;opacity:0;transition:opacity .12s ease}
 #mascot-transition{transition:opacity .2s ease}
@@ -471,6 +473,24 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
 #f-tag-list [role=option]{padding:6px 8px;text-align:left;border:0;background:transparent;color:var(--ui-text)}
 #f-tag-list [role=option]:hover,#f-tag-list [role=option]:focus-visible{background:var(--ui-hover)}
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* P15: shared chrome tokens keep controls and floating panels visually aligned. */
+input:not([type=checkbox]):not([type=radio]),select,textarea,
+#edge-label,#band-title,#tag-name{
+  font-size:var(--control-font);padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm)
+}
+#activity-panel input:not([type=checkbox]):not([type=radio]),#activity-panel select,#activity-panel textarea,
+#sidebar input:not([type=checkbox]):not([type=radio]),#sidebar select,#sidebar textarea,
+#panel input:not([type=checkbox]):not([type=radio]),#panel select,#panel textarea,
+#wall-search,#chat-client,#edge-label,#band-title,#tag-name{
+  font-size:var(--control-font);padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm)
+}
+#tabmenu,#layout-wall-menu,#search-results,#tagpop,#card-menu,#edgepop,#bandpop{
+  border-radius:var(--radius-md);box-shadow:var(--popup-shadow)
+}
+#layout-wall-menu button,#card-menu button,.search-result,#f-tag-list [role=option]{
+  padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm);font-size:var(--control-font)
+}
 
 /* Technology is the existing dense style. Paper is deliberately light so it reads on all six walls. */
 [data-card-style=paper] .card-paper{--paper-bg:#fbf7ee;--paper-ink:#2a2722;--paper-body:#514a42;background:var(--paper-bg);border:1px solid color-mix(in srgb,var(--paper-ink) 24%,transparent);border-top:3px solid var(--builds);color:var(--paper-ink);box-shadow:0 10px 18px var(--ui-shadow-soft),0 2px 3px var(--ui-shadow-soft);transform:none}
@@ -1561,7 +1581,7 @@ function applyView() {
 function currentBandIndex() {
   const bands = [...data.bands].sort((a, b) => a.y - b.y);
   if (!bands.length) return -1;
-  const top = -view.y / view.s + 24;
+  const top = -view.y / view.s + 24 / view.s;
   let index = 0;
   for (let i = 1; i < bands.length; i++) if (bands[i].y <= top) index = i;
   return index;
@@ -2545,7 +2565,8 @@ vp.addEventListener('pointerup', ev => {
     }
   } else {
     tempLine = null;
-    const to = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.card')?.dataset.id;
+    // elementsFromPoint looks through the floating mascot, so a card under it still accepts the drop.
+    const to = document.elementsFromPoint(ev.clientX, ev.clientY).find(el => el.closest('.card'))?.closest('.card').dataset.id;
     const dup = data.edges.some(e => (e.from === d.from && e.to === to) || (e.from === to && e.to === d.from));
     if (to && to !== d.from && !dup) data.edges.push({id: nid('e'), from: d.from, to, type: curType});
     renderStrings();
@@ -4506,6 +4527,9 @@ function wakeMascot() {
   wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
   updateChatMascot();
 }
+// While a wall drag is in progress the mascot lets the pointer through, so releasing over it still ends the drag on the wall.
+vp.addEventListener('pointerdown', () => document.body.classList.add('wall-pointer'), true);
+for (const type of ['pointerup', 'pointercancel']) addEventListener(type, () => document.body.classList.remove('wall-pointer'), true);
 mascotImage.onpointerdown = ev => {
   if (ev.button !== 0) return;
   ev.preventDefault(); wakeMascot(); mascotImage.setPointerCapture(ev.pointerId); mascot.classList.add('dragging');
