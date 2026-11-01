@@ -224,7 +224,7 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     assert.match(await claudeAvatars.first().getAttribute('src'), /\/assets\/avatars\/claude-idle\.webp$/);
     assert.match(await claudeAvatars.last().getAttribute('src'), /\/assets\/avatars\/claude-happy\.webp$/);
     assert.equal(await claudeAvatars.last().getAttribute('alt'), '');
-    await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-avatar')].every(img => img.complete && img.naturalWidth === 256));
+    await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-avatar')].every(img => img.complete && img.naturalWidth === 384));
     await page.reload();
     await page.waitForFunction(() => window.wallReady === true);
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
