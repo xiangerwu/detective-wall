@@ -39,6 +39,20 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.focus('#ai-section .side-panel-drag'); await page.keyboard.press('ArrowDown');
     ok((await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id))).slice(0, 2).join(',') === 'chat-client-panel,ai-section'
       && await page.evaluate(() => document.activeElement === $('#ai-section .side-panel-drag')), 'arrow key moves a row and keeps focus on its handle');
+    const collapsedKey = 'thesis-detective-wall-side-panel-collapsed';
+    const expandedHeight = await page.locator('#ai-section').evaluate(panel => panel.offsetHeight);
+    await page.locator('#ai-section h2').click();
+    ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed') && panel.offsetHeight < 80)
+      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false'
+      && !(await page.locator('#ai-section .section-help').isVisible()), 'sidebar rows collapse to their title row without keeping the old height');
+    await page.reload(); await ready(page);
+    ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed'))
+      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false', 'collapsed sidebar row survives reload');
+    await page.locator('#ai-section h2').click();
+    ok(!(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed')))
+      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'true'
+      && await page.locator('#ai-section').evaluate((panel, height) => panel.offsetHeight >= height, expandedHeight), 'clicking the row title expands it again');
+    await page.evaluate(key => localStorage.removeItem(key), collapsedKey);
     await page.evaluate(key => localStorage.removeItem(key), panelOrderKey);
     ok(await page.locator('#activitybar button').count() === 7 && await page.locator('#activitybar button[title][aria-label]').count() === 7
       && await page.locator('#activitybar svg').count() === 7, 'activity bar has seven titled, labelled inline SVG icons');

@@ -43,6 +43,16 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(!(await page.isVisible('#marquee')) && sel.length >= 2 && JSON.stringify(sel) === JSON.stringify(plan.expected), `marquee picks the touched cards (${sel.join(',')})`);
     await page.screenshot({ path: path.join(OUT, 'picked.png') });
 
+    const batchBefore = await page.evaluate(() => ({cards: data.cards.length, edges: data.edges.length}));
+    await page.evaluate(() => { clearPicked(); picked.add('mine'); picked.add('dt'); renderCards(); });
+    await page.keyboard.press('Delete');
+    ok(await page.evaluate(n => data.cards.length === n, batchBefore.cards) && /再按一次刪除 2 張/.test(await page.textContent('#pick-delete')), 'first batch Delete press only arms the floating action');
+    await page.keyboard.press('Delete');
+    ok(await page.evaluate(({cards, edges}) => data.cards.length === cards - 2 && data.edges.length < edges, batchBefore), 'second batch Delete press removes cards and connected edges');
+    await page.keyboard.press('Control+z');
+    ok(await page.evaluate(({cards, edges}) => data.cards.length === cards && data.edges.length === edges, batchBefore), 'one undo restores the deleted batch');
+    await page.evaluate(ids => { clearPicked(); ids.forEach(id => picked.add(id)); renderCards(); }, sel);
+
     const before = await pos(), s = await page.evaluate(() => view.s);
     const a = await page.locator(`.card[data-id="${plan.a}"]`).boundingBox();
     await page.mouse.move(a.x + 30, a.y + 20); await page.mouse.down();

@@ -86,6 +86,7 @@ async function themeStyles(page, theme) {
         input: ratio(foregrounds.input, backgrounds.input),
         board: ratio(token('--ui-bg'), token('--wall-color')),
         accent: ratio(token('--ui-accent'), token('--ui-panel')),
+        band: ratio(token('--band-label-ink'), token('--band-label-bg')),
       },
     };
   });
