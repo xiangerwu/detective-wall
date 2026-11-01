@@ -81,6 +81,10 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
     await rendered(page);
     await renameWall(page, 'Canvas 往返');
     const original = await page.evaluate(() => structuredClone(data));
+    const expectedSides = await page.evaluate(() => {
+      const auto = autoEndpointMap();
+      return data.edges.map(edge => [edgeEndpoint(edge, 'from', auto).at.side, edgeEndpoint(edge, 'to', auto).at.side]);
+    });
     const sizes = await page.locator('.card').evaluateAll(els => Object.fromEntries(els.map(el => [el.dataset.id, [el.offsetWidth, el.offsetHeight]])));
     const exported = await download(page, 'canvas', 'round-09-export.canvas');
     const canvas = exported.value;
@@ -112,7 +116,8 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
     assert.equal(groups[1].y + groups[1].height, Math.max(...cards.map(c => c.y + c.height)) + 40);
     assert.deepEqual(canvas.edges.map(e => e.color), ['1', '5', '3']);
     canvas.edges.forEach((edge, i) => {
-      assert.equal(edge.fromSide, 'top'); assert.equal(edge.toSide, 'top'); assert.equal(edge.toEnd, 'arrow');
+      assert.equal(edge.fromSide, ({n: 'top', e: 'right', s: 'bottom', w: 'left'})[expectedSides[i][0]]);
+      assert.equal(edge.toSide, ({n: 'top', e: 'right', s: 'bottom', w: 'left'})[expectedSides[i][1]]); assert.equal(edge.toEnd, 'arrow');
       assert.equal(edge.fromNode, original.edges[i].from); assert.equal(edge.toNode, original.edges[i].to);
       assert.equal(edge.label, original.edges[i].label); assert.equal(edge.detective.type, original.edges[i].type);
     });
@@ -122,7 +127,7 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
     const json = await download(page, 'json', 'round-09-export.json');
     assert.deepEqual(json.value.images, canvas.detective.images);
     assert.deepEqual(json.value.cards, original.cards);
-    pass('Canvas download: unique IDs, integer rendered geometry, Markdown, all colors, groups, labeled top-pin edges and referenced images; JSON remains compatible');
+    pass('Canvas download: unique IDs, integer rendered geometry, Markdown, all colors, groups, edge sides and referenced images; JSON remains compatible');
 
     const fresh = await newPage();
     await fresh.click('#add-wall'); await settled(fresh);
@@ -131,9 +136,13 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
     await open(fresh, canvas); assert.deepEqual(await fresh.evaluate(() => data), empty);
     await apply(fresh, true); await rendered(fresh);
     const restored = await fresh.evaluate(() => structuredClone(data));
-    assert.deepEqual(restored.cards, original.cards.map(c => ({...c, x: Math.round(c.x), y: Math.round(c.y)})));
+    assert.deepEqual(restored.cards, original.cards.map(c => ({...c, x: Math.round(c.x), y: Math.round(c.y), ...(Number.isFinite(c.w) ? {} : {w: sizes[c.id][0]})})));
     assert.deepEqual(restored.bands, original.bands); assert.deepEqual(restored.tags, original.tags);
     assert.deepEqual(edgeValues(restored.edges), edgeValues(original.edges));
+    restored.edges.forEach((edge, i) => {
+      assert.deepEqual(edge.fromAt, {side: expectedSides[i][0], t: .5});
+      assert.deepEqual(edge.toAt, {side: expectedSides[i][1], t: .5});
+    });
     const restoredImage = await fresh.evaluate(async () => {
       const image = await store.getImage('image');
       return {size: [image.width, image.height], type: image.type, bytes: [...new Uint8Array(await image.blob.arrayBuffer())]};

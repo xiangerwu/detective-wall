@@ -144,6 +144,9 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .str-label-group{pointer-events:all;cursor:pointer}
 .str-label-bg{fill:var(--wall-label-bg);stroke:color-mix(in srgb,var(--label-color,var(--wall-color)) 35%,transparent);stroke-width:1px;rx:2px}
 .str-label{font-size:12px;fill:var(--wall-label-ink,var(--wall-color));text-anchor:middle;dominant-baseline:central;pointer-events:all;cursor:pointer;user-select:none}
+.edge-handle-layer{position:absolute;left:0;top:0;z-index:7;width:1px;height:1px;overflow:visible;pointer-events:none}
+.edge-handle{position:absolute;width:14px;height:14px;padding:0;border:2px solid var(--ui-accent);border-radius:2px;background:var(--ui-surface);box-shadow:0 1px 3px var(--ui-shadow);cursor:move;pointer-events:auto;transform:translate(-50%,-50%)}
+.edge-handle:hover{background:var(--ui-accent)}
 /* card colors: slate is the default for clue cards, amber for question notes */
 .card,.swatch,.tag-chip{--c-bg:#223142;--c-border:#56728f;--c-top:#3ad1ff;--c-title:#fff;--c-text:#b4c4d4}
 /* slate is the default above; wall tabs only get a tone from a c-* class, so slate needs one too */
@@ -155,6 +158,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .c-cream{--c-bg:#f5e6a3;--c-border:#c9a93a;--c-top:#e0a800;--c-title:#2e2400;--c-text:#4a3d10;--c-link:#7a4a00}
 .card{position:absolute;z-index:2;width:200px;padding:16px 14px 12px;background:var(--c-bg);border:1px solid var(--c-border);border-top:3px solid var(--c-top);border-radius:2px;
   transform:rotate(var(--tilt));cursor:grab;user-select:none;box-shadow:0 12px 28px var(--ui-shadow),0 0 0 4px color-mix(in srgb,var(--c-top) 7%,transparent)}
+.card.fixed-size{overflow:auto;overflow-x:hidden}
 .card.sel{border-color:var(--ui-accent);box-shadow:0 0 0 1px var(--ui-accent),0 0 22px color-mix(in srgb,var(--ui-accent) 45%,transparent)}
 .card.review-mark-modified{outline:3px solid var(--ui-warning);outline-offset:4px}
 .card.review-mark-deleted{outline:3px solid var(--ui-danger-strong);outline-offset:4px;opacity:.72}
@@ -164,7 +168,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .card .fold{position:absolute;top:6px;right:5px;width:22px;height:22px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--c-title);font-size:12px;cursor:pointer;opacity:.75}
 .card .fold:hover{opacity:1;background:color-mix(in srgb,var(--c-top) 20%,transparent)}
 /* folded: only the title stays, and a dog-ear corner hints at the hidden body */
-.card.folded > :not(h3, .pin, .fold){display:none}
+.card.folded > :not(h3, .pin, .fold, .resize-handle){display:none}
 .card.folded h3{margin:0}
 .card.folded::after{content:'';position:absolute;right:-1px;bottom:-1px;width:16px;height:16px;border-radius:0 0 6px 0;
   background:linear-gradient(135deg,color-mix(in srgb,var(--c-top) 45%,var(--c-bg)) 50%,var(--wall-color) 50%)}
@@ -186,6 +190,10 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .card .md :is(h1,h2,h3,h4,h5,h6){margin:0 0 4px;color:var(--c-title);font-size:13px;line-height:1.5}
 .card .md a{color:var(--c-link,var(--c-top));text-decoration:underline}
 .card .md > :last-child{margin-bottom:0}
+.resize-handle{position:absolute;right:2px;bottom:2px;z-index:6;width:14px;height:14px;border:1px solid transparent;border-radius:2px;opacity:.28;cursor:nwse-resize;touch-action:none}
+.resize-handle::after{content:'';position:absolute;right:1px;bottom:1px;width:8px;height:8px;border-right:2px solid var(--ui-muted);border-bottom:2px solid var(--ui-muted)}
+.card:hover .resize-handle,.resize-handle:focus-visible{opacity:1}
+.resize-handle:hover,.resize-handle:focus-visible{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 18%,transparent)}
 .links{display:flex;flex-wrap:wrap;gap:4px}
 .links a{font-size:11.5px;color:var(--c-link,var(--c-top));text-decoration:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;padding:1px 6px}
 .links a:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
@@ -212,6 +220,9 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .pin{position:absolute;left:50%;top:-7px;width:16px;height:16px;margin-left:-8px;border-radius:50%;cursor:crosshair;
   background:radial-gradient(circle at 35% 35%,var(--ui-pin-light),var(--ui-pin) 60%,var(--ui-pin-dark));box-shadow:0 0 8px color-mix(in srgb,var(--ui-danger-strong) 70%,transparent)}
 .pin:hover{transform:scale(1.3)}
+.card.mount-tape::before{content:'';position:absolute;z-index:3;left:50%;top:-8px;width:76px;height:17px;background:color-mix(in srgb,var(--c-title) 24%,transparent);border:1px solid color-mix(in srgb,var(--c-title) 22%,transparent);box-shadow:0 1px 2px var(--ui-shadow-soft);transform:translateX(-50%) rotate(-2deg);pointer-events:none}
+.card.mount-tape .pin{z-index:4;width:8px;height:8px;top:-3px;margin-left:-4px;opacity:.72;box-shadow:0 0 4px color-mix(in srgb,var(--ui-danger-strong) 70%,transparent)}
+.card.mount-tape:hover .pin{transform:scale(1.8);opacity:1}
 .card.picked{outline:2px dashed var(--ui-selection);outline-offset:4px}
 #marquee{position:absolute;z-index:7;border:1px dashed var(--ui-selection);background:color-mix(in srgb,var(--ui-selection) 12%,transparent);pointer-events:none}
 #band-nav{position:absolute;z-index:8;left:8px;top:50%;display:flex;flex-direction:column;gap:4px;max-width:150px;transform:translateY(-50%);pointer-events:none}
@@ -222,8 +233,9 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #card-menu{position:fixed;z-index:45;display:flex;flex-direction:column;gap:2px;min-width:132px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 10px 30px var(--ui-shadow)}
 #card-menu button{border:0;background:transparent;text-align:left}
 #card-menu button:hover,#card-menu button:focus-visible{background:var(--ui-hover)}
-#f-pin{display:grid;grid-template-columns:repeat(3,32px);gap:4px}
-#f-pin button{width:32px;height:28px;padding:0}
+#f-mount{display:flex;gap:var(--space-2)}
+#f-mount button{flex:1}
+#f-mount button.on{border-color:var(--ui-accent);background:var(--ui-active)}
 /* --inv cancels the wall zoom so the popup keeps its screen size */
 #edgepop,#bandpop{position:absolute;z-index:6;display:flex;gap:4px;padding:6px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;white-space:nowrap;
   transform-origin:0 0;transform:scale(var(--inv,1)) translate(-50%,-130%)}
@@ -436,7 +448,7 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
 [data-card-style=paper] .card-paper.note{width:170px;min-height:170px;padding:22px 16px 16px;border-top:1px solid color-mix(in srgb,var(--paper-ink) 24%,transparent);border-radius:2px;box-shadow:0 9px 15px var(--ui-shadow-soft),0 1px 2px var(--ui-shadow-soft);font-family:"DFKai-SB","標楷體","BiauKai","Kaiti TC","STKaiti","AR PL UKai TW",serif;transform:rotate(-1.5deg)}
 [data-card-style=paper] .card-paper.note h3{font-size:16px;line-height:1.4}
 [data-card-style=paper] .card-paper.note p,[data-card-style=paper] .card-paper.note .md{font-size:14px;line-height:1.5}
-[data-card-style=paper] .card-paper.note::before{content:'';position:absolute;z-index:3;left:24%;top:-8px;width:76px;height:17px;background:color-mix(in srgb,var(--paper-bg) 75%,white);box-shadow:0 1px 2px var(--ui-shadow-soft);transform:rotate(-2deg);pointer-events:none}
+[data-card-style=paper] .card-paper.mount-tape::before{background:color-mix(in srgb,var(--paper-bg) 72%,white);box-shadow:0 1px 2px var(--ui-shadow-soft)}
 [data-card-style=paper] .card-paper.card .pin{box-shadow:0 1px 3px var(--ui-shadow),0 0 0 2px color-mix(in srgb,white 34%,transparent)}
 [data-card-style=paper] .card-paper.sel{border-color:var(--ui-accent);box-shadow:0 0 0 2px var(--ui-accent),0 9px 18px var(--ui-shadow-soft)}
 [data-card-style=paper] .card-paper.note.sel{transform:rotate(-1.5deg)}
@@ -603,12 +615,12 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
     <p class="section-help">保留常用操作提示，詳細資料仍由本機服務保存。</p>
     <ul class="hint">
       <li>滾輪縮放，拖空白處移動板子</li>
-      <li>拖卡片移動，點卡片編輯（可換顏色、大頭釘位置、寬度）</li>
+      <li>拖卡片移動，右下角把手調整大小，點卡片編輯</li>
       <li>卡片高度隨內容變長；點右上角 ▾／▸ 收起或展開，只留標題</li>
       <li>Shift＋左鍵拖曳框選多張卡片，再拖其中一張一起移動；點空白處取消</li>
       <li>雙擊空白處新增卡片</li>
-      <li>從紅色圖釘拖到另一張卡片拉線（用上方選的類型）</li>
-      <li>點線改類型、標籤或刪除</li>
+      <li>從卡片上緣的大頭釘或膠帶圓點拖到另一張卡片拉線（用上方選的類型）</li>
+      <li>點線改類型、標籤或端點；拖方形端點把手調整接點</li>
       <li>自動保存於本機服務；狀態列會顯示保存結果</li>
       <li>匯入支援 .json／.canvas；.canvas 可用 Obsidian 開啟</li>
     </ul>
@@ -621,6 +633,7 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
   <div id="wall">
     <div id="bg"></div>
     <svg id="strings"></svg>
+    <div id="edge-handles" class="edge-handle-layer" aria-hidden="true"></div>
     <svg id="proposal-ghost-strings" aria-hidden="true"></svg>
     <div id="proposal-ghosts" aria-hidden="true"></div>
     <div id="edgepop" hidden></div>
@@ -646,8 +659,8 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
     <label>樣式<select id="f-kind"><option value="card">線索卡</option><option value="note">疑問便利貼</option></select></label>
     <div class="field"><label for="f-tag">標籤</label><div id="f-tags" class="tags"></div><div class="tag-picker"><input id="f-tag" list="tag-names" maxlength="30" placeholder="輸入標籤，按 Enter 新增" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-tag-list"><div id="f-tag-list" role="listbox" hidden></div></div><datalist id="tag-names"></datalist></div>
     <div class="field">顏色<div id="f-color" role="radiogroup" aria-label="卡片顏色"></div></div>
-    <div class="field">大頭釘位置<div id="f-pin" role="radiogroup" aria-label="大頭釘位置"></div></div>
-    <div class="row"><label>寬度<select id="f-size"></select></label><label class="check"><input type="checkbox" id="f-fold">折疊，只顯示標題</label></div>
+    <div class="field">固定方式<div id="f-mount" role="radiogroup" aria-label="卡片固定方式"></div></div>
+    <div class="row"><button id="f-size-reset" type="button">還原預設大小</button><label class="check"><input type="checkbox" id="f-fold">折疊，只顯示標題</label></div>
     <label>筆記（支援 Markdown）<textarea id="f-note" rows="6"></textarea></label>
     <label>來源（一行一個：名稱 | 路徑或網址 | 位置 | 摘錄）<textarea id="f-links" rows="5" placeholder="來源名稱 | https://example.com/paper.pdf | p. 12 | 關鍵摘錄"></textarea></label>
     <div class="row"><button id="f-del" class="danger">刪除卡片</button></div>
@@ -1354,7 +1367,7 @@ const BUILTIN_TEMPLATES = [
 ];
 
 const $ = s => document.querySelector(s);
-const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
+const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
@@ -1387,7 +1400,7 @@ function load(d) {
       if (!Array.isArray(d.bands) || !d.bands.every(validBand) || new Set(d.bands.map(b => b.id)).size !== d.bands.length) {
         d.bands = structuredClone(SEED.bands);
       }
-      return d;
+      return migrateWall(d);
     }
   } catch {}
   return structuredClone(SEED);
@@ -1528,16 +1541,89 @@ function fitView(whole) {
 }
 
 function tilt(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0; return (Math.abs(h) % 7 - 3) * 0.5; }
-const SIZES = {s: ['窄', .8], m: ['標準', 1], l: ['寬', 1.4], xl: ['特寬', 1.8]};  // width factor; height follows the content
-const sizeOf = c => Object.hasOwn(SIZES, c.size) ? c.size : 'm';
-const cardW = c => (c.kind === 'note' ? 170 : 200) * SIZES[sizeOf(c)][1];
-// key -> [arrow, label, x fraction, y fraction]; grid order fills the editor's 3x3 picker
-const PINS = {nw: ['↖', '左上', 0, 0], n: ['↑', '上', .5, 0], ne: ['↗', '右上', 1, 0], w: ['←', '左', 0, .5],
-  e: ['→', '右', 1, .5], sw: ['↙', '左下', 0, 1], s: ['↓', '下', .5, 1], se: ['↘', '右下', 1, 1]};
-const pinOf = c => Object.hasOwn(PINS, c.pin) ? c.pin : 'n';
+const CARD_MIN_W = 120, CARD_MAX_W = 600, CARD_MIN_H = 60, CARD_MAX_H = 1200;
+const END_SIDES = ['n', 'e', 's', 'w'];
+const cardBaseW = c => c.kind === 'note' ? 170 : 200;
+const legacyWidthFactor = {s: .8, m: 1, l: 1.4, xl: 1.8};
+function normalizeAt(value) {
+  return value && typeof value === 'object' && END_SIDES.includes(value.side) && Number.isFinite(value.t) && value.t >= 0 && value.t <= 1
+    ? {side: value.side, t: Math.round(value.t * 10000) / 10000} : null;
+}
+function migrateCardFields(card) {
+  if (!card || typeof card !== 'object') return card;
+  const factor = legacyWidthFactor[card.size];
+  if (!Number.isFinite(card.w) && factor !== undefined) card.w = Math.round(cardBaseW(card) * factor);
+  if (Number.isFinite(card.w)) card.w = clamp(Math.round(card.w), CARD_MIN_W, CARD_MAX_W); else delete card.w;
+  if (Number.isFinite(card.h)) card.h = clamp(Math.round(card.h), CARD_MIN_H, CARD_MAX_H); else delete card.h;
+  if (card.mount !== 'tape') delete card.mount;
+  delete card.size;
+  delete card.pin;
+  return card;
+}
+function migrateWall(value) {
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value.cards)) value.cards.forEach(migrateCardFields);
+  if (Array.isArray(value.edges)) for (const edge of value.edges) for (const end of ['from', 'to']) {
+    const field = end + 'At', at = normalizeAt(edge?.[field]);
+    if (at) edge[field] = at; else if (edge) delete edge[field];
+  }
+  return value;
+}
+const cardW = c => Number.isFinite(c.w) ? clamp(Math.round(c.w), CARD_MIN_W, CARD_MAX_W) : cardBaseW(c);
+function cardHeight(c, el) {
+  if (el?.offsetHeight) return el.offsetHeight;
+  if (Number.isFinite(c.h)) return clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H);
+  return typeof WallLayout !== 'undefined' && typeof WallLayout.estimateHeight === 'function' ? WallLayout.estimateHeight(c) : 140;
+}
+function cardBox(c, el) {
+  const element = el || wall.querySelector(`.card[data-id="${CSS.escape(c.id)}"]`);
+  const width = element?.offsetWidth || cardW(c), height = cardHeight(c, element);
+  return {x: c.x, y: c.y, width, height, cx: c.x + width / 2, cy: c.y + height / 2};
+}
+function pointAt(c, at, box = cardBox(c)) {
+  if (at.side === 'n' || at.side === 's') return {x: box.x + box.width * at.t, y: at.side === 'n' ? box.y : box.y + box.height};
+  return {x: at.side === 'w' ? box.x : box.x + box.width, y: box.y + box.height * at.t};
+}
+function autoAt(c, other, rectFor = cardBox) {
+  const a = rectFor(c), b = rectFor(other), dx = b.cx - a.cx, dy = b.cy - a.cy;
+  if (Math.abs(dx) * a.height >= Math.abs(dy) * a.width && dx) {
+    const side = dx > 0 ? 'e' : 'w', x = dx > 0 ? a.x + a.width : a.x;
+    return {side, t: clamp((a.cy + dy * Math.abs((x - a.cx) / dx) - a.y) / a.height, 0, 1)};
+  }
+  if (dy) {
+    const side = dy > 0 ? 's' : 'n', y = dy > 0 ? a.y + a.height : a.y;
+    return {side, t: clamp((a.cx + dx * Math.abs((y - a.cy) / dy) - a.x) / a.width, 0, 1)};
+  }
+  return {side: 'n', t: .5};
+}
+function autoEndpointMap(edges = data.edges, cards = data.cards, rectFor = cardBox) {
+  const by = new Map(cards.map(card => [card.id, card])), groups = new Map(), result = new Map();
+  for (const edge of edges) for (const end of ['from', 'to']) {
+    if (normalizeAt(edge[end + 'At'])) continue;
+    const card = by.get(edge[end]), other = by.get(edge[end === 'from' ? 'to' : 'from']);
+    if (!card || !other) continue;
+    const at = autoAt(card, other, rectFor), key = card.id + '\0' + at.side;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({edge, end, at});
+  }
+  for (const values of groups.values()) {
+    values.sort((a, b) => a.at.t - b.at.t || String(a.edge.id).localeCompare(String(b.edge.id)) || a.end.localeCompare(b.end));
+    values.forEach((value, index) => result.set(value.edge.id + ':' + value.end,
+      {...value.at, t: values.length > 1 ? (index + 1) / (values.length + 1) : value.at.t}));
+  }
+  return result;
+}
+function edgeEndpoint(edge, end, autoMap, cardsById = new Map(data.cards.map(card => [card.id, card])), rectFor = cardBox) {
+  const card = cardsById.get(edge[end]), other = cardsById.get(edge[end === 'from' ? 'to' : 'from']);
+  if (!card) return null;
+  const manual = normalizeAt(edge[end + 'At']);
+  const at = drag?.mode === 'endpoint' && drag.edge === edge && drag.end === end ? drag.at
+    : manual || autoMap.get(edge.id + ':' + end) || (other ? autoAt(card, other, rectFor) : {side: 'n', t: .5});
+  return {at, point: pointAt(card, at, rectFor(card))};
+}
 function pinPos(c) {
-  const [, , fx, fy] = PINS[pinOf(c)], el = wall.querySelector(`.card[data-id="${CSS.escape(c.id)}"]`);
-  return {x: c.x + (el ? el.offsetWidth : cardW(c)) * fx, y: c.y + (el ? el.offsetHeight : 0) * fy + 1};
+  const box = cardBox(c);
+  return {x: box.x + box.width / 2, y: box.y + 1};
 }
 
 if (window.DOMPurify) DOMPurify.addHook('afterSanitizeAttributes', node => {
@@ -1592,22 +1678,30 @@ function renderCards() {
   wall.querySelectorAll('.card').forEach(n => n.remove());
   for (const c of data.cards) {
     const el = document.createElement('div');
-    el.className = `card ${c.kind} c-${colorOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '')
+    el.className = `card ${c.kind} c-${colorOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
       + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
     el.dataset.id = c.id;
     el.style.left = c.x + 'px';
     el.style.top = c.y + 'px';
     el.style.width = cardW(c) + 'px';
+    if (Number.isFinite(c.h)) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
     el.style.setProperty('--tilt', tilt(c.id) + 'deg');
     const pin = document.createElement('span');
     pin.className = 'pin';
     pin.title = '拖到另一張卡片拉線';
-    const [, , fx, fy] = PINS[pinOf(c)];
-    pin.style.left = fx * 100 + '%';
-    pin.style.top = `calc(${fy * 100}% - 7px)`;
     const h = document.createElement('h3');
     h.textContent = c.title || '（未命名）';
-    el.append(pin, h);
+    const resize = mk('span', 'resize-handle');
+    resize.title = '拖曳調整卡片大小；雙擊恢復內容高度';
+    resize.tabIndex = 0;
+    resize.ondblclick = ev => {
+      ev.stopPropagation();
+      if (!Object.hasOwn(c, 'h')) return;
+      delete c.h;
+      render();
+      save(true);
+    };
+    el.append(pin, h, resize);
     if (typeof c.image === 'string') el.append(renderImage(c));
     if (c.note) el.append(renderNote(c.note));
     const tags = mk('div', 'tags');
@@ -1632,7 +1726,7 @@ function renderCards() {
       }
       el.append(box);
     }
-    if (el.children.length > 2) {  // something besides the pin and title to hide
+    if (el.querySelector('.card-image, .image-missing, .md, p, .tags, .links')) {  // something besides the pin and title to hide
       const fold = mk('button', 'fold', c.fold ? '▸' : '▾');
       fold.title = fold.ariaLabel = c.fold ? '展開' : '收起';
       fold.setAttribute('aria-expanded', !c.fold);
@@ -1712,10 +1806,13 @@ function mkPath(cls, d, type, weight) {
 }
 function renderStrings() {
   const nodes = [];
+  const autoMap = autoEndpointMap();
   for (const e of data.edges) {
     const a = byId(e.from), b = byId(e.to);
     if (!a || !b || !TYPES[e.type]) continue;
-    const {d, x, y} = curve(pinPos(a), pinPos(b), spring[e.id]?.s || 0);
+    const from = edgeEndpoint(e, 'from', autoMap), to = edgeEndpoint(e, 'to', autoMap);
+    if (!from || !to) continue;
+    const {d, x, y} = curve(from.point, to.point, spring[e.id]?.s || 0);
     const hit = mkPath('hit', d);
     hit.dataset.id = e.id;
     const dim = isDim(a) || isDim(b) ? ' dim' : '';
@@ -1751,21 +1848,37 @@ function renderStrings() {
   }
   if (tempLine) nodes.push(mkPath('str', tempLine, curType));
   svg.replaceChildren(...nodes);
+  edgeHandles.replaceChildren();
+  if (selEdge) {
+    const edge = data.edges.find(value => value.id === selEdge);
+    if (edge) for (const end of ['from', 'to']) {
+      const endpoint = edgeEndpoint(edge, end, autoMap);
+      if (!endpoint) continue;
+      const handle = mk('button', 'edge-handle');
+      handle.type = 'button'; handle.dataset.edgeId = edge.id; handle.dataset.end = end;
+      handle.title = `${end === 'from' ? '起點' : '終點'}接點`;
+      handle.ariaLabel = handle.title;
+      Object.assign(handle.style, {left: endpoint.point.x + 'px', top: endpoint.point.y + 'px'});
+      edgeHandles.append(handle);
+    }
+  }
 }
 function clearProposalGhosts() {
   ghostLayer.replaceChildren();
   ghostSvg.replaceChildren();
 }
-function reviewPoint(id, preview) {
-  const ghost = preview.positions.find(position => position.id === id);
-  if (ghost) return {x: ghost.x + ghost.width / 2, y: ghost.y + Math.min(ghost.height, 140) / 2};
-  const card = byId(id), el = card && wall.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
-  return card ? {x: card.x + (el?.offsetWidth || cardW(card)) / 2, y: card.y + (el?.offsetHeight || 140) / 2} : null;
-}
 function renderProposalGhosts(preview) {
   clearProposalGhosts();
   if (!preview) return;
   const positions = new Map(preview.positions.map(position => [position.id, position]));
+  const ghostCards = preview.positions.map(position => ({id: position.id, x: position.x, y: position.y, w: position.width, h: position.height}));
+  const cardsById = new Map([...data.cards, ...ghostCards].map(card => [card.id, card]));
+  const rectFor = card => {
+    const position = positions.get(card.id);
+    return position ? {x: position.x, y: position.y, width: position.width, height: position.height,
+      cx: position.x + position.width / 2, cy: position.y + position.height / 2} : cardBox(card);
+  };
+  const autoMap = autoEndpointMap([...data.edges, ...preview.edges], [...cardsById.values()], rectFor);
   for (const position of preview.positions) {
     const op = pending?.items.find(item => item.opIndex === position.opIndex)?.op;
     const card = op || {kind: 'card', title: position.tempId};
@@ -1782,7 +1895,8 @@ function renderProposalGhosts(preview) {
     ghostLayer.append(ghost);
   }
   for (const edge of preview.edges) {
-    const a = reviewPoint(edge.from, preview), b = reviewPoint(edge.to, preview);
+    const a = edgeEndpoint(edge, 'from', autoMap, cardsById, rectFor)?.point;
+    const b = edgeEndpoint(edge, 'to', autoMap, cardsById, rectFor)?.point;
     if (!a || !b) continue;
     const path = mkPath('proposal-ghost-edge' + (reviewFocus?.opIndex === edge.opIndex ? ' focused' : ''), curve(a, b).d);
     ghostSvg.append(path);
@@ -2090,6 +2204,22 @@ function toWall(ev) {
   const r = wall.getBoundingClientRect();
   return {x: (ev.clientX - r.left) / view.s, y: (ev.clientY - r.top) / view.s};
 }
+function endpointAtPointer(card, point, shift) {
+  const box = cardBox(card);
+  if (!shift) {
+    const points = [['n', 0], ['n', .5], ['n', 1], ['e', 0], ['e', .5], ['e', 1], ['s', 0], ['s', .5], ['s', 1], ['w', 0], ['w', .5], ['w', 1]];
+    return points.map(([side, t]) => ({side, t, point: pointAt(card, {side, t}, box)}))
+      .sort((a, b) => Math.hypot(a.point.x - point.x, a.point.y - point.y) - Math.hypot(b.point.x - point.x, b.point.y - point.y))[0];
+  }
+  const sides = [
+    {side: 'n', t: clamp((point.x - box.x) / box.width, 0, 1), distance: Math.abs(point.y - box.y)},
+    {side: 'e', t: clamp((point.y - box.y) / box.height, 0, 1), distance: Math.abs(point.x - (box.x + box.width))},
+    {side: 's', t: clamp((point.x - box.x) / box.width, 0, 1), distance: Math.abs(point.y - (box.y + box.height))},
+    {side: 'w', t: clamp((point.y - box.y) / box.height, 0, 1), distance: Math.abs(point.x - box.x)},
+  ];
+  const result = sides.sort((a, b) => a.distance - b.distance)[0];
+  return {...result, point: pointAt(card, result, box)};
+}
 
 function clearPicked() {
   disarmPickDelete();
@@ -2099,6 +2229,19 @@ function clearPicked() {
 }
 const marquee = $('#marquee');
 vp.addEventListener('pointerdown', ev => {
+  const endpointHandle = ev.target.closest?.('.edge-handle');
+  if (endpointHandle && ev.button === 0) {
+    const edge = data.edges.find(value => value.id === endpointHandle.dataset.edgeId), end = endpointHandle.dataset.end, card = edge && byId(edge[end]);
+    if (!edge || !card) return;
+    const endpoint = edgeEndpoint(edge, end, autoEndpointMap());
+    if (!endpoint) return;
+    vp.focus({preventScroll: true});
+    const start = toWall(ev);
+    drag = {mode: 'endpoint', edge, end, card, at: {...endpoint.at}, sx: start.x, sy: start.y, moved: false};
+    vp.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+    return;
+  }
   if (ev.target.closest('a, .fold, #edgepop, #bandpop, #band-nav, #pick-toolbar, #card-menu')) return;
   vp.focus({preventScroll: true});
   lastPointer = toWall(ev);
@@ -2116,6 +2259,10 @@ vp.addEventListener('pointerdown', ev => {
   if (ev.target.closest('.band-label')) {
     const el = ev.target.closest('.band'), b = data.bands.find(b => b.id === el.dataset.id);
     drag = {mode: 'band', b, el, sy: ev.clientY, y0: b.y, moved: false};
+  } else if (ev.target.closest?.('.resize-handle')) {
+    drag = {mode: 'resize', c: byId(el.dataset.id), el, w0: el.offsetWidth, h0: el.offsetHeight, sx: ev.clientX, sy: ev.clientY, moved: false};
+    vp.setPointerCapture(ev.pointerId);
+    return;
   } else if (ev.target.classList.contains('pin')) {
     drag = {mode: 'link', from: el.dataset.id};
   } else if (el) {
@@ -2159,6 +2306,22 @@ vp.addEventListener('pointermove', ev => {
     Object.assign(marquee.style, {left: Math.min(ev.clientX, drag.sx) - r.left + 'px', top: Math.min(ev.clientY, drag.sy) - r.top + 'px',
       width: Math.abs(ev.clientX - drag.sx) + 'px', height: Math.abs(ev.clientY - drag.sy) + 'px'});
     marquee.hidden = false;
+    return;
+  }
+  if (drag.mode === 'endpoint') {
+    const next = endpointAtPointer(drag.card, p, ev.shiftKey);
+    drag.at = {side: next.side, t: next.t};
+    if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 4) drag.moved = true;
+    renderStrings();
+    return;
+  }
+  if (drag.mode === 'resize') {
+    const dx = (ev.clientX - drag.sx) / view.s, dy = (ev.clientY - drag.sy) / view.s;
+    drag.c.w = clamp(Math.round(drag.w0 + dx), CARD_MIN_W, CARD_MAX_W);
+    drag.c.h = clamp(Math.round(drag.h0 + dy), CARD_MIN_H, CARD_MAX_H);
+    drag.el.style.width = drag.c.w + 'px'; drag.el.style.height = drag.c.h + 'px';
+    if (Math.hypot(dx, dy) > 4) drag.moved = true;
+    renderStrings();
     return;
   }
   if (drag.mode === 'move') {
@@ -2211,6 +2374,14 @@ vp.addEventListener('pointerup', ev => {
   }
   if (d.mode === 'band') {
     if (d.moved) renderBands(); else openBand(d.b);
+  } else if (d.mode === 'endpoint') {
+    const point = toWall(ev), box = cardBox(d.card);
+    if (d.moved && point.x >= box.x && point.x <= box.x + box.width && point.y >= box.y && point.y <= box.y + box.height) {
+      d.edge[d.end + 'At'] = {...d.at};
+    }
+    renderStrings();
+  } else if (d.mode === 'resize') {
+    if (d.moved) { render(); save(true); }
   } else if (d.mode === 'move') {
     d.group.forEach(g => g.el.classList.remove('dragging'));
     if (!d.moved) openPanel(d.c.id);
@@ -2260,6 +2431,12 @@ $('#card-menu-bottom').onclick = () => { cardMenu.hidden = true; moveCards(cardM
 
 // pointer capture can retarget dblclick to the viewport, so check what is really under the cursor
 vp.addEventListener('dblclick', ev => {
+  const resize = ev.target.closest?.('.resize-handle') || document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.resize-handle');
+  if (resize) {
+    const card = byId(resize.closest('.card')?.dataset.id);
+    if (card && Object.hasOwn(card, 'h')) { delete card.h; render(); save(true); }
+    return;
+  }
   if (document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.card, .band-label, #edgepop, #bandpop')) return;
   const p = toWall(ev);
   addCard('card', p.x - 100, p.y - 20);
@@ -2311,6 +2488,7 @@ pop.addEventListener('click', ev => {
   if (b.dataset.weight) {
     if (b.dataset.weight === 'normal') delete edge.weight; else edge.weight = b.dataset.weight;
   } else if (b.dataset.type) edge.type = b.dataset.type;
+  else if (b.dataset.auto) { delete edge.fromAt; delete edge.toAt; }
   else return deleteEdge();
   save();
   selectEdge(selEdge, {x: parseFloat(pop.style.left), y: parseFloat(pop.style.top)});
@@ -2380,6 +2558,9 @@ function buildTypeButtons() {
     save();
   });
   pop.append(label);
+  const auto = document.createElement('button');
+  auto.type = 'button'; auto.dataset.auto = 'true'; auto.textContent = '端點改回自動';
+  pop.append(auto);
   const del = document.createElement('button');
   del.className = 'danger';
   del.textContent = '刪除線';
@@ -2397,8 +2578,12 @@ function setType(k) {
   });
 }
 
-const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), note: $('#f-note'), links: $('#f-links'), size: $('#f-size'), fold: $('#f-fold')};
-for (const [k, [label]] of Object.entries(SIZES)) f.size.add(new Option(label, k));
+const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), mount: $('#f-mount'), note: $('#f-note'), links: $('#f-links'), fold: $('#f-fold')};
+for (const [value, label] of [['', '大頭釘'], ['tape', '透明膠帶']]) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.dataset.mount = value; b.textContent = label; b.setAttribute('role', 'radio');
+  f.mount.append(b);
+}
 for (const [k, label] of Object.entries(COLORS)) {
   const b = document.createElement('button');
   b.className = 'swatch c-' + k;
@@ -2418,28 +2603,26 @@ f.color.addEventListener('click', ev => {
   render();
   save();
 });
-const pinPicker = $('#f-pin');
-for (const [k, [arrow, label]] of Object.entries(PINS)) {
-  const b = document.createElement('button');  // mk is defined further down
-  b.textContent = arrow;
-  b.dataset.pin = k;
-  b.title = b.ariaLabel = label;
-  b.setAttribute('role', 'radio');
-  pinPicker.append(b);
-  if (k === 'w') pinPicker.append(document.createElement('span'));  // the card itself sits in the middle cell
-}
-const markPin = c => pinPicker.querySelectorAll('button').forEach(b => {
-  b.classList.toggle('on', b.dataset.pin === pinOf(c));
-  b.setAttribute('aria-checked', b.dataset.pin === pinOf(c));
+const mountOf = c => c.mount === 'tape' ? 'tape' : '';
+const markMount = c => f.mount.querySelectorAll('button').forEach(b => {
+  b.classList.toggle('on', b.dataset.mount === mountOf(c));
+  b.setAttribute('aria-checked', b.dataset.mount === mountOf(c));
 });
-pinPicker.addEventListener('click', ev => {
+f.mount.addEventListener('click', ev => {
   const b = ev.target.closest('button'), c = byId(selCard);
   if (!b || !c) return;
-  c.pin = b.dataset.pin;
-  markPin(c);
+  if (b.dataset.mount === 'tape') c.mount = 'tape'; else delete c.mount;
+  markMount(c);
   render();
   save();
 });
+$('#f-size-reset').onclick = () => {
+  const c = byId(selCard);
+  if (!c) return;
+  delete c.w; delete c.h;
+  render();
+  save(true);
+};
 function normalizeLink(link) {
   if (!link || typeof link.href !== 'string' || !safeSourceHref(link.href)) return null;
   const value = {label: String(link.label || link.href), href: link.href};
@@ -2598,10 +2781,9 @@ function openPanel(id, prune = true) {
   f.kind.value = c.kind;
   f.note.value = c.note;
   f.links.value = (c.links || []).map(formatLink).filter(Boolean).join('\n');
-  f.size.value = sizeOf(c);
   f.fold.checked = !!c.fold;
   markColor(c);
-  markPin(c);
+  markMount(c);
   panel.hidden = false;
   placePanel();
   $('#panel-body').scrollTop = 0;
@@ -2614,7 +2796,7 @@ panel.addEventListener('input', ev => {
   if (ev.target.id === 'f-tag') return;
   const c = byId(selCard);
   if (!c) return;
-  Object.assign(c, {title: f.title.value, kind: f.kind.value, note: f.note.value, links: parseLinks(f.links.value), size: f.size.value, fold: f.fold.checked});
+  Object.assign(c, {title: f.title.value, kind: f.kind.value, note: f.note.value, links: parseLinks(f.links.value), fold: f.fold.checked});
   markColor(c);  // a card without a chosen color follows its kind's default
   render();
   save();
@@ -2861,10 +3043,14 @@ $('#add-band').onclick = () => {
 
 const CANVAS_COLORS = {red: '1', amber: '2', cream: '3', green: '4', slate: '5', purple: '6'};
 const CANVAS_EDGES = {builds: '1', uses: '5', question: '3'};
+const CANVAS_SIDES = {n: 'top', e: 'right', s: 'bottom', w: 'left'};
+const edgeSideFromCanvas = value => Object.entries(CANVAS_SIDES).find(([, name]) => name === value)?.[0];
 function toCanvas(snapshot) {
   const elements = new Map([...wall.querySelectorAll('.card')].map(el => [el.dataset.id, el]));
+  const rectFor = c => cardBox(c, elements.get(c.id));
+  const cardsById = new Map(snapshot.cards.map(card => [card.id, card]));
   const cards = snapshot.cards.map(c => ({id: c.id, type: 'text', x: Math.round(c.x), y: Math.round(c.y),
-    width: elements.get(c.id).offsetWidth, height: elements.get(c.id).offsetHeight, color: CANVAS_COLORS[colorOf(c)],
+    width: Math.round(rectFor(c).width), height: Math.round(rectFor(c).height), color: CANVAS_COLORS[colorOf(c)],
     text: [`## ${c.title}`, c.note, (c.links || []).map(markdownLink).filter(Boolean).join('\n')].filter(Boolean).join('\n\n'),
     detective: c}));
   const used = new Set(cards.map(c => c.id));
@@ -2879,9 +3065,13 @@ function toCanvas(snapshot) {
     return {id: unique(b.id), type: 'group', label: b.title, x: left - 40, y, width: right - left + 80,
       height: Math.max(1, (next ? Math.round(next.y) : Math.max(y, bottom) + 40) - y), detective: {band: true, id: b.id}};
   });
-  const edges = snapshot.edges.map(e => ({id: unique(e.id), fromNode: e.from, toNode: e.to,
-    fromSide: 'top', toSide: 'top', toEnd: 'arrow', color: CANVAS_EDGES[e.type],
-    ...(e.label ? {label: e.label} : {}), detective: {type: e.type, ...(e.weight ? {weight: e.weight} : {})}}));
+  const autoMap = autoEndpointMap(snapshot.edges, snapshot.cards, rectFor);
+  const edges = snapshot.edges.map(e => {
+    const from = edgeEndpoint(e, 'from', autoMap, cardsById, rectFor), to = edgeEndpoint(e, 'to', autoMap, cardsById, rectFor);
+    return {id: unique(e.id), fromNode: e.from, toNode: e.to,
+      fromSide: CANVAS_SIDES[from?.at.side] || 'top', toSide: CANVAS_SIDES[to?.at.side] || 'top', toEnd: 'arrow', color: CANVAS_EDGES[e.type],
+      ...(e.label ? {label: e.label} : {}), detective: {type: e.type, ...(e.weight ? {weight: e.weight} : {})}};
+  });
   return {nodes: [...bands, ...cards], edges, detective: {version: 1, tags: snapshot.tags}};
 }
 function fromCanvas(canvas) {
@@ -2921,6 +3111,7 @@ function fromCanvas(canvas) {
       bands.push({id: n.detective?.band === true && typeof n.detective.id === 'string' ? n.detective.id : n.id,
         title: typeof n.label === 'string' && n.label ? n.label : '分層', y: n.y});
     } else continue;
+    if (n.type !== 'group' && !Number.isFinite(c.w) && Number.isFinite(n.width)) c.w = clamp(Math.round(n.width), CARD_MIN_W, CARD_MAX_W);
     seen.add(n.id);
     if (n.type === 'group') continue;
     cards.push(c);
@@ -2936,7 +3127,9 @@ function fromCanvas(canvas) {
     .map(e => ({from: e.fromNode, to: e.toNode,
       type: typeof e.detective?.type === 'string' && Object.hasOwn(TYPES, e.detective.type) ? e.detective.type
         : Object.keys(CANVAS_EDGES).find(type => CANVAS_EDGES[type] === e.color) || 'uses',
-      label: typeof e.label === 'string' ? e.label : '', weight: e.detective?.weight}));
+      label: typeof e.label === 'string' ? e.label : '', weight: e.detective?.weight,
+      ...(edgeSideFromCanvas(e.fromSide) ? {fromAt: {side: edgeSideFromCanvas(e.fromSide), t: .5}} : {}),
+      ...(edgeSideFromCanvas(e.toSide) ? {toAt: {side: edgeSideFromCanvas(e.toSide), t: .5}} : {})}));
   return cards.length || bands.some(validBand) ? {cards, bands, edges, tags: canvas.detective?.tags, images: canvas.detective?.images, skippedLinks} : null;
 }
 async function exportWall(format) {
@@ -3042,9 +3235,8 @@ function normalize(d) {
     const old = byId(c.id), n = {...c, kind: c.kind === 'note' ? 'note' : 'card', title: String(c.title ?? ''), note: String(c.note ?? ''),
       tags: [...new Set((Array.isArray(c.tags) ? c.tags : []).filter(id => typeof id === 'string'))],
       links};
+    migrateCardFields(n);
     if (typeof n.image !== 'string') delete n.image;
-    if (!Object.hasOwn(PINS, n.pin)) delete n.pin;
-    if (!Object.hasOwn(SIZES, n.size)) delete n.size;
     if (typeof n.fold !== 'boolean') delete n.fold;
     // cards written without a position keep their current one, or line up right of the wall
     if (!Number.isFinite(c.x) || !Number.isFinite(c.y)) Object.assign(n, old ? {x: old.x, y: old.y} : {x: right, y: 160 * row++});
@@ -3053,7 +3245,9 @@ function normalize(d) {
   for (const e of d.edges) {
     if (!e?.from || !e.to || e.from === e.to || !TYPES[e.type] || seen.has(edgeKey(e))) continue;
     seen.add(edgeKey(e));
+    const fromAt = normalizeAt(e.fromAt), toAt = normalizeAt(e.toAt);
     edges.push({id: nid('e'), from: String(e.from), to: String(e.to), type: e.type, label: String(e.label ?? '').trim().slice(0, 200),
+      ...(fromAt ? {fromAt} : {}), ...(toAt ? {toAt} : {}),
       ...(Object.hasOwn(WEIGHTS, e.weight) && e.weight !== 'normal' ? {weight: e.weight} : {})});
   }
   const bands = Array.isArray(d.bands) ? d.bands.filter((b, i, all) => validBand(b) && all.findIndex(x => validBand(x) && x.id === b.id) === i)
@@ -3070,8 +3264,9 @@ function cardDiff(a, b, tags = data.tags) {
   const kind = c => c.kind === 'note' ? '疑問便利貼' : '線索卡', pos = c => `(${Math.round(c.x)}, ${Math.round(c.y)})`;
   const links = c => (c.links || []).map(formatLink).filter(Boolean).join('\n');
   const names = (c, defs) => (c.tags || []).map(id => (defs.find(t => t.id === id) || data.tags.find(t => t.id === id))?.name || id).sort().join('\n');
-  return [['標題', a.title, b.title], ['樣式', kind(a), kind(b)], ['顏色', COLORS[colorOf(a)], COLORS[colorOf(b)]], ['大頭釘', PINS[pinOf(a)][1], PINS[pinOf(b)][1]],
-    ['寬度', SIZES[sizeOf(a)][0], SIZES[sizeOf(b)][0]], ['折疊', a.fold ? '是' : '否', b.fold ? '是' : '否'],
+  const height = c => Number.isFinite(c.h) ? String(Math.round(c.h)) : '跟隨內容';
+  return [['標題', a.title, b.title], ['樣式', kind(a), kind(b)], ['顏色', COLORS[colorOf(a)], COLORS[colorOf(b)]], ['固定方式', mountOf(a) === 'tape' ? '透明膠帶' : '大頭釘', mountOf(b) === 'tape' ? '透明膠帶' : '大頭釘'],
+    ['寬度', String(cardW(a)), String(cardW(b))], ['高度', String(height(a)), String(height(b))], ['折疊', a.fold ? '是' : '否', b.fold ? '是' : '否'],
     ['圖片', a.image, b.image], ['筆記', a.note, b.note], ['標籤', names(a, data.tags), names(b, tags)], ['連結', links(a), links(b)], ['位置', pos(a), pos(b)]]
     .filter(([field, x, y]) => x !== y || field === '標籤' && JSON.stringify([...(a.tags || [])].sort()) !== JSON.stringify([...(b.tags || [])].sort()));
 }
@@ -3627,7 +3822,13 @@ $('#im-apply').onclick = () => changeWall(async () => {
   for (const it of picked) if (it.edge) {
     const e = it.edge;
     if (!byId(e.from) || !byId(e.to)) { skipped++; continue; }
-    it.old ? Object.assign(it.old, {from: e.from, to: e.to, type: e.type, label: e.label}) : data.edges.push(e);
+    if (it.old) {
+      Object.assign(it.old, {from: e.from, to: e.to, type: e.type, label: e.label});
+      for (const end of ['from', 'to']) {
+        const field = end + 'At';
+        if (e[field]) it.old[field] = {...e[field]}; else delete it.old[field];
+      }
+    } else data.edges.push(e);
   }
   finishImport(`已匯入 ${picked.length - skipped} 項` + (skipped ? `，略過 ${skipped} 條線（端點卡片沒匯入）` : ''));
 });

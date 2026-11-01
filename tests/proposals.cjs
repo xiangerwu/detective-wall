@@ -279,7 +279,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.equal(bandCards.length, 3);
     assert.ok(bandCards.find(card => card.title === 'First A').y >= 60);
     assert.ok(bandCards.find(card => card.title === 'Second A').y >= 560);
-    const cardWidth = card => (card.kind === 'note' ? 170 : 200) * ({s: .8, m: 1, l: 1.4, xl: 1.8}[card.size] || 1);
+    const cardWidth = card => Number.isFinite(card.w) ? card.w : card.kind === 'note' ? 170 : 200;
     for (const a of bandCards) for (const b of response.body.wall.data.cards) if (a !== b) {
       assert.equal(a.x < b.x + cardWidth(b) && b.x < a.x + cardWidth(a) && a.y < b.y + 140 && b.y < a.y + 140, false,
         JSON.stringify({a, b}));

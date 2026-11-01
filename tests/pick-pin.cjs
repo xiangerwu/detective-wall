@@ -91,37 +91,30 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const p1 = await pos();
     ok(!(await page.locator('.card.picked').count()) && Object.keys(p1).filter(id => p1[id][0] !== p0[id][0]).join() === other, 'dragging an unpicked card clears the selection and moves only that card');
 
-    // pins
+    // fixed top pin and mount modes
     const edge = await page.evaluate(() => data.edges[0]);
     const card = await page.locator(`.card[data-id="${edge.from}"]`).boundingBox();
     await page.mouse.click(card.x + card.width / 2, card.y + card.height / 2);
-    ok(await page.locator('#f-pin button').count() === 8 && await page.getAttribute('#f-pin [data-pin="n"]', 'aria-checked') === 'true', 'editor offers eight pin spots, top centre by default');
+    ok(await page.locator('#f-pin').count() === 0 && await page.locator('#f-mount [data-mount=""]').getAttribute('aria-checked') === 'true', 'editor uses one fixed top-centre pin and offers mount choices');
     const pinCheck = () => page.evaluate(id => {
       const c = byId(id), el = document.querySelector(`.card[data-id="${id}"]`), pin = el.querySelector('.pin').getBoundingClientRect();
       const w = wall.getBoundingClientRect(), centre = {x: (pin.left + pin.width / 2 - w.left) / view.s, y: (pin.top + pin.height / 2 - w.top) / view.s};
-      const e = data.edges.find(e => e.from === id);
-      const [, x, y] = document.querySelector(`path.hit[data-id="${e.id}"]`).getAttribute('d').match(/^M(\S+) (\S+)/).map(Number);
-      return {pin: centre, start: {x, y}, card: {x: c.x, y: c.y, w: el.offsetWidth, h: el.offsetHeight}};
+      return {pin: centre, card: {x: c.x, y: c.y, w: el.offsetWidth, h: el.offsetHeight}};
     }, edge.from);
     const near = (p, q, tol = 6) => Math.abs(p.x - q.x) <= tol && Math.abs(p.y - q.y) <= tol;
-    const results = {};
-    for (const [k, fx, fy] of [['se', 1, 1], ['w', 0, .5], ['nw', 0, 0], ['s', .5, 1]]) {
-      await page.click(`#f-pin [data-pin="${k}"]`);
-      const r = await pinCheck();
-      const want = {x: r.card.x + r.card.w * fx, y: r.card.y + r.card.h * fy};
-      results[k] = near(r.pin, want) && near(r.start, r.pin);
-      if (!results[k]) console.log(k, JSON.stringify(r));
-    }
-    ok(Object.values(results).every(Boolean), 'pin moves to each chosen spot and the string follows it ' + JSON.stringify(results));
-    ok(await page.getAttribute('#f-pin [data-pin="s"]', 'aria-checked') === 'true' && await page.getAttribute('#f-pin [data-pin="n"]', 'aria-checked') === 'false', 'picker marks the chosen spot');
+    const r = await pinCheck();
+    ok(near(r.pin, {x: r.card.x + r.card.w / 2, y: r.card.y + 1}), 'fixed pin stays at the top centre while line endpoints use card edges');
+    await page.click('#f-mount [data-mount="tape"]');
+    ok(await page.evaluate(id => byId(id).mount === 'tape' && document.querySelector(`.card[data-id="${id}"]`).classList.contains('mount-tape')
+      && getComputedStyle(document.querySelector(`.card[data-id="${id}"]`), '::before').content !== 'none', edge.from), 'tape mode renders the paper tape pseudo-element');
     await page.screenshot({ path: path.join(OUT, 'pin-bottom.png') });
     await reload(page);
-    ok(await page.evaluate(id => byId(id).pin === 's', edge.from) && near((await pinCheck()).start, (await pinCheck()).pin), 'pin spot persists after reload');
+    ok(await page.evaluate(id => byId(id).mount === 'tape' && !('pin' in byId(id)), edge.from), 'mount choice persists after reload and old pin data is absent');
     ok(await page.evaluate(() => {
-      const n = normalize({cards: [{id: 'p1', pin: 'zz'}, {id: 'p2', pin: 'se'}, {id: 'p3', pin: 'constructor'}], edges: []}).cards;
-      return !('pin' in n[0]) && n[1].pin === 'se' && !('pin' in n[2]);
-    }), 'import keeps valid pin spots and drops invalid ones');
-    ok(await page.evaluate(id => cardDiff(byId(id), {...byId(id), pin: 'ne'}).some(([f]) => f === '大頭釘'), edge.from), 'import preview lists a pin change');
+      const n = normalize({cards: [{id: 'p1', mount: 'bad'}, {id: 'p2', mount: 'tape'}, {id: 'p3', pin: 'ne'}], edges: []}).cards;
+      return !('mount' in n[0]) && n[1].mount === 'tape' && !('pin' in n[2]);
+    }), 'import keeps tape mount and drops invalid mount and old pin fields');
+    ok(await page.evaluate(id => cardDiff(byId(id), {...byId(id), mount: undefined}).some(([f]) => f === '固定方式'), edge.from), 'import preview lists a mount change');
     ok(errs.length === 0, 'no page errors ' + errs.join('; '));
   } finally {
     await browser.close();

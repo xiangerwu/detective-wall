@@ -312,8 +312,8 @@ function tagIds(data, names) {
   return result;
 }
 
-// Moving, resizing, recoloring, folding or re-pinning a card is not a content change, so it does not block AI edits.
-const cardContent = ({x, y, size, color, fold, pin, ...content}) => proposalJson(content);
+// Moving, resizing, recoloring, folding or changing the mount is not a content change, so it does not block AI edits.
+const cardContent = ({x, y, w, h, color, fold, mount, ...content}) => proposalJson(content);
 function matchingCardSnapshot(data, baseCards, cardId) {
   const expected = baseCards.cards.find(card => card.id === cardId);
   const current = cardIn(data, cardId);
@@ -329,30 +329,31 @@ function matchingEdgeSnapshot(data, baseCards, from, to) {
 // The band grid keeps its legacy 140px row; non-band layout uses the shared
 // title/note height heuristic from server/layout.js.
 const CARD_H = 140;
-const cardWidth = card => (card.kind === 'note' ? 170 : 200) * ({s: .8, m: 1, l: 1.4, xl: 1.8}[card.size] || 1);
-function freeSpot(cards, x, y, width) {
-  const hits = top => cards.some(c => x < c.x + cardWidth(c) && c.x < x + width && top < c.y + CARD_H && c.y < top + CARD_H);
+const cardWidth = card => Number.isFinite(card?.w) ? card.w : card.kind === 'note' ? 170 : 200;
+const cardHeight = card => Number.isFinite(card?.h) ? card.h : Math.max(CARD_H, wallLayout.estimateHeight(card));
+function freeSpot(cards, x, y, width, height = CARD_H) {
+  const hits = top => cards.some(c => x < c.x + cardWidth(c) && c.x < x + width && top < c.y + cardHeight(c) && c.y < top + height);
   while (hits(y)) y += CARD_H + 20;
   return {x, y};
 }
-function freeGridSpot(cards, y, width) {
+function freeGridSpot(cards, y, width, height) {
   // ponytail: fixed columns cover the largest card; use measured card geometry if layouts become denser.
   const stepX = 420, stepY = CARD_H + 20;
   for (let row = 0; ; row++) for (let column = 0; column < 1000; column++) {
-    const point = freeSpot(cards, 80 + column * stepX, y + row * stepY, width);
+    const point = freeSpot(cards, 80 + column * stepX, y + row * stepY, width, height);
     if (point.y === y + row * stepY) return point;
   }
 }
 function placeCard(data, op) {
   const band = (Array.isArray(data.bands) ? data.bands : []).find(value => value?.title === op.band);
-  return freeGridSpot(data.cards, (band?.y || 0) + 60, cardWidth(op));
+  return freeGridSpot(data.cards, (band?.y || 0) + 60, cardWidth(op), cardHeight(op));
 }
 
 function layoutNewCards(data, newIds) {
   const cards = data.cards.map(card => ({
     id: card.id,
     width: cardWidth(card),
-    height: Math.max(CARD_H, wallLayout.estimateHeight(card)),
+    height: cardHeight(card),
     fixed: !newIds.has(card.id),
     x: card.x,
     y: card.y,
@@ -801,7 +802,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
         if (op.type !== 'add_card' || !simulation.results[index].selected || simulation.results[index].status !== 'applied') return null;
         const cardId = deterministicId('c', row.id, op.tempId), card = cardIn(simulation.after, cardId);
         if (!card || beforeIds.has(cardId) || !simulation.results[index].changed) return null;
-        return {opIndex: index, tempId: op.tempId, id: cardId, x: card.x, y: card.y, width: cardWidth(card), height: Math.max(CARD_H, wallLayout.estimateHeight(card))};
+        return {opIndex: index, tempId: op.tempId, id: cardId, x: card.x, y: card.y, width: cardWidth(card), height: cardHeight(card)};
       }).filter(Boolean);
       const edges = simulation.ops.map((op, index) => {
         if (op.type !== 'add_edge' || !simulation.results[index].selected || simulation.results[index].status !== 'applied'

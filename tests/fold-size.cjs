@@ -19,7 +19,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await reload(page);
     ok(await cork(), 'cork theme survives reload');
 
-    // a card on screen that has an outgoing string, so its pin can be checked too
+    // a card on screen that has an outgoing string, so its fixed top pin can be checked too
     const id = await page.evaluate(() => {
       const v = vp.getBoundingClientRect();
       return data.edges.map(e => e.from).find(id => { const r = document.querySelector(`.card[data-id="${id}"]`).getBoundingClientRect(); return r.top > v.top && r.bottom < v.bottom - 200 && r.left > v.left && r.right < v.right - 200; });
@@ -33,13 +33,12 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await height() > h0 + 150 && await card.evaluate(el => [...el.querySelectorAll('.md, p')].every(b => b.scrollHeight <= b.clientHeight + 1) && el.textContent.includes('第 14 行')), `card grows with a long note (${h0} -> ${await height()}px) and shows all of it`);
     await page.screenshot({ path: path.join(OUT, 'long-note.png') });
 
-    await page.click(`#f-pin [data-pin="s"]`);
-    const startNearBottom = () => page.evaluate(id => {
-      const c = byId(id), el = document.querySelector(`.card[data-id="${id}"]`), e = data.edges.find(e => e.from === id);
-      const [, , y] = document.querySelector(`path.hit[data-id="${e.id}"]`).getAttribute('d').match(/^M(\S+) (\S+)/).map(Number);
-      return Math.abs(y - (c.y + el.offsetHeight)) <= 3;
+    const startNearTop = () => page.evaluate(id => {
+      const c = byId(id), el = document.querySelector(`.card[data-id="${id}"]`), pin = el.querySelector('.pin').getBoundingClientRect(), w = wall.getBoundingClientRect();
+      return Math.abs((pin.left + pin.width / 2 - w.left) / view.s - (c.x + el.offsetWidth / 2)) <= 3
+        && Math.abs((pin.top + pin.height / 2 - w.top) / view.s - c.y) <= 5;
     }, id);
-    ok(await startNearBottom(), 'bottom pin string starts at the bottom of the tall card');
+    ok(await startNearTop(), 'fixed top pin stays at the top centre of the tall card');
 
     // The floating editor may cover the card; drag it to the half of the viewport away from the card.
     const c = await card.boundingBox(), v = await page.locator('#viewport').boundingBox(), t = await page.locator('#panel-titlebar').boundingBox();
@@ -51,7 +50,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await card.evaluate(el => el.classList.contains('folded')) && await height() < 70 && !(await card.locator('.md, p').first().isVisible()) && await card.locator('h3').isVisible(),
       `fold button collapses the card to its title (${await height()}px)`);
     ok(await page.isChecked('#f-fold') && await page.isVisible('#panel'), 'editor checkbox follows the fold button, editor stays as it was');
-    ok(await startNearBottom(), 'bottom pin string follows the folded card');
+    ok(await startNearTop(), 'top pin follows the folded card');
     await page.screenshot({ path: path.join(OUT, 'folded.png') });
     await reload(page);
     ok(await card.evaluate(el => el.classList.contains('folded')), 'fold state survives reload');
@@ -63,19 +62,25 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.check('#f-fold');
     ok(await card.evaluate(el => el.classList.contains('folded')), 'editor checkbox folds the card');
     await page.uncheck('#f-fold');
-    await page.selectOption('#f-size', 'xl');
-    ok(await card.evaluate(el => el.offsetWidth) === 360, 'xl width is 1.8x a clue card');
+    const resize = await card.locator('.resize-handle').boundingBox();
+    await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2);
+    await page.mouse.down(); await page.mouse.move(resize.x + 84, resize.y + 52, {steps: 5}); await page.mouse.up();
+    ok(await page.evaluate(id => Number.isInteger(byId(id).w) && Number.isInteger(byId(id).h) && byId(id).w >= 120 && byId(id).h >= 60, id), 'resize handle stores integer width and height');
+    await page.click('#f-size-reset');
+    ok(await page.evaluate(id => !('w' in byId(id)) && !('h' in byId(id)), id), 'editor reset restores the default width and content height');
     await page.selectOption('#f-kind', 'note');
-    ok(await card.evaluate(el => el.offsetWidth) === 306, 'xl width scales from the note width');
-    await page.selectOption('#f-size', 's');
+    ok(await card.evaluate(el => el.offsetWidth) === 170, 'note cards use the note default width');
     await reload(page);
-    ok(await card.evaluate(el => el.offsetWidth) === 136 && await page.evaluate(id => byId(id).size === 's', id), 'width choice survives reload');
+    ok(await card.evaluate(el => el.offsetWidth) === 170 && await page.evaluate(id => !('w' in byId(id)) && !('h' in byId(id)), id), 'default dimensions survive reload');
 
     ok(await page.evaluate(() => {
       const n = normalize({cards: [{id: 'a', size: 'huge', fold: 'yes'}, {id: 'b', size: 'l', fold: true}], edges: []}).cards;
-      return !('size' in n[0]) && !('fold' in n[0]) && n[1].size === 'l' && n[1].fold === true;
-    }), 'import keeps valid width and fold values only');
-    ok(await page.evaluate(id => { const fields = cardDiff(byId(id), {...byId(id), size: 'l', fold: true}).map(([f]) => f); return fields.includes('寬度') && fields.includes('折疊'); }, id), 'import preview lists width and fold changes');
+      return !('size' in n[0]) && !('fold' in n[0]) && !('size' in n[1]) && n[1].w === 280 && n[1].fold === true;
+    }), 'import migrates legacy width and keeps valid fold values only');
+    ok(await page.evaluate(id => {
+      const fields = cardDiff(byId(id), {...byId(id), w: 240, h: 200, mount: 'tape', fold: true}).map(([f]) => f);
+      return fields.includes('寬度') && fields.includes('高度') && fields.includes('固定方式') && fields.includes('折疊');
+    }, id), 'import preview lists numeric width, height, mount and fold changes');
     ok(errs.length === 0, 'no page errors ' + errs.join('; '));
   } finally {
     await browser.close();
