@@ -327,9 +327,30 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #sidebar .side-panel-drag:hover,#sidebar .side-panel-drag:focus-visible{border-color:var(--ui-border);background:var(--ui-hover);color:var(--ui-text)}
 #sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
 #chat-section{height:260px}
-#chat-mascot-panel{flex:1 0 auto;min-height:120px;overflow:hidden}  /* fills leftover sidebar height */
-#chat-mascot-panel > h2{position:absolute;top:0;left:0;right:0;z-index:1;background:color-mix(in srgb,var(--ui-panel) 82%,transparent)}
-#chat-mascot{flex:1;min-height:0;width:100%;object-fit:contain;object-position:center bottom}
+#mascot{position:fixed;z-index:18;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
+#mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:auto}
+#mascot-image{cursor:grab}
+#mascot.dragging #mascot-image{cursor:grabbing}
+#mascot-blink,#mascot-transition{pointer-events:none;opacity:0;transition:opacity .12s ease}
+#mascot-transition{transition:opacity .2s ease}
+#mascot.blinking #mascot-blink,#mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-transition{opacity:1}
+#mascot-bubble{position:absolute;z-index:1;left:50%;bottom:calc(100% + 8px);max-width:220px;padding:4px 8px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;box-shadow:0 4px 12px var(--ui-shadow-soft);font-size:12px;line-height:1.3;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
+#mascot-bubble.show{opacity:1;transform:translate(-50%,0)}
+#mascot-resize{position:absolute;right:0;bottom:0;width:16px;height:16px;padding:0;border:0;border-right:2px solid var(--ui-muted);border-bottom:2px solid var(--ui-muted);border-radius:0;background:transparent;opacity:0;cursor:nwse-resize;pointer-events:auto}
+#mascot:hover #mascot-resize,#mascot-resize:focus-visible{opacity:.9}
+@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
+@keyframes mascot-think{0%,100%{transform:rotate(-1deg) translateX(0)}50%{transform:rotate(1deg) translateX(3px)}}
+@keyframes mascot-hop{0%{transform:translateY(0)}42%{transform:translateY(-10px)}100%{transform:translateY(0)}}
+@keyframes mascot-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px) rotate(-1deg)}75%{transform:translateX(3px) rotate(1deg)}}
+#mascot-image{animation:mascot-breathe 4.8s ease-in-out infinite;transform-origin:center bottom}
+#mascot.mood-thinking #mascot-image{animation:mascot-think 1.7s ease-in-out infinite}
+#mascot.mood-happy #mascot-image{animation:mascot-hop .55s ease-out 1,mascot-breathe 4.8s ease-in-out .55s infinite}
+#mascot.mood-sweat #mascot-image{animation:mascot-shake .48s ease-out 1,mascot-breathe 4.8s ease-in-out .48s infinite}
+#mascot.mood-sleep #mascot-image{animation:mascot-breathe 7.5s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){
+  #mascot-image,#mascot-blink,#mascot-transition{animation:none!important;transition:none!important}
+  #mascot-bubble{transition:none!important}
+}
 #template-list,#template-custom-list{display:flex;flex-direction:column;gap:4px}
 .template-row{display:flex;align-items:center;gap:4px}
 .template-row button:first-child{flex:1;text-align:left}
@@ -733,7 +754,7 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
     <div id="ai-audit-list"></div>
   </section>
   <section id="chat-progress" class="side-panel" data-name="執行中進度" role="status" hidden>
-    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.png" alt="" aria-hidden="true"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
+    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.png" alt="" aria-hidden="true" decoding="async"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
     <ol id="chat-progress-list"></ol>
   </section>
   <section id="chat-section" class="side-panel" data-name="AI 對話">
@@ -748,10 +769,14 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
     </form>
     <div id="chat-status" role="status"></div>
   </section>
-  <section id="chat-mascot-panel" class="side-panel" data-name="立繪">
-    <img id="chat-mascot" src="/assets/avatars/claude-body-sleep.png" alt="" aria-hidden="true">
-  </section>
 </aside>
+<div id="mascot" aria-label="AI 桌寵">
+  <div id="mascot-bubble" role="status" aria-live="polite"></div>
+  <img id="mascot-image" src="/assets/avatars/claude-body-sleep.png" alt="AI 桌寵（可拖曳）" decoding="async">
+  <img id="mascot-blink" src="/assets/avatars/claude-body-blink.png" alt="" aria-hidden="true" decoding="async">
+  <img id="mascot-transition" src="/assets/avatars/claude-body-sleep.png" alt="" aria-hidden="true" decoding="async">
+  <button id="mascot-resize" type="button" aria-label="調整桌寵大小" title="調整桌寵大小"></button>
+</div>
 <button id="toggle-sidebar" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="收合 AI 對話側欄" title="收合 AI 對話側欄">‹</button>
 </div>
 
@@ -1252,7 +1277,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order', SIDE_PANEL_COLLAPSED_KEY = 'thesis-detective-wall-side-panel-collapsed';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order', SIDE_PANEL_COLLAPSED_KEY = 'thesis-detective-wall-side-panel-collapsed', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
 const colorOf = c => COLORS[c.color] ? c.color : c.kind === 'note' ? 'amber' : 'slate';
 let cardStyle = 'tech';
@@ -4283,19 +4308,155 @@ function chatProgressEvent(type, value) {
   if (type === 'stopped') { chatStopRequested = true; chatStatus('已停止'); }
   if (type === 'failed' && value?.error) chatStatus('錯誤：' + value.error, true);
 }
+const mascot = $('#mascot'), mascotImage = $('#mascot-image'), mascotBlink = $('#mascot-blink'), mascotTransition = $('#mascot-transition'), mascotBubble = $('#mascot-bubble'), mascotResize = $('#mascot-resize');
+const mascotTransitions = {
+  'idle-thinking': ['idle-thinking-1', 'idle-thinking-2'],
+  'thinking-happy': ['thinking-happy-1', 'thinking-happy-2'],
+  'thinking-sweat': ['thinking-sweat-1', 'thinking-sweat-2'],
+  'idle-sleep': ['idle-sleep-1', 'idle-sleep-2'],
+};
+let mascotMood = '', mascotClient = '', mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotDrag = null, mascotResizeDrag = null;
+let savedMascotPosition = null, savedMascotSize = 180;
+try { savedMascotPosition = JSON.parse(localStorage.getItem(MASCOT_POS_KEY)); } catch {}
+try { savedMascotSize = clamp(Number(localStorage.getItem(MASCOT_SIZE_KEY)) || 180, 96, 360); } catch {}
+mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
+if (Number.isFinite(savedMascotPosition?.x) && Number.isFinite(savedMascotPosition?.y)) {
+  mascot.style.left = savedMascotPosition.x + 'px'; mascot.style.top = savedMascotPosition.y + 'px';
+}
+function mascotMotionAllowed() { return !matchMedia('(prefers-reduced-motion: reduce)').matches; }
+function mascotViewportBounds() {
+  const rect = vp.getBoundingClientRect();
+  return {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
+}
+function saveMascotPosition() {
+  try { localStorage.setItem(MASCOT_POS_KEY, JSON.stringify({x: parseFloat(mascot.style.left), y: parseFloat(mascot.style.top)})); } catch {}
+}
+function clampMascot(persist = false) {
+  const bounds = mascotViewportBounds(), width = mascot.offsetWidth, height = mascot.offsetHeight;
+  const minX = bounds.left + 8, minY = bounds.top + 8;
+  const maxX = Math.max(minX, bounds.right - width - 16), maxY = Math.max(minY, bounds.bottom - height - 16);
+  const currentX = parseFloat(mascot.style.left), currentY = parseFloat(mascot.style.top);
+  const x = clamp(Number.isFinite(currentX) ? currentX : maxX, minX, maxX), y = clamp(Number.isFinite(currentY) ? currentY : maxY, minY, maxY);
+  mascot.style.left = x + 'px'; mascot.style.top = y + 'px';
+  if (persist) saveMascotPosition();
+}
+function setMascotPosition(x, y, persist = false) {
+  mascot.style.left = x + 'px'; mascot.style.top = y + 'px';
+  clampMascot(persist);
+}
+function setMascotSize(height, persist = true) {
+  savedMascotSize = clamp(Math.round(height), 96, 360);
+  mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
+  clampMascot(false);
+  if (persist) try { localStorage.setItem(MASCOT_SIZE_KEY, savedMascotSize); } catch {}
+}
+function showMascotBubble(text) {
+  clearTimeout(mascotBubbleTimer);
+  mascotBubble.textContent = text;
+  mascotBubble.classList.toggle('show', !!text);
+  if (text) mascotBubbleTimer = setTimeout(() => mascotBubble.classList.remove('show'), 2500);
+}
+function scheduleMascotBlink() {
+  clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
+  if (!mascotMotionAllowed() || !['idle', 'thinking'].includes(mascotMood)) return;
+  mascotBlinkTimer = setTimeout(() => {
+    mascot.classList.add('blinking');
+    setTimeout(() => mascot.classList.remove('blinking'), 120);
+    scheduleMascotBlink();
+  }, 4000 + Math.random() * 3000);
+}
+function playMascotTransition(from, to) {
+  clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning', 'crossfading');
+  const frames = mascotTransitions[`${from}-${to}`];
+  if (!mascotMotionAllowed() || mascotClient !== chatClient || !frames) return;
+  const source = frame => `/assets/avatars/${chatClient}-tr-${from}-${to}-${frame}.png`;
+  let index = 0;
+  mascotTransition.src = source(frames[index]); mascotTransition.decoding = 'async'; mascot.classList.add('transitioning');
+  mascotTransitionTimer = setInterval(() => {
+    index++;
+    if (index >= frames.length) { clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning'); return; }
+    mascotTransition.src = source(frames[index]);
+  }, 80);
+}
+function crossfadeMascot(source) {
+  if (!mascotMotionAllowed() || !source) return;
+  mascotTransition.src = source; mascotTransition.decoding = 'async'; mascot.classList.add('crossfading');
+  requestAnimationFrame(() => mascot.classList.remove('crossfading'));
+}
+function wakeMascot() {
+  mascotForcedSleep = false;
+  clearTimeout(wakeMascot.sleepTimer);
+  wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
+  updateChatMascot();
+}
+mascotImage.onpointerdown = ev => {
+  if (ev.button !== 0) return;
+  ev.preventDefault(); wakeMascot(); mascotImage.setPointerCapture(ev.pointerId); mascot.classList.add('dragging');
+  mascotDrag = {id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, x: parseFloat(mascot.style.left), y: parseFloat(mascot.style.top), moved: false};
+};
+mascotImage.onpointermove = ev => {
+  if (!mascotDrag || mascotDrag.id !== ev.pointerId) return;
+  const dx = ev.clientX - mascotDrag.sx, dy = ev.clientY - mascotDrag.sy;
+  if (Math.hypot(dx, dy) >= 4) mascotDrag.moved = true;
+  if (mascotDrag.moved) setMascotPosition(mascotDrag.x + dx, mascotDrag.y + dy);
+};
+mascotImage.onpointerup = mascotImage.onpointercancel = ev => {
+  if (!mascotDrag || mascotDrag.id !== ev.pointerId) return;
+  const moved = mascotDrag.moved; mascotDrag = null; mascot.classList.remove('dragging');
+  if (moved) saveMascotPosition();
+  else {
+    showSidebar(true);
+    requestAnimationFrame(() => $('#chat-input').focus());
+  }
+};
+mascotResize.onpointerdown = ev => {
+  if (ev.button !== 0) return;
+  ev.preventDefault(); ev.stopPropagation(); wakeMascot(); mascotResize.setPointerCapture(ev.pointerId);
+  mascotResizeDrag = {id: ev.pointerId, sy: ev.clientY, height: mascot.offsetHeight};
+};
+mascotResize.onpointermove = ev => {
+  if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
+  setMascotSize(mascotResizeDrag.height + mascotResizeDrag.sy - ev.clientY);
+};
+mascotResize.onpointerup = mascotResize.onpointercancel = ev => {
+  if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
+  mascotResizeDrag = null; try { mascotResize.releasePointerCapture(ev.pointerId); } catch {}
+};
+$('#chat-input').addEventListener('input', wakeMascot);
+requestAnimationFrame(() => {
+  if (!savedMascotPosition || !Number.isFinite(savedMascotPosition.x) || !Number.isFinite(savedMascotPosition.y)) {
+    const bounds = mascotViewportBounds(); setMascotPosition(bounds.right - mascot.offsetWidth - 16, bounds.bottom - mascot.offsetHeight - 16);
+  } else clampMascot();
+  wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
+});
+window.addEventListener('resize', () => clampMascot(true));
+new ResizeObserver(() => clampMascot(true)).observe(vp);
 function updateChatMascot() {
   const last = chatMessages[chatMessages.length - 1];
   const running = chatBusy && !$('#chat-progress').hidden;
-  const mood = running ? 'thinking'
+  const mood = mascotForcedSleep ? 'sleep' : running ? 'thinking'
     : !chatMessages.length ? 'sleep'
     : last.status === 'stopped' || last.error ? 'sweat'
     : last.role === 'assistant' ? 'happy'
     : 'idle';
-  $('#chat-mascot').src = `/assets/avatars/${chatClient}-body-${mood}.png`;
+  const previousMood = mascotMood, previousClient = mascotClient, previousSource = mascotImage.getAttribute('src');
+  mascotMood = mood; mascotClient = chatClient;
+  mascot.classList.remove('mood-idle', 'mood-thinking', 'mood-happy', 'mood-sweat', 'mood-sleep'); mascot.classList.add('mood-' + mood);
+  const source = `/assets/avatars/${chatClient}-body-${mood}.png`;
+  mascotImage.src = source; mascotImage.decoding = 'async';
+  mascotBlink.src = `/assets/avatars/${chatClient}-body-blink.png`; mascotBlink.decoding = 'async';
+  mascot.classList.remove('blinking');
+  if (previousSource && previousSource !== source) {
+    if (previousMood && previousClient === chatClient && previousMood !== mood && mascotTransitions[`${previousMood}-${mood}`]) playMascotTransition(previousMood, mood);
+    else crossfadeMascot(previousSource);
+  }
+  const bubble = mood === 'thinking' ? '思考中…' : mood === 'happy' ? '完成了' : mood === 'sweat' ? '出錯了…' : mood === 'sleep' ? 'zzz' : '';
+  if (previousMood !== mood || previousClient !== chatClient) showMascotBubble(bubble);
+  scheduleMascotBlink();
 }
 function updateChatControls() {
   const info = chatClients.get(chatClient), enabled = !!currentWall && !!info?.available && !chatBusy;
-  $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.png`;
+  $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.png`; $('#chat-progress-avatar').decoding = 'async';
   $('#chat-input').disabled = !enabled;
   $('#chat-send').disabled = !enabled;
   $('#chat-new').disabled = !enabled;
@@ -4321,6 +4482,7 @@ function renderChat(history) {
       const mood = message.status === 'stopped' || message.error ? 'sweat' : index === messages.length - 1 ? 'happy' : 'idle';
       const avatar = mk('img', 'chat-avatar');
       avatar.src = `/assets/avatars/${chatClient}-${mood}.png`;
+      avatar.decoding = 'async';
       avatar.alt = '';
       avatar.setAttribute('aria-hidden', 'true');
       line.append(avatar);
@@ -4367,6 +4529,7 @@ async function refreshChatClients() {
 }
 $('#chat-client').onchange = () => {
   if (chatBusy) return;
+  wakeMascot();
   chatClient = $('#chat-client').value;
   chatMessages = [];
   chatStatus('');
@@ -4375,6 +4538,7 @@ $('#chat-client').onchange = () => {
 };
 $('#chat-form').onsubmit = async ev => {
   ev.preventDefault();
+  wakeMascot();
   if (chatBusy || !currentWall) return;
   const message = $('#chat-input').value;
   if (!message.trim()) return;
@@ -4402,6 +4566,7 @@ $('#chat-form').onsubmit = async ev => {
   }
 };
 $('#chat-stop').onclick = async () => {
+  wakeMascot();
   if (!chatBusy || chatStopRequested || !currentWall) return;
   chatStopRequested = true;
   $('#chat-stop').disabled = true;
@@ -4409,6 +4574,7 @@ $('#chat-stop').onclick = async () => {
   try { await store.stopChat(currentWall.id); } catch (error) { chatStatus('停止失敗：' + chatError(error), true); }
 };
 $('#chat-new').onclick = async () => {
+  wakeMascot();
   if (chatBusy || !currentWall || !chatClients.get(chatClient)?.available) return;
   chatBusy = true;
   chatStatus('正在開新對話…');

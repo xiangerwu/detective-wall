@@ -37,7 +37,7 @@ const base = process.env.WALL_TEST_URL;
     await reload(page);
     assert.equal(await page.evaluate(() => activityPanel.offsetWidth), widened);
     await openSidebar(page);
-    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel', 'chat-mascot-panel']);
+    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel']);
     assert.ok(await page.isVisible('#activity-resize') && await page.isVisible('#sidebar-resize'));
     assert.equal(await page.evaluate(() => {
       const visible = el => getComputedStyle(el).display !== 'none';
@@ -46,8 +46,18 @@ const base = process.env.WALL_TEST_URL;
     }), 1400);
     console.log('PASS both panel handles resize independently and the viewport fills the remaining width');
 
+    const clickCard = async () => {
+      const point = await page.evaluate(() => {
+        const mascot = document.querySelector('#mascot').getBoundingClientRect();
+        return [...document.querySelectorAll('.card')].map(card => {
+          const r = card.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2, right: r.right, bottom: r.bottom};
+        }).find(point => point.right < mascot.left || point.bottom < mascot.top);
+      });
+      assert.ok(point, 'a card remains reachable outside the mascot');
+      await page.mouse.click(point.x, point.y);
+    };
     await page.click('#zoom-fit');  // the board cannot be scrolled, so bring every card into view before clicking one
-    await page.click('.card');
+    await clickCard();
     const original = await page.locator('#panel').boundingBox();
     const titlebar = await page.locator('#panel-titlebar').boundingBox();
     await page.mouse.move(titlebar.x + 60, titlebar.y + titlebar.height / 2); await page.mouse.down();
@@ -58,16 +68,16 @@ const base = process.env.WALL_TEST_URL;
     assert.ok(dragged.x >= view.x - 1 && dragged.y >= view.y - 1 && dragged.x + dragged.width <= view.x + view.width + 1 && dragged.y + dragged.height <= view.y + view.height + 1);
     await page.keyboard.press('Escape');
     assert.equal(await page.isVisible('#panel'), false);
-    await page.click('.card');
+    await clickCard();
     await page.click('#f-close');
     await page.setViewportSize({width: 900, height: 600});
     await page.click('#zoom-fit');
-    await page.click('.card');
+    await clickCard();
     const resized = await page.locator('#panel').boundingBox(), smallView = await page.locator('#viewport').boundingBox();
     assert.ok(resized.x >= smallView.x - 1 && resized.y >= smallView.y - 1 && resized.x + resized.width <= smallView.x + smallView.width + 1 && resized.y + resized.height <= smallView.y + smallView.height + 1);
     const expected = resized;
     await page.setViewportSize({width: 1400, height: 900});
-    await page.click('#f-close'); await page.reload(); await ready(page); await page.click('#zoom-fit'); await page.click('.card');
+    await page.click('#f-close'); await page.reload(); await ready(page); await page.click('#zoom-fit'); await clickCard();
     const restored = await page.locator('#panel').boundingBox();
     assert.ok(Math.abs(restored.x - expected.x) < 2 && Math.abs(restored.y - expected.y) < 2);
     console.log('PASS floating editor drags, clamps on resize, closes with Escape, and restores its position');

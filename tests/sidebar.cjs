@@ -17,17 +17,12 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await page.isVisible('#sidebar') && Math.round(side.x + side.width) === 1400 && await page.getAttribute('#toggle-sidebar', 'aria-expanded') === 'true', 'sidebar open by default on the right');
     for (const id of ['export', 'export-canvas', 'import', 'reset'])
       if (!await page.locator('#activity-panel #' + id).count()) ok(false, id + ' is in the files activity panel');
-    ok(JSON.stringify(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id))) === JSON.stringify(['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel', 'chat-mascot-panel'])
-      && !(await page.locator('#sidebar #export').count()), 'right sidebar rows run model, proposals, audit, progress, conversation, input, image');
+    ok(JSON.stringify(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id))) === JSON.stringify(['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel'])
+      && !(await page.locator('#sidebar #export').count()) && !(await page.locator('#chat-mascot-panel').count()), 'right sidebar rows run model, proposals, audit, progress, conversation, and input');
     ok(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(p => getComputedStyle(p).resize === 'vertical')), 'every sidebar row has a vertical resize grip');
-    await page.evaluate(() => { $('#chat-section').style.height = '150px'; $('#chat-mascot-panel').style.height = '200px'; });
-    await page.waitForTimeout(100);
-    await page.reload(); await ready(page);
-    ok(await page.evaluate(() => $('#chat-section').offsetHeight === 150), 'a row height set with its grip survives reload');
-    ok(await page.evaluate(() => { const panel = $('#chat-mascot-panel'), img = $('#chat-mascot'); return panel.offsetHeight >= 200 && Math.abs(img.offsetHeight - panel.clientHeight) <= 2 * parseFloat(getComputedStyle(panel).paddingTop || 0) + 2; }), 'the image scales to its row height');
-    await page.evaluate(() => { $('#chat-section').style.height = $('#chat-mascot-panel').style.height = ''; localStorage.removeItem('thesis-detective-wall-side-panel-heights'); });
+    ok(await page.locator('#mascot').isVisible() && await page.locator('#mascot').evaluate(el => getComputedStyle(el).position === 'fixed'), 'the character is a fixed mascot outside the sidebar');
     const panelOrderKey = 'thesis-detective-wall-side-panel-order';
-    ok(await page.locator('#sidebar > .side-panel > .side-panel-drag').count() === 7
+    ok(await page.locator('#sidebar > .side-panel > .side-panel-drag').count() === 6
       && await page.locator('#sidebar > .side-panel > .side-panel-drag').evaluateAll(handles => handles.every(handle => handle.title.includes('拖曳調整') && handle.getAttribute('aria-label').includes('拖曳調整'))), 'every sidebar row has a labelled order handle');
     const source = await page.locator('#ai-section .side-panel-drag').boundingBox(), target = await page.locator('#chat-client-panel').boundingBox();
     await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2); await page.mouse.down();

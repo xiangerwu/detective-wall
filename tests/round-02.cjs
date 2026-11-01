@@ -83,7 +83,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const pan = async onLine => {
       const start = await page.evaluate(onLine => {
         const r = vp.getBoundingClientRect();
-        return { x: r.right - 80, y: onLine ? r.top + view.y + data.bands[0].y * view.s + 0.5 : r.bottom - 60, view: {...view} };
+        const mascot = document.querySelector('#mascot').getBoundingClientRect();
+        const x = mascot.left > r.left + r.width / 2 ? r.left + 80 : r.right - 80;
+        return { x, y: onLine ? r.top + view.y + data.bands[0].y * view.s + 0.5 : r.bottom - 60, view: {...view} };
       }, onLine);
       await dragBy(start.x, start.y, -50, 30);
       ok(await page.evaluate(v => Math.abs(view.x - v.x + 50) < 1 && Math.abs(view.y - v.y - 30) < 1, start.view), onLine ? 'band line away from label allows panning' : 'empty wall allows panning');
@@ -129,7 +131,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await open({cards: [], edges: [], bands: [{id: 'incoming', title: payload, y: -200}]});
     ok((await page.textContent('#im-list')).includes(payload) && await page.locator('#im-list img').count() === 0, 'malicious title is text in import preview');
     await page.click('#im-apply'); await settled(page);
-    ok(await label('incoming').textContent() === payload && await page.locator('img:not(#sidebar img)').count() === 0 && dialogs.length === 0, 'malicious title renders only as text on wall');
+    ok(await label('incoming').textContent() === payload && await page.locator('img:not(#sidebar img):not(#mascot img)').count() === 0 && dialogs.length === 0, 'malicious title renders only as text on wall');
 
     const download = page.waitForEvent('download');
     await page.click('#export');
