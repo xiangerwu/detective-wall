@@ -77,6 +77,13 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #types button.on{border-color:transparent;background:var(--ui-active)}
 .theme{font-size:13px;color:var(--ui-muted)}
 .theme select{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:3px 6px}
+#layout-wall-control{position:relative;display:flex}
+#layout-wall-control > button{border-radius:5px 0 0 5px}
+#layout-wall-control > #layout-wall{padding-right:0;padding-left:0;font-size:12px}
+#layout-wall-control > #layout-wall-arrow{min-width:18px;padding:4px 1px;font-size:12px;border-left-color:var(--ui-border);border-radius:0 5px 5px 0}
+#layout-wall-menu{position:absolute;z-index:41;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:2px;min-width:126px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
+#layout-wall-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
+#layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
 /* wall tabs sit on the header's bottom border, like spreadsheet or browser tabs */
 #tabrow{flex-basis:100%;display:flex;align-items:flex-end;gap:4px;margin-bottom:-7px;min-width:0;padding-left:28px}  /* start the tabs past the 40px activity bar */
 #wall-tabs{display:flex;gap:2px;min-width:0;overflow-x:auto;touch-action:none}
@@ -526,7 +533,15 @@ input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
   <button id="add-note">＋ 疑問便利貼</button>
   <button id="add-image" title="上傳圖片並建立拍立得照片">＋ 圖片</button>
   <button id="add-band">＋ 分層</button>
-  <button id="layout-wall" title="依連線整理版面">整理版面</button>
+  <div id="layout-wall-control">
+    <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-haspopup="menu" aria-controls="layout-wall-menu">推開重疊</button>
+    <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu">▾</button>
+    <div id="layout-wall-menu" role="menu" hidden>
+      <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
+      <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
+      <button type="button" role="menuitem" data-mode="full">全部重排</button>
+    </div>
+  </div>
   <span id="zoom">
     <button id="zoom-out" title="縮小">－</button>
     <button id="zoom-pct" title="回到 100%">100%</button>
@@ -1277,7 +1292,13 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order', SIDE_PANEL_COLLAPSED_KEY = 'thesis-detective-wall-side-panel-collapsed', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order', SIDE_PANEL_COLLAPSED_KEY = 'thesis-detective-wall-side-panel-collapsed', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
+const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
+let layoutMode = 'overlap';
+try {
+  const savedLayoutMode = localStorage.getItem(LAYOUT_MODE_KEY);
+  if (savedLayoutMode && LAYOUT_MODES[savedLayoutMode]) layoutMode = savedLayoutMode;
+} catch {}
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
 const colorOf = c => COLORS[c.color] ? c.color : c.kind === 'note' ? 'amber' : 'slate';
 let cardStyle = 'tech';
@@ -2627,6 +2648,7 @@ pop.addEventListener('click', ev => {
 document.addEventListener('keydown', ev => {
   if (wallBusy || $('#importer').open || $('#backups').open) return;
   if (ev.key === 'Escape') {
+    if (!layoutMenu.hidden) { ev.preventDefault(); closeLayoutMenu(true); return; }
     if (!$('#proposal-review').hidden) { ev.preventDefault(); closeReview(); return; }
     clearSearch(); $('#tabmenu').hidden = $('#tagpop').hidden = true; bandpop.hidden = true; cardMenu.hidden = true; clearPicked(); selectEdge(null); closePanel();
   }
@@ -3176,29 +3198,124 @@ imageFile.onchange = ev => {
   ev.target.value = '';
   if (files.length) addImages(files, visibleCenter());
 };
-async function layoutWall() {
+const layoutButton = $('#layout-wall'), layoutArrow = $('#layout-wall-arrow'), layoutMenu = $('#layout-wall-menu');
+const layoutMenuItems = () => [...layoutMenu.querySelectorAll('[data-mode]')];
+function updateLayoutModeUI() {
+  layoutButton.textContent = LAYOUT_MODES[layoutMode];
+  layoutMenuItems().forEach(item => item.setAttribute('aria-current', String(item.dataset.mode === layoutMode)));
+}
+function closeLayoutMenu(focus = false) {
+  layoutMenu.hidden = true;
+  layoutArrow.setAttribute('aria-expanded', 'false');
+  if (focus) layoutArrow.focus();
+}
+function focusLayoutMode(direction = 0) {
+  const items = layoutMenuItems();
+  if (!items.length) return;
+  const current = items.indexOf(document.activeElement);
+  const base = current >= 0 ? current : Math.max(0, items.findIndex(item => item.dataset.mode === layoutMode));
+  const index = direction ? (base + direction + items.length) % items.length : base;
+  items[index].focus();
+}
+function openLayoutMenu(direction = 0) {
+  layoutMenu.hidden = false;
+  layoutArrow.setAttribute('aria-expanded', 'true');
+  focusLayoutMode(direction);
+}
+function setLayoutMode(mode) {
+  if (!LAYOUT_MODES[mode]) return;
+  layoutMode = mode;
+  try { localStorage.setItem(LAYOUT_MODE_KEY, mode); } catch {}
+  updateLayoutModeUI();
+  closeLayoutMenu(true);
+}
+layoutMenuItems().forEach(item => {
+  item.onclick = () => setLayoutMode(item.dataset.mode);
+});
+layoutArrow.onclick = () => layoutMenu.hidden ? openLayoutMenu() : closeLayoutMenu();
+for (const button of [layoutButton, layoutArrow]) button.onkeydown = ev => {
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    ev.preventDefault(); openLayoutMenu(ev.key === 'ArrowDown' ? 1 : -1);
+  }
+};
+layoutMenu.onkeydown = ev => {
+  const items = layoutMenuItems();
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    ev.preventDefault(); focusLayoutMode(ev.key === 'ArrowDown' ? 1 : -1);
+  } else if (ev.key === 'Home' || ev.key === 'End') {
+    ev.preventDefault(); items[ev.key === 'Home' ? 0 : items.length - 1]?.focus();
+  } else if (ev.key === 'Escape') {
+    ev.preventDefault(); closeLayoutMenu(true);
+  } else if ((ev.key === 'Enter' || ev.key === ' ') && ev.target.dataset.mode) {
+    ev.preventDefault(); setLayoutMode(ev.target.dataset.mode);
+  }
+};
+document.addEventListener('pointerdown', ev => {
+  if (!ev.target.closest('#layout-wall-control')) closeLayoutMenu();
+}, true);
+updateLayoutModeUI();
+
+function canvasGridSize() {
+  const sizes = getComputedStyle(bg).backgroundSize.split(',');
+  for (const size of sizes) {
+    const value = Number(size.match(/(\d+(?:\.\d+)?)px/)?.[1]);
+    if (value > 0) return value;
+  }
+  return WallLayout.constants.grid;
+}
+function layoutMotionAllowed() {
+  return !matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+async function animateLayout(cards, positions, moving) {
+  const elements = new Map([...wall.querySelectorAll('.card')].map(el => [el.dataset.id, el]));
+  const changes = cards.filter(card => (!moving || moving.has(card.id)) && positions[card.id]
+    && (card.x !== positions[card.id].x || card.y !== positions[card.id].y));
+  if (!changes.length) return 0;
+  const starts = new Map(changes.map(card => [card.id, {x: card.x, y: card.y}]));
+  const apply = progress => {
+    for (const card of changes) {
+      const start = starts.get(card.id), target = positions[card.id];
+      card.x = start.x + (target.x - start.x) * progress;
+      card.y = start.y + (target.y - start.y) * progress;
+      const element = elements.get(card.id);
+      if (element) { element.style.left = card.x + 'px'; element.style.top = card.y + 'px'; }
+    }
+    renderStrings();
+    updatePickToolbar();
+  };
+  if (!layoutMotionAllowed()) {
+    apply(1);
+    return changes.length;
+  }
+  await new Promise(resolve => {
+    const started = performance.now();
+    const frame = now => {
+      const progress = Math.min(1, (now - started) / 250), eased = 1 - (1 - progress) ** 3;
+      apply(eased);
+      if (progress < 1) requestAnimationFrame(frame); else resolve();
+    };
+    requestAnimationFrame(frame);
+  });
+  return changes.length;
+}
+async function layoutWall(mode = layoutMode) {
   const selected = picked.size ? new Set([...picked].filter(id => byId(id))) : selCard && byId(selCard) ? new Set([selCard]) : null;
   const moving = selected?.size ? selected : null;
   if (!data.cards.length) { showNotice('沒有可整理的卡片'); return; }
   const elements = new Map([...wall.querySelectorAll('.card')].map(el => [el.dataset.id, el]));
   const cards = data.cards.map(card => {
     const element = elements.get(card.id);
-    return {id: card.id, width: element?.offsetWidth || cardW(card),
-      height: element?.offsetHeight || WallLayout.estimateHeight(card), fixed: moving ? !moving.has(card.id) : false,
-      x: card.x, y: card.y};
+    return {id: card.id, width: element?.offsetWidth || cardW(card), height: cardHeight(card, element),
+      fixed: moving ? !moving.has(card.id) : false, x: card.x, y: card.y};
   });
-  const positions = WallLayout.layout(cards, data.edges);
-  let changed = false;
-  for (const card of data.cards) if (!moving || moving.has(card.id)) {
-    const point = positions[card.id];
-    if (!point) continue;
-    changed ||= card.x !== point.x || card.y !== point.y;
-    card.x = point.x; card.y = point.y;
-  }
-  if (changed) { render(); await save(true); }
-  showNotice(data.bands.length ? '已整理；分層線不跟著移動' : '已整理版面');
+  const positions = mode === 'overlap' ? WallLayout.resolveOverlaps(cards)
+    : mode === 'grid' ? WallLayout.alignToGrid(cards, {gridSize: canvasGridSize()}) : WallLayout.layout(cards, data.edges);
+  const moved = await animateLayout(data.cards, positions, moving);
+  if (!moved) { showNotice('已經很整齊'); return; }
+  await save(true);
+  showNotice(`已移動 ${moved} 張卡片` + (data.bands.length ? '；分層線不跟著移動' : ''));
 }
-$('#layout-wall').onclick = () => changeWall(layoutWall);
+layoutButton.onclick = () => changeWall(() => layoutWall());
 $('#add-band').onclick = () => {
   const b = {id: nid('b'), title: '新分層', y: (vp.clientHeight / 2 - view.y) / view.s};
   data.bands.push(b);

@@ -99,6 +99,7 @@ async function setWallFixture(page, fixture, selected = []) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(`${base}/#wall=p11-wall`); await ready(page); await openSidebar(page);
     await page.evaluate(() => setCardStyle('tech'));
+    await page.evaluate(() => setLayoutMode('full'));
     await page.check('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked);
 
@@ -131,8 +132,10 @@ async function setWallFixture(page, fixture, selected = []) {
     await setWallFixture(page, fixture);
     await page.screenshot({path: path.join(out, 'layout-messy-before.png')});
     const before = await page.evaluate(() => Object.fromEntries(data.cards.map(card => [card.id, {x: card.x, y: card.y, title: card.title, note: card.note}])));
+    await page.evaluate(() => setLayoutMode('full'));
     await page.click('#layout-wall');
     await page.waitForFunction(() => document.querySelector('#save-state').textContent.startsWith('已保存'));
+    await page.waitForFunction(() => !wallBusy && !document.body.inert);
     const after = await page.evaluate(() => ({cards: Object.fromEntries(data.cards.map(card => [card.id, {x: card.x, y: card.y, title: card.title, note: card.note}])), notice: $('#wall-notice').textContent}));
     assert.ok(Object.values(after.cards).some((card, i) => card.x !== Object.values(before)[i].x || card.y !== Object.values(before)[i].y));
     assert.match(after.notice, /分層線/);
@@ -146,8 +149,10 @@ async function setWallFixture(page, fixture, selected = []) {
 
     await setWallFixture(page, fixture, ['messy-1', 'messy-2']);
     const selectedBefore = await page.evaluate(() => Object.fromEntries(data.cards.map(card => [card.id, {x: card.x, y: card.y}])));
+    await page.evaluate(() => setLayoutMode('full'));
     await page.click('#layout-wall');
     await page.waitForFunction(() => document.querySelector('#save-state').textContent.startsWith('已保存'));
+    await page.waitForFunction(() => !wallBusy && !document.body.inert);
     const selectedAfter = await page.evaluate(() => Object.fromEntries(data.cards.map(card => [card.id, {x: card.x, y: card.y}])));
     for (const id of ['messy-0', 'messy-3', 'messy-4', 'messy-5', 'messy-6']) assert.deepEqual(selectedAfter[id], selectedBefore[id]);
     assert.ok(['messy-1', 'messy-2'].some(id => selectedAfter[id].x !== selectedBefore[id].x || selectedAfter[id].y !== selectedBefore[id].y));

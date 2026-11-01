@@ -13,6 +13,14 @@ function overlaps(a, b, positions, nodes) {
     && firstPoint.y < secondPoint.y + second.height + gap && secondPoint.y < firstPoint.y + first.height + gap;
 }
 
+function assertNoOverlaps(cards, positions, message) {
+  const nodes = new Map(cards.map(value => [value.id, value]));
+  for (let i = 0; i < cards.length; i++) for (let j = i + 1; j < cards.length; j++) {
+    assert.equal(overlaps(cards[i].id, cards[j].id, positions, nodes), false,
+      `${message}: ${cards[i].id}/${cards[j].id}`);
+  }
+}
+
 const clueCard = id => ({id, width: 200, height: 100, fixed: false, x: 0, y: 0});
 function clueFixture(branchCount, cluesPerBranch) {
   const cards = [clueCard('c')], edges = [];
@@ -156,3 +164,39 @@ const elapsed = performance.now() - started;
 assert.ok(elapsed < 200, `200-card layout took ${elapsed.toFixed(1)}ms`);
 console.log(`PASS deterministic 40-card layout has fixed cards, gap-free rectangles, bounded edges, and a centered hub`);
 console.log(`PASS 200-card layout completes in ${elapsed.toFixed(1)}ms`);
+
+const overlapFixture = [
+  {id: 'overlap-wide', width: 240, height: 180, x: 40, y: 80},
+  {id: 'overlap-tall', width: 160, height: 120, x: 120, y: 120},
+  {id: 'untouched', width: 260, height: 90, x: 800, y: 520},
+];
+const overlapPositions = layout.resolveOverlaps(overlapFixture);
+assertNoOverlaps(overlapFixture, overlapPositions, 'resolveOverlaps leaves no gap-overlaps');
+assert.deepEqual(overlapPositions.untouched, {x: 800, y: 520});
+console.log('PASS overlap mode separates real card rectangles and leaves an untouched card fixed');
+
+const fixedFixture = [
+  {id: 'fixed-anchor', width: 220, height: 160, fixed: true, x: 300, y: 220},
+  {id: 'fixed-mover', width: 150, height: 90, x: 330, y: 250},
+];
+const fixedPositions = layout.resolveOverlaps(fixedFixture);
+assert.deepEqual(fixedPositions['fixed-anchor'], {x: 300, y: 220});
+assertNoOverlaps(fixedFixture, fixedPositions, 'resolveOverlaps respects fixed cards');
+console.log('PASS overlap mode keeps fixed cards in place');
+
+const grid = layout.constants.grid;
+const gridFixture = [
+  {id: 'grid-wide', width: 200, height: 140, x: 5, y: 7},
+  {id: 'grid-note', width: 170, height: 100, x: 205, y: 11},
+  {id: 'grid-fixed', width: 130, height: 80, fixed: true, x: 720, y: 480},
+];
+const gridPositions = layout.alignToGrid(gridFixture);
+for (const card of gridFixture) {
+  if (card.fixed) assert.deepEqual(gridPositions[card.id], {x: card.x, y: card.y});
+  else {
+    assert.equal(Math.abs(gridPositions[card.id].x % grid), 0, `${card.id} x is on the grid`);
+    assert.equal(Math.abs(gridPositions[card.id].y % grid), 0, `${card.id} y is on the grid`);
+  }
+}
+assertNoOverlaps(gridFixture, gridPositions, 'grid mode leaves no gap-overlaps');
+console.log(`PASS grid mode snaps ${grid}px cards, resolves new overlaps, and keeps fixed cards`);

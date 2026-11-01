@@ -11,6 +11,7 @@
     edgeRest: 320,
     // A 39-spoke ring of 200px cards still fits below this practical ceiling.
     edgeMax: 2000,
+    grid: 24,
     minWedge: 0.08,
     wedgeTolerance: 0.04,
     maxStep: 20,
@@ -56,7 +57,31 @@
     return distanceBetween(ca, cb);
   }
 
-  function separate(a, b, pa, pb, movableA, movableB) {
+  function normalizeCards(inputCards) {
+    const rawCards = Array.isArray(inputCards) ? inputCards : [];
+    return rawCards.filter(card => card && typeof card.id === 'string').map(card => ({
+      id: card.id,
+      width: Math.max(1, number(card.width, 200)),
+      height: Math.max(1, number(card.height, 140)),
+      fixed: !!card.fixed,
+      x: number(card.x, 0),
+      y: number(card.y, 0),
+    })).sort((a, b) => a.id.localeCompare(b.id));
+  }
+
+  function overlapsWithGap(a, b, pa, pb) {
+    const dx = pb.x + b.width / 2 - pa.x - a.width / 2;
+    const dy = pb.y + b.height / 2 - pa.y - a.height / 2;
+    return Math.abs(dx) < (a.width + b.width) / 2 + constants.gap + 1
+      && Math.abs(dy) < (a.height + b.height) / 2 + constants.gap + 1;
+  }
+
+  function roundedPosition(value) {
+    const rounded = Math.round(value * 1000) / 1000;
+    return rounded === 0 ? 0 : rounded;
+  }
+
+  function separate(a, b, pa, pb, movableA, movableB, step = 0) {
     const dx = pb.x + b.width / 2 - pa.x - a.width / 2;
     const dy = pb.y + b.height / 2 - pa.y - a.height / 2;
     // Keep a 1px numerical cushion so rounded server coordinates still leave
@@ -70,6 +95,7 @@
     // needlessly moving it farther along the row.
     const horizontal = overlapX < overlapY;
     const amount = horizontal ? overlapX : overlapY;
+    const move = step > 0 ? Math.ceil(amount / step) * step : amount;
     let sign = horizontal ? Math.sign(dx) : Math.sign(dy);
     if (!sign) {
       if (horizontal) sign = hash(a.id + '\0' + b.id + 'x') % 2 ? 1 : -1;
@@ -78,13 +104,57 @@
       else sign = hash(a.id + '\0' + b.id + 'y') % 2 ? 1 : -1;
     }
     if (horizontal) {
-      if (movableA && movableB) { pa.x -= sign * amount / 2; pb.x += sign * amount / 2; }
-      else if (movableA) pa.x -= sign * amount;
-      else if (movableB) pb.x += sign * amount;
-    } else if (movableA && movableB) { pa.y -= sign * amount / 2; pb.y += sign * amount / 2; }
-    else if (movableA) pa.y -= sign * amount;
-    else if (movableB) pb.y += sign * amount;
+      if (movableA && movableB) {
+        const each = step > 0 ? Math.ceil(move / 2 / step) * step : move / 2;
+        pa.x -= sign * each; pb.x += sign * each;
+      } else if (movableA) pa.x -= sign * move;
+      else if (movableB) pb.x += sign * move;
+    } else if (movableA && movableB) {
+      const each = step > 0 ? Math.ceil(move / 2 / step) * step : move / 2;
+      pa.y -= sign * each; pb.y += sign * each;
+    } else if (movableA) pa.y -= sign * move;
+    else if (movableB) pb.y += sign * move;
     return true;
+  }
+
+  function resolveCollisions(nodes, positions, movable, afterPass, step = 0) {
+    for (let pass = 0; pass < constants.collisionPasses; pass++) {
+      let moved = false;
+      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i], b = nodes[j];
+        if (separate(a, b, positions.get(a.id), positions.get(b.id), movable(a), movable(b), step)) moved = true;
+      }
+      if (afterPass) for (const node of nodes) if (movable(node)) afterPass(node, positions.get(node.id));
+      if (!moved) break;
+    }
+  }
+
+  function resolveOverlaps(inputCards, options = {}) {
+    const nodes = normalizeCards(inputCards);
+    const positions = new Map(nodes.map(node => [node.id, {x: node.x, y: node.y}]));
+    const active = new Set();
+    for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      if (!overlapsWithGap(a, b, positions.get(a.id), positions.get(b.id))) continue;
+      if (!a.fixed) active.add(a.id);
+      if (!b.fixed) active.add(b.id);
+    }
+    const movable = node => active.has(node.id) && !node.fixed;
+    const step = Number.isFinite(options.step) && options.step > 0 ? options.step : 0;
+    resolveCollisions(nodes, positions, movable, null, step);
+    return Object.fromEntries(nodes.map(node => {
+      const point = positions.get(node.id);
+      return [node.id, node.fixed ? point : {x: roundedPosition(point.x), y: roundedPosition(point.y)}];
+    }));
+  }
+
+  function alignToGrid(inputCards, options = {}) {
+    const grid = Number.isFinite(options.gridSize) && options.gridSize > 0 ? options.gridSize : constants.grid;
+    const snapped = normalizeCards(inputCards).map(node => ({...node,
+      x: node.fixed ? node.x : Math.round(node.x / grid) * grid,
+      y: node.fixed ? node.y : Math.round(node.y / grid) * grid,
+    }));
+    return resolveOverlaps(snapped, {step: grid});
   }
 
   function clampToWedge(node, point, origin, wedge) {
@@ -106,16 +176,7 @@
   }
 
   function layoutCards(inputCards, inputEdges) {
-    const rawCards = Array.isArray(inputCards) ? inputCards : [];
-    const nodes = rawCards.filter(card => card && typeof card.id === 'string').map(card => ({
-      id: card.id,
-      width: Math.max(1, number(card.width, 200)),
-      height: Math.max(1, number(card.height, 140)),
-      fixed: !!card.fixed,
-      x: number(card.x, 0),
-      y: number(card.y, 0),
-      source: card,
-    })).sort((a, b) => a.id.localeCompare(b.id));
+    const nodes = normalizeCards(inputCards);
     const byId = new Map(nodes.map(node => [node.id, node]));
     const edges = [];
     const seenEdges = new Set();
@@ -339,23 +400,15 @@
 
     // A bounded number of direct passes makes the rectangle+gap invariant hold
     // even when a dense graph exhausts the force iterations.
-    for (let pass = 0; pass < constants.collisionPasses; pass++) {
-      let moved = false;
-      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        if (separate(a, b, positions.get(a.id), positions.get(b.id), movable(a), movable(b))) moved = true;
-      }
-      for (const node of nodes) if (movable(node)) {
-        clampToWedge(node, positions.get(node.id), origins.get(rootById.get(node.id)), wedges.get(node.id));
-      }
-      if (!moved) break;
-    }
+    resolveCollisions(nodes, positions, movable, (node, point) => {
+      clampToWedge(node, point, origins.get(rootById.get(node.id)), wedges.get(node.id));
+    });
     for (const node of nodes) {
       const point = positions.get(node.id);
       if (node.fixed) { point.x = node.x; point.y = node.y; }
       else {
-        point.x = Math.round(point.x * 1000) / 1000;
-        point.y = Math.round(point.y * 1000) / 1000;
+        point.x = roundedPosition(point.x);
+        point.y = roundedPosition(point.y);
       }
     }
     return Object.fromEntries(nodes.map(node => [node.id, positions.get(node.id)]));
@@ -366,6 +419,8 @@
   }
   api.layout = layoutCards;
   api.layoutCards = layoutCards;
+  api.resolveOverlaps = resolveOverlaps;
+  api.alignToGrid = alignToGrid;
   api.estimateHeight = estimateHeight;
   api.constants = constants;
   api.edgeDistance = edgeDistance;
