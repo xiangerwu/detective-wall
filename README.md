@@ -2,7 +2,7 @@
 
 **繁體中文** | [English](README.en.md)
 
-![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![Firefox first](https://img.shields.io/badge/browser-Firefox%20first-FF7139?logo=firefoxbrowser&logoColor=white) ![Tests](https://img.shields.io/badge/tests-32%20suites-2EA44F) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![Firefox first](https://img.shields.io/badge/browser-Firefox%20first-FF7139?logo=firefoxbrowser&logoColor=white) ![Tests](https://img.shields.io/badge/tests-42%20suites-2EA44F) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 個人研究用的關係白板。用卡片、疑問便利貼和連線整理線索，資料存在本機的 SQLite。AI（Claude Code 或 codex）可以讀牆、讀你授權的資料夾，並提出修改；每一項修改都要你在畫面上確認後才會生效。
 
@@ -43,6 +43,15 @@ npm start
 - **標籤管理**：左側「標籤」面板可新增、點名稱直接改名、用色筆換色，刪除需按兩次且會從所有卡片移除；這些變更都能 Ctrl+Z 復原，圓點仍可用來篩選。
 - **資料夾**：左側「資料夾」面板以清單管理授權的絕對路徑；用「瀏覽…」叫出作業系統的資料夾選擇視窗，或用「新增」／Enter 加入，移除按鈕會立即保存，非絕對路徑與重複路徑會直接提示。Windows 使用 PowerShell 原生視窗，macOS 使用 `osascript`；Linux 需要安裝 `zenity` 或 `kdialog`。
 - **卡片編輯**：點卡片會開啟浮動編輯視窗；拖曳標題列移動，右下角把手調整寬高，按右上角關閉或 Esc 關閉。位置與尺寸會記住，標題列固定而內容區獨立捲動，且不會擋住視窗外的畫布。
+
+### P14／P15 近期功能
+
+- 框選後可確認刪除或複製貼上，並以一次復原還原整批操作。
+- 分層有畫布內清單與快捷鍵；錨點分為源頭／重點，另有錨點清單、篩選與跳轉。
+- 卡片可自由調整寬高；連線端點可自動定位或手動調整；每張卡可選大頭釘或膠帶。
+- 紙張風格有真實便利貼陰影、紙紋與翻角；圖片卡會呈現固定角度的拍立得照片。
+- AI 桌寵會隨狀態變化；「整理版面」提供推開重疊、對齊格線、全部重排三種模式。
+- P15 提供六種主題、兩種卡片風格的功能巡檢與一致性報告。
 
 ## 讓 AI 幫忙整理
 
@@ -93,6 +102,8 @@ AI 不會直接改你的牆：它只能**提出修改**，由你逐項勾選套�
   }
 }
 ```
+
+`WALL_DB` 必須指向你實際要使用的 SQLite 資料庫檔案絕對路徑；上例的路徑只是範例，請勿直接照抄。
 
 工具有九個：
 
@@ -171,6 +182,7 @@ npm test
 ```
 
 - `npm test` 會替每組測試啟動獨立的服務、暫存資料庫與空閒埠，不會碰到 `data/wall.db`。
+- 測試 runner 預設依 CPU 使用 2–4 個並行工作；需要限制並行時可用 `npm test -- --jobs 2`。
 - 單組測試：`npm test -- tabs`。
 - 測試結果預設寫在 `test-results/`，可用 `WALL_TEST_ROOT` 改位置；可用 `WALL_TEST_BROWSER` 換瀏覽器，預設 Firefox。Linux 可用 `WALL_TEST_BROWSER=chromium`。
 - 測試通過後，會刪掉該組的暫存資料庫與 Firefox 設定檔，只留截圖與紀錄；失敗的那組會保留這些檔案，方便除錯。
@@ -190,6 +202,7 @@ npm test
 - [目前已有功能及限制](docs/FEATURES.md)
 - [功能路線圖](docs/ROADMAP.md)
 - [搬移與資料保存](docs/MIGRATION.md)
+- [Electron 嵌入評估](docs/ELECTRON.md)
 - [第三方依賴說明](THIRD_PARTY_NOTICES.md)
 
 ## 發布狀態

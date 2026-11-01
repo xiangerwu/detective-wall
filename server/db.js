@@ -1,6 +1,22 @@
+// @ts-check
+/**
+ * @typedef {{label: string, href: string, locator?: string, quote?: string}} SourceLink
+ * @typedef {{id: string, kind: 'card'|'note', x: number, y: number, title: string, note?: string, tags?: string[], links?: SourceLink[], w?: number, h?: number, color?: string, fold?: boolean, mount?: 'tape', level?: 'source'|'key', image?: string}} Card
+ * @typedef {{id: string, from: string, to: string, type?: string, label?: string, weight?: string, fromAt?: object, toAt?: object}} Edge
+ * @typedef {{id?: string, title: string, y?: number}} Band
+ * @typedef {{id: string, name: string, color?: string}} Tag
+ * @typedef {{tags?: Tag[], bands?: Band[], cards: Card[], edges: Edge[], [key: string]: any}} WallData
+ * @typedef {{id: string, name: string, updated: number, version: number, data: WallData}} Wall
+ * @typedef {{id: string, wallId: string, baseVersion: number, status: string, created: number, client: string, idempotencyKey: string, rationale: string, ops: object[], baseCards: object, opStatus: string[], counts: object, auditIds: number[], pendingTypes?: object}} Proposal
+ * @typedef {{format: 'detective-wall-project', formatVersion: 1, exportedAt: string, walls: Wall[], images: object[], meta: {[key: string]: any}}} Project
+ */
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const fs = require('node:fs');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const path = require('node:path');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const { DatabaseSync, constants: sqliteConstants } = require('node:sqlite');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const { createHash } = require('node:crypto');
 const wallLayout = require('./layout.js');
 
@@ -280,16 +296,14 @@ function insertProposalRow(db, transaction, proposal) {
   });
 }
 
-function insertBackupRow(db, wallId, reason, data) {
+/** @param {any} statements @param {string} wallId @param {string} reason @param {WallData} data */
+function insertBackupRow(statements, wallId, reason, data) {
   const encoded = proposalJson(data);
-  const rows = db.prepare('SELECT id, data FROM backups WHERE wall_id = ? ORDER BY id').all(wallId);
-  const latest = rows.at(-1);
+  const latest = statements.latest.get(wallId);
   if (latest && latest.data === encoded) return Number(latest.id);
-  const result = db.prepare(
-    'INSERT INTO backups (wall_id, at, reason, cards, edges, data) VALUES (?, ?, ?, ?, ?, ?)'
-  ).run(wallId, Date.now(), reason, data.cards.length, data.edges.length, encoded);
-  const excess = rows.length + 1 - 20;
-  if (excess > 0) for (const row of rows.slice(0, excess)) db.prepare('DELETE FROM backups WHERE id = ?').run(row.id);
+  const result = statements.insert.run(wallId, Date.now(), reason, data.cards.length, data.edges.length, encoded);
+  const excess = Number(statements.count.get(wallId).count) - 20;
+  if (excess > 0) statements.prune.run(wallId, wallId, excess);
   return Number(result.lastInsertRowid);
 }
 
@@ -514,6 +528,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
       op_status JSON NOT NULL
     );
     CREATE INDEX IF NOT EXISTS proposals_wall_status ON proposals(wall_id, status, created);
+    CREATE INDEX IF NOT EXISTS proposals_status_created_id ON proposals(status, created, id);
     CREATE TABLE IF NOT EXISTS audit (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       at INTEGER NOT NULL,
@@ -528,6 +543,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
       reverted_at INTEGER
     );
     CREATE INDEX IF NOT EXISTS audit_wall_id_id ON audit(wall_id, id);
+    CREATE INDEX IF NOT EXISTS audit_proposal_id_id ON audit(proposal_id, id);
     CREATE TABLE IF NOT EXISTS chat_sessions (
       wall_id TEXT NOT NULL,
       client TEXT NOT NULL,
@@ -551,6 +567,15 @@ function createDatabase(filename, {readOnly = false} = {}) {
     db.exec('ALTER TABLE chat_messages ADD COLUMN status TEXT');
   }
 
+  const listWallsStatement = db.prepare('SELECT id, name, updated, version, data FROM walls ORDER BY id');
+  const getWallStatement = db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?');
+  const backupStatements = {
+    latest: db.prepare('SELECT id, data FROM backups WHERE wall_id = ? ORDER BY id DESC LIMIT 1'),
+    count: db.prepare('SELECT COUNT(*) AS count FROM backups WHERE wall_id = ?'),
+    insert: db.prepare('INSERT INTO backups (wall_id, at, reason, cards, edges, data) VALUES (?, ?, ?, ?, ?, ?)'),
+    prune: db.prepare('DELETE FROM backups WHERE wall_id = ? AND id IN (SELECT id FROM backups WHERE wall_id = ? ORDER BY id LIMIT ?)'),
+  };
+
   const transaction = action => {
     db.exec('BEGIN IMMEDIATE');
     try {
@@ -568,7 +593,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
 
   return {
     listWalls(full = false) {
-      const rows = db.prepare('SELECT id, name, updated, version, data FROM walls ORDER BY id').all();
+      const rows = listWallsStatement.all();
       return rows.map(row => full ? wall(row) : {id: row.id, name: row.name, updated: row.updated, version: row.version});
     },
     // ponytail: JSON LIKE keeps the existing schema; use FTS only if search volume makes it slow.
@@ -672,7 +697,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
       });
     },
     getWall(id) {
-      return wall(db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?').get(id));
+      return wall(getWallStatement.get(id));
     },
     putWall(id, name, data, baseVersion) {
       const encoded = JSON.stringify(data);
@@ -704,7 +729,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
       });
     },
     addBackup(wallId, reason, data) {
-      return transaction(() => insertBackupRow(db, wallId, reason, data));
+      return transaction(() => insertBackupRow(backupStatements, wallId, reason, data));
     },
     listBackups(wallId) {
       return db.prepare('SELECT id, wall_id AS wallId, at, reason, cards, edges FROM backups WHERE wall_id = ? ORDER BY id DESC')
@@ -774,9 +799,10 @@ function createDatabase(filename, {readOnly = false} = {}) {
       const proposals = rows.map(row => {
         const parsed = parseProposal(row);
         const {ops, baseCards, ...summary} = parsed;
-        summary.pendingTypes = {};
-        ops.forEach((op, index) => { if (parsed.opStatus[index] === 'pending') summary.pendingTypes[op.type] = (summary.pendingTypes[op.type] || 0) + 1; });
-        return summary;
+        const result = /** @type {any} */ (summary);
+        result.pendingTypes = {};
+        ops.forEach((op, index) => { if (parsed.opStatus[index] === 'pending') result.pendingTypes[op.type] = (result.pendingTypes[op.type] || 0) + 1; });
+        return result;
       });
       const counts = Object.fromEntries(['pending', 'partial', 'applied', 'rejected'].map(value => [value, 0]));
       for (const proposal of proposals) counts[proposal.status]++;
@@ -827,12 +853,12 @@ function createDatabase(filename, {readOnly = false} = {}) {
       return transaction(() => {
         const row = proposalRow(db, id);
         if (!row) throw new ProposalError(404, 'proposal not found');
-        const wallRow = db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?').get(row.wall_id);
+        const wallRow = getWallStatement.get(row.wall_id);
         if (!wallRow) throw new ProposalError(404, 'wall not found');
         const {before, after, opStatus, affected, results, changed} = simulateProposal(row, wallRow, opIndexes);
         let auditId = null, afterVersion = wallRow.version;
         if (changed) {
-          insertBackupRow(db, row.wall_id, 'AI 套用前', before);
+          insertBackupRow(backupStatements, row.wall_id, 'AI 套用前', before);
           afterVersion++;
           db.prepare('UPDATE walls SET updated = ?, version = ?, data = ? WHERE id = ?')
             .run(Date.now(), afterVersion, proposalJson(after), row.wall_id);
@@ -845,7 +871,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
         }
         const status = proposalStatus(opStatus);
         db.prepare('UPDATE proposals SET status = ?, op_status = ? WHERE id = ?').run(status, proposalJson(opStatus), row.id);
-        const currentWall = db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?').get(row.wall_id);
+        const currentWall = getWallStatement.get(row.wall_id);
         const auditIds = db.prepare('SELECT id FROM audit WHERE proposal_id = ? ORDER BY id').all(row.id).map(value => Number(value.id));
         return {
           wall: wall(currentWall),
@@ -885,12 +911,12 @@ function createDatabase(filename, {readOnly = false} = {}) {
       return transaction(() => {
         const audit = db.prepare('SELECT id, at, actor, proposal_id, wall_id, before_version, after_version, affected, before, after, reverted_at FROM audit WHERE id = ?').get(id);
         if (!audit) throw new ProposalError(404, 'audit not found');
-        const current = db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?').get(audit.wall_id);
+        const current = getWallStatement.get(audit.wall_id);
         if (!current) throw new ProposalError(404, 'wall not found');
         // A restored project can reuse the version number, so the content must match too.
         if (current.version !== audit.after_version || current.data !== audit.after) throw new ProposalError(409, 'wall changed since this apply; nothing was reverted');
         const before = JSON.parse(current.data), after = JSON.parse(audit.before);
-        insertBackupRow(db, audit.wall_id, 'AI 套用回復前', before);
+        insertBackupRow(backupStatements, audit.wall_id, 'AI 套用回復前', before);
         const afterVersion = current.version + 1;
         db.prepare('UPDATE walls SET updated = ?, version = ?, data = ? WHERE id = ?')
           .run(Date.now(), afterVersion, proposalJson(after), audit.wall_id);
@@ -900,7 +926,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
           .run(Date.now(), '使用者回復', audit.proposal_id, audit.wall_id, current.version, afterVersion,
             proposalJson({...JSON.parse(audit.affected), revertOf: Number(id)}), proposalJson(before), proposalJson(after));
         db.prepare('UPDATE audit SET reverted_at = ? WHERE id = ?').run(Date.now(), id);
-        return {wall: wall(db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?').get(audit.wall_id)),
+        return {wall: wall(getWallStatement.get(audit.wall_id)),
           auditId: Number(result.lastInsertRowid), revertedAuditId: Number(id)};
       });
     },

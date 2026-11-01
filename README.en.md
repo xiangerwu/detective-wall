@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) | **English**
 
-![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![Firefox first](https://img.shields.io/badge/browser-Firefox%20first-FF7139?logo=firefoxbrowser&logoColor=white) ![Tests](https://img.shields.io/badge/tests-32%20suites-2EA44F) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?logo=nodedotjs&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-node%3Asqlite-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![Firefox first](https://img.shields.io/badge/browser-Firefox%20first-FF7139?logo=firefoxbrowser&logoColor=white) ![Tests](https://img.shields.io/badge/tests-42%20suites-2EA44F) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 A relationship whiteboard for personal research. Organize clues with cards, question sticky notes, and connections; data is stored in local SQLite. AI (Claude Code or codex) can read the board and folders you authorize, and propose changes; each change takes effect only after you confirm it on screen.
 
@@ -43,6 +43,15 @@ The service listens only on the local machine (127.0.0.1). Close the terminal or
 - **Tag management**: The Tag panel adds tags, renames them by clicking the name, changes colours with the palette button, and requires two clicks to delete. Deletion removes that tag from every card and can be undone; the dot button still filters cards.
 - **Folders**: The Folder panel manages authorized absolute paths as a list. 「瀏覽…」 opens the operating system's folder chooser, while the Add button or Enter uses the existing path validation; removal saves immediately, and relative or duplicate paths show an inline error. Windows uses a native PowerShell dialog, macOS uses `osascript`, and Linux needs `zenity` or `kdialog`.
 - **Card editor**: Clicking a card opens a floating editor. Drag its title bar, resize it from the bottom-right handle, or close it with the top-right button or Escape. Its position and size are remembered; the title bar stays fixed while the body scrolls.
+
+### Recent P14/P15 features
+
+- Marquee selections can be deleted with confirmation or copied and pasted, with each batch represented by one undo step.
+- Bands have an in-canvas list and keyboard navigation; anchor cards have source/key levels with lists, filters, and jump-to navigation.
+- Cards can be freely resized; connection endpoints can be automatic or manually positioned; each card can use a pin or tape mount.
+- Paper style adds realistic sticky-note shadows, grain, and curled corners; image cards use a deterministic Polaroid treatment.
+- The AI mascot follows conversation state; layout offers push-apart, grid-align, and full-reflow modes.
+- P15 covers a six-theme, two-card-style feature tour and consistency report.
 
 ## Getting AI to help organize
 
@@ -93,6 +102,8 @@ Any MCP-compatible client (for example, another Claude Code session) can connect
   }
 }
 ```
+
+`WALL_DB` must point to the actual SQLite database file you intend to use. The path in the example is a placeholder; do not copy it unchanged.
 
 There are nine tools:
 
@@ -171,6 +182,7 @@ npm test
 ```
 
 - `npm test` starts an independent service, temporary database, and free port for each test group, and does not touch `data/wall.db`.
+- The test runner uses 2–4 workers based on CPU count by default; use `npm test -- --jobs 2` to cap concurrency.
 - Run one test group: `npm test -- tabs`.
 - Test results are written to `test-results/` by default; use `WALL_TEST_ROOT` to change the location. Use `WALL_TEST_BROWSER` to switch browsers; Firefox is the default.
 - After tests pass, the temporary database and Firefox profile for that group are deleted, leaving only screenshots and logs; a failed group keeps these files for debugging.
@@ -190,6 +202,7 @@ Architecture:
 - [Existing features and limitations](docs/FEATURES.md) (Chinese)
 - [Feature roadmap](docs/ROADMAP.md) (Chinese)
 - [Migration and data preservation](docs/MIGRATION.md) (Chinese)
+- [Electron embedding assessment](docs/ELECTRON.md) (Chinese)
 - [Third-party dependency notices](THIRD_PARTY_NOTICES.md) (Chinese)
 
 ## Release status

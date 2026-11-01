@@ -7,7 +7,8 @@ const artifacts = suite => {
   return dir;
 };
 const profile = () => fs.mkdtempSync(path.join(artifacts('profiles'), 'wall-ffprof-'));
-const ready = page => page.waitForFunction(() => window.wallReady === true);
+const ready = page => page.waitForFunction(() => window.wallReady === true && !window.wallBusy
+  && !document.body.inert && !document.querySelector('[inert]'));
 const reload = async page => {
   await page.evaluate(() => store.listWalls()); // Wait for the async save to commit before leaving.
   await page.reload();
