@@ -106,6 +106,8 @@ async function collect(page) {
     add('rail-panel', '#rail-panel');
     add('top-tabs', '#wall-tabs');
     add('case-folder', '#case-folder');
+    add('layout-island', '#layout-wall-control');
+    add('zoom-island', '#zoom');
     add('navigation', '#rail-navigation');
     add('navigation-overlay', '#band-nav');
     for (const [index, el] of [...document.querySelectorAll('.band-label')].entries()) {

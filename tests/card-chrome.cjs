@@ -7,7 +7,7 @@ const {ready, openActivity} = require('./wall-ready.cjs');
 // Card corner controls and edge ends, checked in every theme and card style:
 // the level badge never covers the fold button or the title, and every edge end is a smaller pressed-in pin.
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'card-chrome');
-const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2a');
+const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2b');
 fs.mkdirSync(OUT, {recursive: true});
 fs.mkdirSync(P19_OUT, {recursive: true});
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) process.exitCode = 1; };
@@ -33,6 +33,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         const problems = [];
         if (fold && hit(badge, fold)) problems.push(card.dataset.id + ' badge/fold');
         if (title && title.height && hit(badge, title)) problems.push(card.dataset.id + ' badge/title');
+        if (getComputedStyle(card.querySelector('.anchor-badge')).clipPath === 'none') problems.push(card.dataset.id + ' badge has no complete shape');
+        if (badge.left < card.getBoundingClientRect().left || badge.right > card.getBoundingClientRect().right
+          || badge.top < card.getBoundingClientRect().top || badge.bottom > card.getBoundingClientRect().bottom) problems.push(card.dataset.id + ' badge box escapes card');
         // A title squeezed to one glyph per line means something still reserves room for the old corner badge.
         if (title && title.height && title.width > 60 && card.querySelector('h3').scrollWidth < 40) problems.push(card.dataset.id + ' title squeezed');
         const h3 = card.querySelector('h3'); if (h3 && h3.textContent.length > 6 && h3.getClientRects().length && h3.getBoundingClientRect().height > 22 * Math.ceil(h3.textContent.length / 3)) problems.push(card.dataset.id + ' title wraps per glyph');
@@ -68,10 +71,11 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         // The button background animates (.15s), so measure only after it settles.
         const samples = [];
         for (const type of ['builds', 'uses', 'question']) {
-          await page.click(`#types [data-type="${type}"]`);
+          await page.evaluate(() => selectEdge(data.edges[0].id, {x: 300, y: 300}));
+          await page.click(`#edgepop [data-type="${type}"]`);
           await page.waitForTimeout(300);
           samples.push(await page.evaluate(type => {
-            const button = document.querySelector(`#types [data-type="${type}"]`), svg = button.querySelector('svg'), line = button.querySelector('line');
+            const button = document.querySelector(`#edgepop [data-type="${type}"]`), svg = button.querySelector('svg'), line = button.querySelector('line');
             const parse = c => (c.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
             const lum = ([r, g, b]) => [r, g, b].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
             const own = getComputedStyle(svg).backgroundColor, behind = own === 'rgba(0, 0, 0, 0)' ? getComputedStyle(button).backgroundColor : own;

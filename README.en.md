@@ -33,15 +33,16 @@ The service listens only on the local machine (127.0.0.1). Closing the Windows l
 ## Basic operations
 
 - **Cards**: Double-click an empty area to add one; click a card to edit its title, notes (Markdown supported), tags, and sources; drag cards to move them. The editor tag picker selects existing tags or creates new ones, and assigned tags have × buttons.
-- **Canvas**: Drag an empty area to pan, use the wheel to zoom, and use 「全覽」(fit entire board) to fit the whole board on screen. Hold Shift and left-drag an empty area to marquee-select cards (the right button is left to the browser and mouse-gesture extensions), and dragging one selected card moves the group.
-- **Connections**: Drag the red pin on a card to another card. Connections have three types: 建立在其上 (builds on), 使用技術 (uses technology), and 待驗證疑問 (question to verify). Click a connection to change its type or text, or delete it.
+- **Canvas**: Drag an empty area to pan and use the wheel to zoom. The floating rounded islands at the top of the canvas provide −, the percentage, +, and 「全覽」(fit entire board). Hold Shift and left-drag an empty area to marquee-select cards (the right button is left to the browser and mouse-gesture extensions), and dragging one selected card moves the group.
+- **Connections**: Drag the red pin or tape endpoint on a card to another card. A new connection reuses the last-used type (default 建立在其上 / builds on); click the line to choose 建立在其上, 使用技術, or 待驗證疑問 in the string popup, edit its text, or delete it.
 - **Sources**: One per line, in the format `name | path or URL | location | excerpt` (page, section, or timestamp for location); the last two fields are optional. Missing local files are marked red on the card.
 - **Multiple boards**: Switch using the tabs at the top; double-click to rename, right-click to change color or delete, and drag to reorder.
 - **Search**: 「搜尋所有牆」(search all boards) at the top searches titles, notes, tags, and connection text. Click a result to jump to that card.
 - **Undo/redo**: Ctrl+Z／Ctrl+Y, up to 100 steps.
 - **Saving**: Saving is automatic; the top shows 「已保存 HH:MM」(saved HH:MM). If the service disconnects or the same board is changed in another tab, a prompt appears with options to retry or choose which version to keep.
-- **Layout**: Click 「整理版面」 to arrange a radial clue web from the connections. With no marquee or selected card it lays out the whole board; with a selection it moves only those cards and leaves the rest fixed. It is one Ctrl+Z-able change; if the board has bands, the band lines do not move with the cards. The left activity bar switches File, Version, Template, Folder, Tag, Appearance, and Help panels; the left panel and right sidebar have independent resize handles. The right sidebar contains only AI conversation and proposals, with the pending count visible beside 「AI 提案」.
-- **Appearance**: The Appearance panel switches six backgrounds and the global 「科技／擬真便利貼」 (technology / paper sticky note) card styles. Each theme restyles the top bar, both side panels, editor, dialogs, buttons, and inputs as well as the board. Paper style uses a light paper tone per card colour, pins for clue cards, and tape plus a curled corner for question notes.
+- **Layout**: The floating rounded island at the top of the canvas provides 「整理版面」 with push-apart, grid-align, and full-reflow modes. With no marquee or selected card it lays out the whole board; with a selection it moves only those cards and leaves the rest fixed. It is one Ctrl+Z-able change; if the board has bands, the band lines do not move with the cards.
+- **Rail and AI clipboard**: The left rail has three states—collapsed, icon, and full—and opens the File, Version, Template, Folder, Tag, Appearance, and Help panels. The left panel and AI sidebar have independent resize handles. The AI sidebar is a dark clipboard with four paper sheets: 對話 (chat), 提案 (proposals), 紀錄 (history), and 模型 (model); the active sheet is reachable by click or keyboard.
+- **Appearance**: The Appearance panel switches six backgrounds—whiteboard grid, wood grain, ruled paper, cork, moon-dark, and cyber-dark—and the global 「科技／擬真便利貼」 (technology / paper sticky note) card styles. Each theme restyles the wall, pill tabs, rail, editor, dialogs, buttons, and inputs. Paper style uses index cards, sticky-note curls, tape-mounted Polaroids, pins, soft shadows, and clipped 源頭／重點 (source/key) badges.
 - **Tag management**: The Tag panel adds tags, renames them by clicking the name, changes colours with the palette button, and requires two clicks to delete. Deletion removes that tag from every card and can be undone; the dot button still filters cards.
 - **Folders**: The Folder panel manages authorized absolute paths as a list. 「瀏覽…」 opens the operating system's folder chooser, while the Add button or Enter uses the existing path validation; removal saves immediately, and relative or duplicate paths show an inline error. Windows uses a native PowerShell dialog, macOS uses `osascript`, and Linux needs `zenity` or `kdialog`.
 - **Card editor**: Clicking a card opens a floating editor. Drag its title bar, resize it from the bottom-right handle, or close it with the top-right button or Escape. Its position and size are remembered; the title bar stays fixed while the body scrolls.
@@ -62,17 +63,17 @@ AI does not directly change your board: it can only **propose changes**, which y
 ### First time: start from a blank board
 
 1. In the right sidebar 「AI 提案」(AI proposals), check **允許 AI 提出修改** (allow AI to propose changes). It is off by default; when off, AI can only read the board.
-2. If you want AI to read code or documents: open 「資料夾」(Folder) from the left activity bar, enter an absolute path, then click 「新增」(Add) or press Enter; the list is saved immediately.
-3. Open 「範本」(Template) from the left activity bar and choose a starter template:
+2. If you want AI to read code or documents: open 「資料夾」(Folder) from the three-state left rail, enter an absolute path, then click 「新增」(Add) or press Enter; the list is saved immediately.
+3. Open 「範本」(Template) from the left rail and choose a starter template:
    - 「分析程式碼」(analyze code)
    - 「規劃論文」(plan a paper)
    - 「整理推理線索」(organize reasoning clues)
    - 「設計遊戲支線」(design game side quests)
 
    The template opens a new board named after the template, containing only that template's tags (no bands), and fills a prompt for one center, 3–6 branches, 2–5 clues per branch, cross-branch labelled edges, and short cards into the right-side 「AI 對話」(AI conversation) input. To undo the starter operation, delete the new board from its tab menu.
-4. Add material in the right-side input: paste an outline, notes, or case details; when using the 「分析程式碼」 template, say which authorized folder to inspect. Then choose Claude Code or codex and click submit. While it runs, the UI shows elapsed time and tool progress; click 「停止」(stop) to terminate the conversation and record its stopped status.
-5. After the reply, the right sidebar 「AI 提案」(AI proposals) shows one proposal. Click 「檢視」(view) to open the dedicated review panel, grouped by new-card band, modifications, connections, and deletions. Expand an item for Markdown, sources, or diffs, check what you want, and click 「套用所選」(apply selected). Deletions are labeled and unchecked by default; canvas ghosts are preview-only and do not change data before applying.
-6. If you are not satisfied: open 「版本」(Version) from the left activity bar and click 「回復這次套用」(revert this application) in 「AI 紀錄」(AI history).
+4. Add material in the AI clipboard's 對話 (chat) sheet: paste an outline, notes, or case details; when using the 「分析程式碼」 template, say which authorized folder to inspect. Then choose Claude Code or codex and click submit. While it runs, the UI shows elapsed time and tool progress; click 「停止」(stop) to terminate the conversation and record its stopped status.
+5. After the reply, open the 提案 (proposals) sheet. Click 「檢視」(view) to open the dedicated review panel, grouped by new-card bands, modifications, connections, and deletions. Expand an item for Markdown, sources, or diffs, check what you want, and click 「套用所選」(apply selected). Deletions are labeled and unchecked by default; canvas ghosts are preview-only and do not change data before applying.
+6. If you are not satisfied: open 「版本」(Version) from the left rail and click 「回復這次套用」(revert this application) in 「AI 紀錄」(AI history).
 
 Templates can also be customized: add, edit, or delete them; built-in templates cannot be deleted, but can be copied and modified.
 
@@ -118,8 +119,8 @@ Only `propose_changes` writes data, and it writes only pending proposals. Some c
 ## Data and backups
 
 - Data is stored in `data/wall.db` by default; use `WALL_DB` to change the location. This file is all your data, so copying it is a complete backup.
-- 「檔案」(File) in the left activity bar contains 「匯出整個專案」(export entire project), which saves all boards, images, and settings as one `.json`, and 「還原整個專案」(restore entire project), which restores them all at once. An individual board can use 「匯出 JSON」(export JSON)／「匯入 JSON」(import JSON); differences are shown before importing.
-- Each board automatically keeps up to 20 backups, available under 「版本」(Version) → 「備份」(backups) in the left activity bar.
+- 「檔案」(File) in the left rail contains 「匯出整個專案」(export entire project), which saves all boards, images, and settings as one `.json`, and 「還原整個專案」(restore entire project), which restores them all at once. An individual board can use 「匯出 JSON」(export JSON)／「匯入 JSON」(import JSON); differences are shown before importing.
+- Each board automatically keeps up to 20 backups, available under 「版本」(Version) → 「備份」(backups) in the left rail.
 - Tag definitions, colours, and card assignments are saved with the board; deleting a tag removes all assignments in one undoable change.
 - AI proposals, AI history, and AI conversation history are internal service data and are not included in the project export file.
 - To move an export from an older version to a new location, see [Migration instructions](docs/MIGRATION.md) (Chinese).

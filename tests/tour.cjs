@@ -93,10 +93,12 @@ async function dragPin(page, from, to) {
 }
 
 async function tourToolbar(page, combo) {
-  check(await page.locator('#types button').count() === 3, '頂列有三種新連線按鈕', combo.key);
+  check(await page.locator('#rail [data-type]').count() === 0 && await page.locator('#edgepop').count() === 1,
+    '左欄沒有新連線型別列，連線型別保留在 popup', combo.key);
+  await page.evaluate(() => selectEdge(data.edges[0].id, {x: 300, y: 300}));
   for (const type of ['builds', 'uses', 'question']) {
-    await page.click(`#types [data-type="${type}"]`);
-    check(await page.evaluate(() => curType === document.querySelector('#types button.on')?.dataset.type), `可選取 ${type} 新連線`, combo.key);
+    await page.click(`#edgepop [data-type="${type}"]`);
+    check(await page.evaluate(type => curType === type && data.edges[0].type === type, type), `可在連線 popup 選取 ${type}`, combo.key);
   }
   for (const selector of ['#add-card', '#add-note', '#add-image', '#add-band', '#layout-wall', '#zoom-fit', '#wall-search', '#undo', '#redo'])
     check(await page.locator(selector).count() === 1, `頂列存在 ${selector}`, combo.key);
@@ -270,7 +272,7 @@ async function tourEdges(page, combo) {
   await page.click('#zoom-fit');
   const before = await page.evaluate(() => data.edges.length);
   for (const [type, from, to] of [['builds', 'shoup', 'q2'], ['uses', 'pss', 'q1'], ['question', 'eskm', 'q1']]) {
-    await page.click(`#types [data-type="${type}"]`);
+    await page.evaluate(type => setType(type), type);
     await dragPin(page, from, to);
   }
   await page.waitForFunction(n => data.edges.length === n + 3, before);
@@ -470,7 +472,7 @@ function auditSource() {
     const foreground = el => parse(getComputedStyle(el).color) || parse(getComputedStyle(el).fill);
     const rows = [];
     const textSelectors = [
-      '#topbar button','#rail button','#types button','#layout-wall-menu button','.search-result','.band-label','#rail-band-list button',
+      '#topbar button','#rail button','#edgepop [data-type]','#layout-wall-menu button','.search-result','.band-label','#rail-band-list button',
       '#rail-anchor-list-title','#rail-anchor-list button','.card h3','.card p','.card .md','.card .tag-chip','.card .links a',
       '#rail-panel h2','#rail-panel h3','#rail-panel button','#rail-panel .section-help','#rail-panel label',
       '#sidebar h2','#sidebar button','#sidebar .section-help','#sidebar label','#chat-messages .chat-message',

@@ -82,7 +82,11 @@ const base = process.env.WALL_TEST_URL;
     await page.setViewportSize({width: 1400, height: 900});
     await page.click('#f-close'); await page.reload(); await ready(page); await page.click('#zoom-fit'); await clickCard();
     const restored = await page.locator('#panel').boundingBox();
-    assert.ok(Math.abs(restored.x - expected.x) < 2 && Math.abs(restored.y - expected.y) < 2);
+    const selected = await page.locator('.card.sel').boundingBox();
+    const overlaps = box => box.x < selected.x + selected.width - 1 && selected.x < box.x + box.width - 1
+      && box.y < selected.y + selected.height - 1 && selected.y < box.y + box.height - 1;
+    if (overlaps(expected)) assert.equal(overlaps(restored), false);
+    else assert.ok(Math.abs(restored.x - expected.x) < 2 && Math.abs(restored.y - expected.y) < 2);
     console.log('PASS floating editor drags, clamps on resize, closes with Escape, and restores its position');
 
     await page.evaluate(() => localStorage.removeItem(THEME_KEY));

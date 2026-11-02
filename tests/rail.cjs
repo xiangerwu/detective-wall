@@ -6,7 +6,7 @@ const {ready, reload, settled, openActivity, openSidebar} = require('./wall-read
 
 const PAGE = process.env.WALL_TEST_URL || path.join(__dirname, '..', 'index.html');
 const OUT = path.resolve(process.env.WALL_SCREENSHOT_OUT || path.join(__dirname, '..', 'test-results', 'p19r1'));
-const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2a');
+const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2b');
 fs.mkdirSync(OUT, {recursive: true});
 fs.mkdirSync(P19_OUT, {recursive: true});
 
@@ -15,7 +15,7 @@ function contrast(page, type) {
     const parse = value => (value.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
     const lum = ([r, g, b]) => [r, g, b].map(value => { value /= 255; return value <= .03928 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; })
       .reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
-    const button = document.querySelector(`#types [data-type="${type}"]`), line = button.querySelector('line'), svg = button.querySelector('svg');
+    const button = document.querySelector(`#edgepop [data-type="${type}"]`), line = button.querySelector('line'), svg = button.querySelector('svg');
     const background = getComputedStyle(svg).backgroundColor === 'rgba(0, 0, 0, 0)' ? getComputedStyle(button).backgroundColor : getComputedStyle(svg).backgroundColor;
     const [light, dark] = [lum(parse(getComputedStyle(line).stroke)), lum(parse(background))].sort((a, b) => b - a);
     return (light + .05) / (dark + .05);
@@ -36,7 +36,7 @@ function railIconAudit(page) {
       return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
     };
     const rail = document.querySelector('#rail'), background = parse(getComputedStyle(rail).backgroundColor);
-    return [...document.querySelectorAll('#rail .rail-icon, #rail #types svg, #rail .rail-activity svg')]
+    return [...document.querySelectorAll('#rail .rail-icon, #rail .rail-activity svg')]
       .filter(visible).map(element => {
         const rect = element.getBoundingClientRect(), style = getComputedStyle(element);
         const paint = element.matches('svg') ? getComputedStyle(element.querySelector('line,path,circle') || element).stroke : style.color;
@@ -107,7 +107,7 @@ async function snapNavigation(page, theme, width, height, state) {
       await page.evaluate(themeName => { setTheme(themeName); showActivity(null); setRailState('icon'); }, theme);
       await page.waitForTimeout(300);
       const icons = await railIconAudit(page);
-      assert.ok(icons.length >= 14, `${theme}: icon rail exposes every icon for audit`);
+      assert.ok(icons.length >= 12, `${theme}: icon rail exposes every icon for audit`);
       const tooSmall = icons.filter(icon => Math.min(icon.width, icon.height) < 18);
       assert.deepEqual(tooSmall, [], `${theme}: every icon in the icon rail is at least 18px`);
       const weak = icons.filter(icon => icon.contrast < 3).map(icon => `${icon.name} ${icon.contrast.toFixed(2)}`);
@@ -117,18 +117,24 @@ async function snapNavigation(page, theme, width, height, state) {
     const named = await page.locator('#rail button:visible').evaluateAll(buttons => buttons.map(button => ({id: button.id, name: button.getAttribute('aria-label') || button.title || button.innerText.trim()})));
     assert.ok(named.length >= 12 && named.every(button => button.name), 'every visible rail control has an accessible name');
     assert.ok(await page.locator('#rail-resize').getAttribute('aria-label'));
+    assert.equal(await page.locator('#rail #types').count(), 0, 'rail has no new-string type controls');
+    assert.equal(await page.locator('#rail #layout-wall-control').count(), 0, 'layout island is outside the rail');
+    assert.equal(await page.locator('#rail #zoom').count(), 0, 'zoom island is outside the rail');
+    assert.equal(await page.locator('#viewport #layout-wall-control').count(), 1, 'layout island is on the canvas');
+    assert.equal(await page.locator('#viewport #zoom').count(), 1, 'zoom island is on the canvas');
+    await page.evaluate(() => selectEdge(data.edges[0].id, {x: 300, y: 300}));
     for (const type of ['builds', 'uses', 'question']) {
-      await page.click(`#types [data-type="${type}"]`); await page.waitForTimeout(300);
+      await page.click(`#edgepop [data-type="${type}"]`); await page.waitForTimeout(300);
       assert.ok(await contrast(page, type) >= 1.8, `${type} selected sample keeps contrast >= 1.8`);
     }
     const typeLabels = await page.evaluate(() => ({
-      caption: getComputedStyle(document.querySelector('#types'), '::before').content,
-      labels: [...document.querySelectorAll('#types button')].map(button => button.textContent.trim()),
-      names: [...document.querySelectorAll('#types button')].map(button => ({title: button.title, aria: button.getAttribute('aria-label')})),
+      railCount: document.querySelectorAll('#rail [data-type]').length,
+      popupCount: document.querySelectorAll('#edgepop [data-type]').length,
+      names: [...document.querySelectorAll('#edgepop [data-type]')].map(button => ({title: button.title, aria: button.getAttribute('aria-label')})),
     }));
-    assert.equal(typeLabels.caption, 'none', 'new-string rail has no 新連線 caption');
-    assert.deepEqual(typeLabels.labels, ['', '', ''], 'new-string rail keeps only line samples, not text labels');
-    assert.ok(typeLabels.names.every(name => name.title && name.aria), 'line samples keep tooltip and accessible names');
+    assert.equal(typeLabels.railCount, 0, 'new-string rail has no type rows');
+    assert.equal(typeLabels.popupCount, 3, 'string popup keeps all three type choices');
+    assert.ok(typeLabels.names.every(name => name.title && name.aria), 'popup type choices keep tooltip and accessible names');
 
     const panels = {navigation: 'rail-navigation-panel', files: 'files-section', history: 'history-section', templates: 'template-section', sources: 'source-section', tags: 'tags-section', theme: 'theme-section', help: 'help-section'};
     for (const [id, section] of Object.entries(panels)) {
