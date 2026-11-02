@@ -69,12 +69,16 @@ for (const client of ['claude', 'codex']) {
       && document.activeElement === document.querySelector('#chat-input'));
     console.log('PASS mascot default position, drag persistence, and click-to-open focus');
 
+    // Earlier steps parked the pet top-left, where growing up-left would be clamped; resize it with room around it.
+    await page.evaluate(() => setMascotPosition(600, 400));
     const beforeSize = await page.locator('#mascot').boundingBox();
     const resize = await page.locator('#mascot-resize').boundingBox();
     await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2);
     await page.mouse.down(); await page.mouse.move(resize.x - 36, resize.y - 36, {steps: 4}); await page.mouse.up();
     const afterSize = await page.locator('#mascot').boundingBox();
     ok(afterSize.height > beforeSize.height && afterSize.height <= 360, 'mascot resize handle changes height within the limit');
+    ok(Math.abs(afterSize.x + afterSize.width - beforeSize.x - beforeSize.width) <= 2 && Math.abs(afterSize.y + afterSize.height - beforeSize.y - beforeSize.height) <= 2
+      && afterSize.height - beforeSize.height > 30, 'top-left grip grows the pet while its bottom-right corner stays put');
     const savedSize = await page.evaluate(() => Number(localStorage.getItem(MASCOT_SIZE_KEY)));
     ok(Math.abs(savedSize - afterSize.height) <= 2, 'mascot size is saved');
     await page.reload(); await ready(page); await openSidebar(page);

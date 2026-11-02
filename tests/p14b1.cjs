@@ -66,12 +66,17 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
     ok(await page.evaluate(() => !('w' in byId('source')) && !('h' in byId('source'))), 'editor reset removes both custom dimensions');
     ok(await page.evaluate(() => {
       const c = byId('source'), previous = structuredClone(c);
-      c.note = Array.from({length: 30}, (_, i) => `內容 ${i + 1}`).join('\n'); c.h = 60; render();
-      const el = document.querySelector('.card[data-id="source"]'), result = el.classList.contains('fixed-size')
-        && el.offsetHeight === 60 && el.scrollHeight > el.clientHeight && getComputedStyle(el).overflowY === 'auto';
+      c.note = Array.from({length: 30}, (_, i) => `內容 ${i + 1}`).join('\n'); c.h = 140; render(); jumpToCard(c.id);
+      const el = document.querySelector('.card[data-id="source"]'), note = el.querySelector(':scope > .md, :scope > p');
+      const grip = el.querySelector('.resize-handle').getBoundingClientRect(), pin = el.querySelector('.pin').getBoundingClientRect();
+      // Only the note scrolls: the card itself must not clip its pin or cover its resize grip with a scrollbar.
+      const result = el.classList.contains('fixed-size') && el.offsetHeight === 140 && getComputedStyle(el).overflowY === 'visible'
+        && note.scrollHeight > note.clientHeight && getComputedStyle(note).overflowY === 'auto'
+        && document.elementFromPoint(grip.x + grip.width / 2, grip.y + grip.height / 2)?.closest('.resize-handle')
+        && document.elementFromPoint(pin.x + pin.width / 2, pin.y + 2)?.closest('.pin');
       data.cards[data.cards.findIndex(card => card.id === c.id)] = previous; render();
       return result;
-    }), 'fixed height keeps long content inside a scrollable card');
+    }), 'fixed height scrolls only the note, leaving the pin and resize grip whole');
     ok(await page.evaluate(() => {
       const normalized = normalize({cards: [
         {id: 'legacy-note', kind: 'note', size: 'xl'},
@@ -90,6 +95,19 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
     const autoPoints = await page.evaluate(() => data.edges.map(edge => edgeEndpoint(edge, 'from', autoEndpointMap()).point));
     ok(new Set(autoPoints.map(point => `${Math.round(point.x)},${Math.round(point.y)}`)).size === 3, 'three automatic endpoints on one edge are spread apart');
     ok(JSON.stringify(autoSides) === JSON.stringify([['e', 's'], ['e', 'w'], ['e', 'w']]), 'automatic endpoints face the other card');
+    const mid = await page.locator('.hit[data-id="edge-b"]').evaluate(el => {
+      const p = el.getPointAtLength(el.getTotalLength() / 2).matrixTransform(el.getScreenCTM());
+      return {x: p.x, y: p.y};
+    });
+    await page.mouse.move(mid.x, mid.y);
+    await page.waitForFunction(() => document.querySelectorAll('.edge-handle[data-edge-id="edge-b"]').length === 2);
+    ok(await page.evaluate(() => selEdge === null), 'hovering an unselected edge shows its two end handles without selecting it');
+    const hoverHandle = await page.locator('.edge-handle[data-edge-id="edge-b"][data-end="to"]').boundingBox();
+    await page.mouse.move(hoverHandle.x + hoverHandle.width / 2, hoverHandle.y + hoverHandle.height / 2, {steps: 4});
+    await page.mouse.down(); await page.mouse.move(hoverHandle.x + hoverHandle.width / 2, hoverHandle.y + hoverHandle.height / 2 + 14, {steps: 6}); await page.mouse.up();
+    ok(await page.evaluate(() => Boolean(data.edges.find(edge => edge.id === 'edge-b').toAt)), 'a hover handle can be dragged straight away');
+    await page.evaluate(() => { delete data.edges.find(edge => edge.id === 'edge-b').toAt; renderStrings(); });
+    await page.mouse.move(5, 5); await page.waitForFunction(() => !document.querySelector('.edge-handle'));
     await page.evaluate(() => selectEdge('edge-a', {x: 350, y: 300}));
     ok(await page.locator('.edge-handle').count() === 2 && await page.locator('#edgepop').getByRole('button', {name: '端點改回自動'}).count() === 1,
       'selected edge shows two square endpoint handles and reset control');

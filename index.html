@@ -168,7 +168,9 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .c-cream{--c-bg:#f5e6a3;--c-border:#c9a93a;--c-top:#e0a800;--c-title:#2e2400;--c-text:#4a3d10;--c-link:#7a4a00}
 .card{position:absolute;z-index:2;width:200px;padding:16px 14px 12px;background:var(--c-bg);border:1px solid var(--c-border);border-top:3px solid var(--c-top);border-radius:2px;
   transform:rotate(var(--tilt));cursor:grab;user-select:none;box-shadow:0 12px 28px var(--ui-shadow),0 0 0 4px color-mix(in srgb,var(--c-top) 7%,transparent)}
-.card.fixed-size{overflow:auto;overflow-x:hidden}
+.card.fixed-size{display:flex;flex-direction:column}  /* only the note scrolls, so the pin and resize handle are never clipped */
+.card.fixed-size > *{flex-shrink:0}
+.card.fixed-size > .md,.card.fixed-size > p{flex:1 1 auto;min-height:0;overflow:auto;overflow-x:hidden}
 .card.sel{border-color:var(--ui-accent);box-shadow:0 0 0 1px var(--ui-accent),0 0 22px color-mix(in srgb,var(--ui-accent) 45%,transparent)}
 .card.review-mark-modified{outline:3px solid var(--ui-warning);outline-offset:4px}
 .card.review-mark-deleted{outline:3px solid var(--ui-danger-strong);outline-offset:4px;opacity:.72}
@@ -344,7 +346,7 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.blinking #mascot-blink,#mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-transition{opacity:1}
 #mascot-bubble{position:absolute;z-index:1;left:50%;bottom:calc(100% + 8px);max-width:220px;padding:4px 8px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;box-shadow:0 4px 12px var(--ui-shadow-soft);font-size:12px;line-height:1.3;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
 #mascot-bubble.show{opacity:1;transform:translate(-50%,0)}
-#mascot-resize{position:absolute;right:0;bottom:0;width:16px;height:16px;padding:0;border:0;border-right:2px solid var(--ui-muted);border-bottom:2px solid var(--ui-muted);border-radius:0;background:transparent;opacity:0;cursor:nwse-resize;pointer-events:auto}
+#mascot-resize{position:absolute;left:0;top:0;width:16px;height:16px;padding:0;border:0;border-left:2px solid var(--ui-muted);border-top:2px solid var(--ui-muted);border-radius:0;background:transparent;opacity:0;cursor:nwse-resize;pointer-events:auto}
 #mascot:hover #mascot-resize,#mascot-resize:focus-visible{opacity:.9}
 @keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
 @keyframes mascot-think{0%,100%{transform:rotate(-1deg) translateX(0)}50%{transform:rotate(1deg) translateX(3px)}}
@@ -1989,6 +1991,45 @@ function mkPath(cls, d, type, weight) {
   return p;
 }
 const stringNodes = new Map();
+// End handles show for the selected edge, or for the edge under the pointer so its ends can be dragged without selecting it first.
+let hoverEdge = null, hoverEdgeTimer = 0;
+function showEdgeHandles(id) {
+  edgeHandles.replaceChildren();
+  const d = id && stringNodes.get(id)?.hit.getAttribute('d');
+  if (!d) return;
+  const [ax, ay, , , bx, by] = d.match(/-?\d+(?:\.\d+)?(?:e[+-]?\d+)?/gi).map(Number);
+  for (const [end, x, y] of [['from', ax, ay], ['to', bx, by]]) {
+    const handle = mk('button', 'edge-handle');
+    handle.type = 'button'; handle.dataset.edgeId = id; handle.dataset.end = end;
+    handle.title = `${end === 'from' ? '起點' : '終點'}接點`;
+    handle.ariaLabel = handle.title;
+    Object.assign(handle.style, {left: x + 'px', top: y + 'px'});
+    edgeHandles.append(handle);
+  }
+}
+function hoverEdgeEnter(id) {
+  clearTimeout(hoverEdgeTimer);
+  if (hoverEdge === id) return;
+  hoverEdge = id;
+  if (!selEdge) showEdgeHandles(id);
+}
+function hoverEdgeLeave() {
+  clearTimeout(hoverEdgeTimer);
+  // A short grace period lets the pointer travel from the line onto its end handle.
+  hoverEdgeTimer = setTimeout(() => {
+    if (drag?.mode === 'endpoint') return;
+    hoverEdge = null;
+    showEdgeHandles(selEdge);
+  }, 400);
+}
+vp.addEventListener('pointerover', ev => {
+  const target = ev.target.closest?.('.hit, .edge-handle');
+  if (target) hoverEdgeEnter(target.dataset.id || target.dataset.edgeId);
+});
+vp.addEventListener('pointerout', ev => {
+  if (ev.target.closest?.('.hit, .edge-handle') && !ev.relatedTarget?.closest?.('.hit, .edge-handle')) hoverEdgeLeave();
+});
+
 function renderStrings(changedCards = null, changedEdges = null) {
   const cardsById = new Map(data.cards.map(card => [card.id, card]));
   const boxes = new Map();
@@ -2003,22 +2044,7 @@ function renderStrings(changedCards = null, changedEdges = null) {
   const autoMap = autoEndpointMap(data.edges, data.cards, rectFor);
   const incremental = changedCards || changedEdges;
   const needsUpdate = edge => !incremental || changedEdges?.has(edge.id) || changedCards?.has(edge.from) || changedCards?.has(edge.to);
-  const renderHandles = () => {
-    edgeHandles.replaceChildren();
-    if (!selEdge) return;
-    const edge = data.edges.find(value => value.id === selEdge);
-    if (!edge) return;
-    for (const end of ['from', 'to']) {
-      const endpoint = edgeEndpoint(edge, end, autoMap, cardsById, rectFor);
-      if (!endpoint) continue;
-      const handle = mk('button', 'edge-handle');
-      handle.type = 'button'; handle.dataset.edgeId = edge.id; handle.dataset.end = end;
-      handle.title = `${end === 'from' ? '起點' : '終點'}接點`;
-      handle.ariaLabel = handle.title;
-      Object.assign(handle.style, {left: endpoint.point.x + 'px', top: endpoint.point.y + 'px'});
-      edgeHandles.append(handle);
-    }
-  };
+  const renderHandles = () => showEdgeHandles(selEdge || hoverEdge);
 
   if (incremental) {
     for (const e of data.edges) {
@@ -4635,15 +4661,20 @@ mascotImage.onpointerup = mascotImage.onpointercancel = ev => {
 mascotResize.onpointerdown = ev => {
   if (ev.button !== 0) return;
   ev.preventDefault(); ev.stopPropagation(); wakeMascot(); mascotResize.setPointerCapture(ev.pointerId);
-  mascotResizeDrag = {id: ev.pointerId, sy: ev.clientY, height: mascot.offsetHeight};
+  // The pet sits in the bottom-right corner, so the grip is top-left and the bottom-right edge stays put.
+  const box = mascot.getBoundingClientRect();
+  mascotResizeDrag = {id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, height: mascot.offsetHeight, right: box.right, bottom: box.bottom};
 };
 mascotResize.onpointermove = ev => {
   if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
-  setMascotSize(mascotResizeDrag.height + mascotResizeDrag.sy - ev.clientY);
+  const d = mascotResizeDrag, grow = Math.max(d.sy - ev.clientY, (d.sx - ev.clientX) / .72);
+  setMascotSize(d.height + grow, false);
+  setMascotPosition(d.right - mascot.offsetWidth, d.bottom - mascot.offsetHeight);
 };
 mascotResize.onpointerup = mascotResize.onpointercancel = ev => {
   if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
   mascotResizeDrag = null; try { mascotResize.releasePointerCapture(ev.pointerId); } catch {}
+  setMascotSize(savedMascotSize); clampMascot(true);
 };
 $('#chat-input').addEventListener('input', wakeMascot);
 requestAnimationFrame(() => {
