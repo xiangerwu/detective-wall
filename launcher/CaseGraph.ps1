@@ -1,5 +1,6 @@
 ﻿param(
   [switch]$SelfTest,
+  [switch]$GuiSmoke,
   [string]$Screenshot
 )
 
@@ -7,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 try { [Console]::OutputEncoding = New-Object Text.UTF8Encoding($false) } catch {}
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Net.Http
 
 if ($null -eq ('CaseGraphNativeMethods' -as [type])) {
   Add-Type @'
@@ -247,7 +249,7 @@ function New-McpConfig([object]$Health) {
 
 function Write-Pass([string]$Message) { Write-Output ('PASS ' + $Message) }
 
-function Invoke-SelfTest {
+function Use-TestRuntime {
   $testOutput = [Environment]::GetEnvironmentVariable('WALL_TEST_OUT', 'Process')
   if ($testOutput) { $script:RuntimeDir = Join-Path $testOutput 'temp\launcher-selftest' }
   else { $script:RuntimeDir = Join-Path ([IO.Path]::GetTempPath()) ('casegraph-launcher-' + [guid]::NewGuid().ToString('N')) }
@@ -257,6 +259,10 @@ function Invoke-SelfTest {
   $script:PreviousErrorLog = Join-Path $script:RuntimeDir 'server.prev.error.log'
   $script:LauncherLog = Join-Path $script:RuntimeDir 'launcher.log'
   Ensure-Directory $script:RuntimeDir
+}
+
+function Invoke-SelfTest {
+  Use-TestRuntime
   Resolve-Config
   if (-not (Test-NodeVersion)) { throw ('找不到 Node.js 24 以上，目前為 ' + $script:NodeVersion) }
   if (-not (Test-Path -LiteralPath (Join-Path $script:Root 'node_modules') -PathType Container)) { throw '找不到 node_modules；SelfTest 不會自動下載套件' }
@@ -474,13 +480,14 @@ function New-LauncherForm([string]$InitialState = 'stopped', [switch]$Screenshot
   if (-not $script:Ui.claude.Enabled) { $script:Tooltip.SetToolTip($script:Ui.claude, '找不到 claude 指令') }
   if (-not $script:Ui.codex.Enabled) { $script:Tooltip.SetToolTip($script:Ui.codex, '找不到 codex 指令') }
   Set-VisualState $InitialState $null $null
-  $drag = @{Active=$false; Offset=New-Object Drawing.Point(0, 0)}
-  $titleBar.Add_MouseDown({ if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) { $drag.Active = $true; $drag.Offset = New-Object Drawing.Point($_.X, $_.Y) } })
-  $titleBar.Add_MouseMove({ if ($drag.Active) { $point = $form.PointToScreen((New-Object Drawing.Point($_.X, $_.Y))); $form.Location = New-Object Drawing.Point(($point.X - $drag.Offset.X), ($point.Y - $drag.Offset.Y)) } })
-  $titleBar.Add_MouseUp({ $drag.Active = $false })
-  $titleLabel.Add_MouseDown({ if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) { $drag.Active = $true; $drag.Offset = New-Object Drawing.Point($_.X + 36, $_.Y + 7) } })
-  $titleLabel.Add_MouseMove({ if ($drag.Active) { $point = $form.PointToScreen((New-Object Drawing.Point($_.X + 36, $_.Y + 7))); $form.Location = New-Object Drawing.Point(($point.X - $drag.Offset.X), ($point.Y - $drag.Offset.Y)) } })
-  $titleLabel.Add_MouseUp({ $drag.Active = $false })
+  # Handlers run outside this function, so they use script scope and the sender ($this), never locals.
+  $script:TitleDrag = @{Active=$false; Offset=New-Object Drawing.Point(0, 0)}
+  $titleBar.Add_MouseDown({ if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) { $script:TitleDrag.Active = $true; $script:TitleDrag.Offset = New-Object Drawing.Point($_.X, $_.Y) } })
+  $titleBar.Add_MouseMove({ if ($script:TitleDrag.Active) { $point = $this.FindForm().PointToScreen((New-Object Drawing.Point($_.X, $_.Y))); $this.FindForm().Location = New-Object Drawing.Point(($point.X - $script:TitleDrag.Offset.X), ($point.Y - $script:TitleDrag.Offset.Y)) } })
+  $titleBar.Add_MouseUp({ $script:TitleDrag.Active = $false })
+  $titleLabel.Add_MouseDown({ if ($_.Button -eq [Windows.Forms.MouseButtons]::Left) { $script:TitleDrag.Active = $true; $script:TitleDrag.Offset = New-Object Drawing.Point($_.X + 36, $_.Y + 7) } })
+  $titleLabel.Add_MouseMove({ if ($script:TitleDrag.Active) { $point = $this.FindForm().PointToScreen((New-Object Drawing.Point($_.X + 36, $_.Y + 7))); $this.FindForm().Location = New-Object Drawing.Point(($point.X - $script:TitleDrag.Offset.X), ($point.Y - $script:TitleDrag.Offset.Y)) } })
+  $titleLabel.Add_MouseUp({ $script:TitleDrag.Active = $false })
   $closeButton.Add_Click({ Hide-ToTray })
   $minButton.Add_Click({ Hide-ToTray })
   $primary.Add_Click({ Invoke-PrimaryAction })
@@ -493,7 +500,7 @@ function New-LauncherForm([string]$InitialState = 'stopped', [switch]$Screenshot
   $logPanel.Add_Click({ Toggle-Log }); $chevron.Add_Click({ Toggle-Log }); $logTitle.Add_Click({ Toggle-Log }); $summary.Add_Click({ Toggle-Log })
   if (-not $ScreenshotMode) {
     $form.Add_FormClosing({ param($sender, $eventArgs) if (-not $script:Exiting) { $eventArgs.Cancel = $true; Hide-ToTray } })
-    $form.Add_Shown({ $form.Activate() })
+    $form.Add_Shown({ $this.Activate() })
   }
   return $form
 }
@@ -513,13 +520,26 @@ function Hide-ToTray {
   if ($script:NotifyIcon -and -not $script:FirstTrayNotice) { $script:FirstTrayNotice = $true; $script:NotifyIcon.ShowBalloonTip(3000, 'CaseGraph', '啟動器已縮到系統匣。右鍵圖示可顯示視窗或結束服務。', [Windows.Forms.ToolTipIcon]::Info) }
 }
 
+# The probe is an HttpClient task that the UI timer polls, so no PowerShell code runs off the UI thread.
+# Windows PowerShell 5.1 cannot run script blocks on BackgroundWorker threads (that crashed the window).
 function Start-HealthProbe {
-  if ($script:ProbeBusy) { return }
-  $worker = New-Object ComponentModel.BackgroundWorker
-  $script:ProbeWorker = $worker; $script:ProbeBusy = $true; $port = $script:Port
-  $worker.add_DoWork({ param($sender, $eventArgs) $eventArgs.Result = Get-HealthSnapshot ([int]$eventArgs.Argument) })
-  $worker.add_RunWorkerCompleted({ param($sender, $eventArgs) $script:ProbeBusy = $false; if ($null -eq $eventArgs.Error) { $script:ProbeResult = $eventArgs.Result }; $sender.Dispose() })
-  $worker.RunWorkerAsync($port)
+  if ($script:ProbeTask) { return }
+  if ($null -eq $script:Http) { $script:Http = New-Object Net.Http.HttpClient; $script:Http.Timeout = [TimeSpan]::FromSeconds(1) }
+  $script:ProbeTask = $script:Http.GetAsync(('http://127.0.0.1:{0}/api/health' -f $script:Port))
+}
+
+function Complete-HealthProbe {
+  $task = $script:ProbeTask
+  if ($null -eq $task -or -not $task.IsCompleted) { return $null }
+  $script:ProbeTask = $null
+  if ($task.IsFaulted -or $task.IsCanceled) { return [pscustomobject]@{Kind='offline'; Health=$null; Error='服務沒有回應'} }
+  $response = $task.Result
+  try {
+    $value = $null
+    try { $value = $response.Content.ReadAsStringAsync().Result | ConvertFrom-Json } catch {}
+    if ($response.IsSuccessStatusCode -and $value -and $value.app -eq 'casegraph') { return [pscustomobject]@{Kind='healthy'; Health=$value; Error=$null} }
+    return [pscustomobject]@{Kind='foreign'; Health=$value; Error=('HTTP ' + [int]$response.StatusCode)}
+  } finally { $response.Dispose() }
 }
 
 function Set-FastPolling([bool]$OpenWhenReady) {
@@ -719,31 +739,83 @@ function Invoke-Screenshot([string]$OutputDirectory) {
   }
 }
 
-function Start-Launcher {
-  if (-not (Acquire-SingleInstance)) { return }
+function Initialize-LauncherUi([string]$Initial) {
   [Windows.Forms.Application]::EnableVisualStyles(); [Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
-  Ensure-Directory $script:RuntimeDir; Resolve-Config
-  if (-not (Test-NodeVersion)) { $initial = 'error' } elseif (-not (Test-Path -LiteralPath (Join-Path $script:Root 'node_modules') -PathType Container)) { $initial = 'installing' } else { $initial = 'stopped' }
-  $script:UiForm = New-LauncherForm $initial
+  # An error inside a button or timer handler is logged and shown in the window instead of the WinForms crash dialog.
+  [Windows.Forms.Application]::SetUnhandledExceptionMode([Windows.Forms.UnhandledExceptionMode]::CatchException)
+  [Windows.Forms.Application]::add_ThreadException({
+    param($sender, $eventArgs)
+    $error0 = $eventArgs.Exception
+    $where = if ($error0.ErrorRecord) { $error0.ErrorRecord.ScriptStackTrace } else { $error0.StackTrace }
+    $script:UiErrors += $error0.Message
+    Write-LauncherLog ('UI error: ' + $error0.Message + ' | ' + $where)
+    try { Set-VisualState 'error' $null ('啟動器發生錯誤：' + $error0.Message) } catch {}
+  })
+  $script:UiForm = New-LauncherForm $Initial
   $script:NotifyIcon = New-NotifyIcon
   $script:UiTimer = New-Object Windows.Forms.Timer; $script:UiTimer.Interval = 250
   $script:UiTimer.Add_Tick({
     if ($script:ShowEvent -and $script:ShowEvent.WaitOne(0)) { Restore-LauncherWindow }
     Update-Install; Update-ProcessExit
     $interval = if ((Get-Date) -lt $script:FastPollUntil) { 500 } elseif ($script:UiForm.Visible) { 3000 } else { 10000 }
-    if ((Get-Date) -ge $script:NextProbeAt -and -not $script:ProbeBusy) { $script:NextProbeAt = (Get-Date).AddMilliseconds($interval); Start-HealthProbe }
-    if ($script:ProbeResult) { $result = $script:ProbeResult; $script:ProbeResult = $null; Apply-ProbeResult $result }
+    if ((Get-Date) -ge $script:NextProbeAt -and -not $script:ProbeTask) { $script:NextProbeAt = (Get-Date).AddMilliseconds($interval); Start-HealthProbe }
+    $result = Complete-HealthProbe; if ($result) { Apply-ProbeResult $result }
   })
-  $script:UiTimer.Start(); $script:UiForm.Show(); Set-FastPolling $false; [Windows.Forms.Application]::DoEvents()
+  $script:UiTimer.Start()
+}
+
+function Start-Launcher {
+  if (-not (Acquire-SingleInstance)) { return }
+  Ensure-Directory $script:RuntimeDir; Resolve-Config
+  if (-not (Test-NodeVersion)) { $initial = 'error' } elseif (-not (Test-Path -LiteralPath (Join-Path $script:Root 'node_modules') -PathType Container)) { $initial = 'installing' } else { $initial = 'stopped' }
+  Initialize-LauncherUi $initial
+  $script:UiForm.Show(); Set-FastPolling $false; [Windows.Forms.Application]::DoEvents()
   if ($initial -eq 'installing') { Start-Install } elseif ($initial -eq 'stopped') { Start-UiService } else { Set-VisualState 'error' $null '找不到 Node.js 24 以上。請從 https://nodejs.org/ 下載。' }
   [Windows.Forms.Application]::Run()
 }
 
+# Drives the real window, timer and health polling (off screen) against a temp database and port.
+function Invoke-GuiSmoke {
+  Use-TestRuntime
+  # Start-UiService re-reads WALL_PORT and WALL_DB, so point the environment at the temp port and database.
+  $env:WALL_PORT = [string](Get-FreePort); $env:WALL_DB = Join-Path $script:RuntimeDir 'guismoke.db'
+  Resolve-Config
+  $script:UiErrors = @()
+  Initialize-LauncherUi 'stopped'
+  $script:UiForm.ShowInTaskbar = $false; $script:UiForm.StartPosition = [Windows.Forms.FormStartPosition]::Manual
+  $script:UiForm.Location = New-Object Drawing.Point(-3000, -3000)
+  $wait = {
+    param([string]$State, [int]$Seconds)
+    $end = (Get-Date).AddSeconds($Seconds)
+    while ($script:UiState -ne $State -and (Get-Date) -lt $end) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 50 }
+    return $script:UiState -eq $State
+  }
+  try {
+    $script:UiForm.Show(); [Windows.Forms.Application]::DoEvents()
+    Start-UiService
+    if (-not (& $wait 'running' 40)) { throw ('視窗沒有進入「執行中」，目前為 ' + $script:UiState + '；StartedPid=' + $script:StartedPid + ' healthPid=' + $script:LastHealth.pid + ' hasProcess=' + [bool]$script:StartedProcess + ' exited=' + ($script:StartedProcess -and $script:StartedProcess.HasExited)) }
+    Write-Pass 'GUI 由輪詢偵測到服務執行中'
+    Invoke-StopAction
+    if (-not (& $wait 'stopped' 10)) { throw ('停止後視窗狀態為 ' + $script:UiState) }
+    $end = (Get-Date).AddSeconds(4); while ((Get-Date) -lt $end) { [Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 50 }
+    if ($script:UiState -ne 'stopped') { throw ('停止後輪詢又把狀態改成 ' + $script:UiState) }
+    Write-Pass 'GUI 停止後維持已停止'
+    if ($script:UiErrors.Count) { throw ('視窗發生錯誤：' + ($script:UiErrors -join '; ')) }
+    Write-Pass 'GUI 沒有未處理的錯誤'
+  } finally {
+    if ($script:StartedProcess -and -not $script:StartedProcess.HasExited) { Stop-OwnService }
+    if ($script:UiTimer) { $script:UiTimer.Stop() }
+    if ($script:NotifyIcon) { $script:NotifyIcon.Visible = $false; $script:NotifyIcon.Dispose() }
+    if ($script:UiForm) { $script:UiForm.Dispose() }
+  }
+}
+
 try {
   if ($SelfTest) { Invoke-SelfTest; exit 0 }
+  if ($GuiSmoke) { Invoke-GuiSmoke; exit 0 }
   if ($Screenshot) { Invoke-Screenshot $Screenshot; exit 0 }
   Start-Launcher
 } catch {
   Write-Error $_
-  if ($SelfTest) { exit 1 }
+  if ($SelfTest -or $GuiSmoke) { exit 1 }
 }
