@@ -91,13 +91,25 @@ async function fillVisualFixture(page) {
       const file = path.join(OUT, `${theme}.png`);
       await page.locator('#sidebar').screenshot({path: file});
       assert.equal(await page.locator('#sidebar').evaluate(el => Math.round(el.getBoundingClientRect().width)), 360);
-      for (const width of [300, 480]) {
+      for (const width of [220, 300, 480]) {
         await page.evaluate(value => setSidebarWidth(value), width);
         assert.deepEqual(await page.locator('#sidebar, #sidebar > .side-panel').evaluateAll(elements => elements.filter(el => el.scrollWidth > el.clientWidth + 1).map(el => el.id)), [], `P17 ${theme} ${width}px sidebar has no horizontal overflow`);
+        // Card titles stay on one line and never run under the status text, down to the 220px minimum width.
+        assert.deepEqual(await page.locator('#sidebar .panel-title').evaluateAll(titles => titles.filter(title => {
+          const label = title.querySelector('.title-label').getBoundingClientRect(), meta = title.querySelector('.panel-meta')?.getBoundingClientRect();
+          return label.height > 26 || (meta && meta.width > 0 && label.right > meta.left + 1);
+        }).map(title => title.textContent)), [], `P17 ${theme} ${width}px card titles stay on one line`);
+        const eyebrow = await page.locator('#sidebar .eyebrow').boundingBox(), toggle = await page.locator('#toggle-sidebar').boundingBox();
+        assert.ok(eyebrow.x + eyebrow.width <= toggle.x + 1 || eyebrow.y >= toggle.y + toggle.height, `P17 ${theme} ${width}px header text is not under the collapse button`);
       }
       await page.evaluate(() => setSidebarWidth(360));
       console.log(`PASS P17 ${themeLabels[theme]} 360px sidebar screenshot`);
     }
+    // The side-by-side sheet needs the design mocks (local, gitignored) and ImageMagick; skip it where either is missing.
+    const mocks = themes.map(theme => path.join(__dirname, '..', 'test-results', 'ai-sidebar', 'shots', `mock-2-${theme}.png`));
+    let magick = true;
+    try { execFileSync('magick', ['-version'], {stdio: 'ignore'}); } catch { magick = false; }
+    if (!magick || !mocks.every(file => fs.existsSync(file))) { console.log('SKIP P17 compare sheet: design mocks or ImageMagick not available'); return; }
     const images = themes.flatMap(theme => [
       path.join(__dirname, '..', 'test-results', 'ai-sidebar', 'shots', `mock-2-${theme}.png`),
       path.join(OUT, `${theme}.png`),

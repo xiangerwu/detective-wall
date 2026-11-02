@@ -328,8 +328,6 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #chat-stop{padding:3px 8px}
 #sidebar > .side-panel{position:relative;flex:none;min-height:40px;overflow:auto;resize:vertical}  /* native grip: each row's height is user-adjustable */
 #sidebar > .side-panel.dragging{opacity:.65}
-#sidebar > .side-panel > h2{display:flex;align-items:center;min-height:28px;margin:0 0 6px;padding:3px 40px 3px 40px;cursor:pointer;user-select:none}
-#sidebar > .side-panel > h2[role=button]:hover{background:color-mix(in srgb,var(--ui-hover) 55%,transparent)}
 #sidebar > .side-panel.collapsed{height:auto!important;min-height:0;resize:none;overflow:hidden}
 #sidebar > .side-panel.collapsed > :not(h2,.side-panel-drag){display:none!important}
 #sidebar .side-panel-drag{position:absolute;top:4px;left:4px;z-index:1;width:28px;height:24px;padding:0;border:1px solid transparent;background:transparent;color:var(--ui-muted);font-size:14px;line-height:1;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none}
@@ -494,7 +492,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 
 /* P17: the AI area is a stack of numbered, independently resizable cards. */
 #sidebar{gap:0;padding:14px 14px 22px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
-#sidebar .sidebar-header{display:block;flex:none;margin:0 0 12px;padding:4px 2px 12px;background:transparent;border:0;border-bottom:2px solid var(--ui-border)}
+#sidebar .sidebar-header{display:block;flex:none;margin:0 0 12px;padding:4px 36px 12px 2px;background:transparent;border:0;border-bottom:2px solid var(--ui-border)}
 #sidebar .sidebar-header h1{margin:0;font-size:19px;letter-spacing:.02em;font-weight:700}
 #sidebar .eyebrow{margin:0 0 2px;color:var(--ui-accent);font-size:11px;font-weight:800;letter-spacing:.12em}
 #sidebar > .side-panel{position:relative;flex:none;min-height:40px;margin:0 0 10px;padding:0 12px 12px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:var(--ui-surface);box-shadow:0 5px 12px var(--ui-shadow-soft);resize:vertical;overflow:auto}
@@ -507,7 +505,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
 #sidebar .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;margin:0 -2px 10px;padding:8px 4px 8px 35px;border-bottom:1px solid var(--ui-border);cursor:pointer;user-select:none}
 #sidebar .panel-title:hover{background:color-mix(in srgb,var(--ui-hover) 38%,transparent)}
-#sidebar .title-label{display:flex;align-items:center;gap:7px;min-width:0;font-size:14px;font-weight:750}
+#sidebar .title-label{display:flex;align-items:center;gap:7px;flex:none;white-space:nowrap;font-size:14px;font-weight:750}  /* the title keeps its width; the status text gives way */
 #sidebar .title-label::before{content:'01';display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:var(--ui-active);color:var(--ui-text);font-size:10px;font-weight:800}
 #sidebar [data-step="2"] .title-label::before{content:'02'}
 #sidebar [data-step="3"] .title-label::before{content:'03'}
@@ -516,7 +514,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar [data-step="6"] .title-label::before{content:'06'}
 #sidebar .title-label::after{content:'⌄';display:inline-block;margin-left:2px;color:var(--ui-text);font-size:13px}
 #sidebar .side-panel.collapsed .title-label::after{content:'›'}
-#sidebar .panel-meta{margin-left:auto;color:var(--ui-muted);font-size:11px;font-weight:600;white-space:nowrap}
+#sidebar .panel-meta{flex:0 1 auto;min-width:0;margin-left:auto;overflow:hidden;text-overflow:ellipsis;color:var(--ui-muted);font-size:11px;font-weight:600;white-space:nowrap}
 #sidebar > #chat-client-panel{height:118px}
 #sidebar > #ai-section{height:360px}
 #sidebar > #ai-audit-section{height:154px}
