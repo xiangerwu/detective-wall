@@ -510,8 +510,11 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   const layoutScript = fs.readFileSync(path.join(projectDir, 'layout.js'));
   const corkImage = fs.readFileSync(path.join(projectDir, '..', 'assets', 'cork.jpg'));
   const paperGrain = fs.readFileSync(path.join(projectDir, '..', 'assets', 'paper-grain.png'));
-  const avatarDir = path.join(projectDir, '..', 'assets', 'avatars');
-  const avatars = new Map(fs.readdirSync(avatarDir).filter(name => /\.(?:png|webp)$/.test(name)).map(name => ['/assets/avatars/' + name, fs.readFileSync(path.join(avatarDir, name))]));
+  // Character art and the app icon are small fixed files, read once and served from memory.
+  const assetImages = new Map(['avatars', 'icon'].flatMap(dir => {
+    const folder = path.join(projectDir, '..', 'assets', dir);
+    return fs.readdirSync(folder).filter(name => /\.(?:png|webp)$/.test(name)).map(name => [`/assets/${dir}/${name}`, fs.readFileSync(path.join(folder, name))]);
+  }));
   let server;
 
   const handleApi = async (req, res, parts, url) => {
@@ -815,9 +818,9 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
         res.end(paperGrain);
         return;
       }
-      if (avatars.has(url.pathname)) {
+      if (assetImages.has(url.pathname)) {
         if (req.method !== 'GET') throw new RequestError(405, 'method not allowed');
-        const image = avatars.get(url.pathname);
+        const image = assetImages.get(url.pathname);
         res.writeHead(200, {'content-type': url.pathname.endsWith('.webp') ? 'image/webp' : 'image/png', 'cache-control': 'public, max-age=31536000, immutable', 'content-length': image.length});
         res.end(image);
         return;

@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>CaseGraph 案件圖譜</title>
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/icon/icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icon/icon-32.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/layout.js"></script>
@@ -241,7 +243,9 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #band-nav button{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 8px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border-color:color-mix(in srgb,var(--band-label-ink) 28%,transparent);font-size:12px;text-align:left;pointer-events:auto}
 #band-nav button[aria-current=true]{border-color:var(--ui-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 30%,transparent)}
 #anchor-nav{display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:6px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 28%,transparent);border-radius:4px;pointer-events:auto}  /* one chip so the headings read on patterned walls */
-#anchor-nav-title{margin:0;color:var(--band-label-ink);font-size:12px;font-weight:700}
+#anchor-nav-title{display:flex;justify-content:space-between;gap:6px;margin:0;padding:2px 4px;border:0;background:transparent;color:var(--band-label-ink);font-size:12px;font-weight:700;text-align:left;cursor:pointer}
+#anchor-nav-title::after{content:'▸'}
+#anchor-nav-title[aria-expanded=true]::after{content:'▾'}
 #anchor-filters{display:flex;gap:3px}
 #anchor-filters button{flex:1;min-width:0;padding:3px 5px;font-size:11px}
 #anchor-nav button[data-anchor-card]{max-width:180px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border-color:color-mix(in srgb,var(--band-label-ink) 28%,transparent)}
@@ -575,8 +579,9 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar .chat-message.assistant .md code{padding:1px 3px;border-radius:3px;background:color-mix(in srgb,var(--ui-text) 13%,transparent)}
 #sidebar .chat-message.assistant .md pre{margin:7px 0 0;padding:8px;border:1px solid color-mix(in srgb,var(--ui-accent) 45%,var(--ui-border));border-radius:var(--radius-sm);background:var(--ui-input);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,"Noto Sans Mono",monospace}
 #sidebar .chat-message.assistant .md pre code{padding:0;background:none}
-#sidebar .input-panel #chat-form{display:flex;flex-direction:column;gap:8px;height:calc(100% - 52px);min-height:0}
-#sidebar #chat-input{width:100%;min-height:70px;flex:1;resize:none;line-height:1.45}
+#sidebar > .input-panel:not(.collapsed){display:flex;flex-direction:column}  /* the form takes what the title leaves, so the status line never overlaps 送出 */
+#sidebar .input-panel #chat-form{display:flex;flex-direction:column;gap:8px;flex:1 1 auto}
+#sidebar #chat-input{width:100%;min-height:44px;flex:1;resize:none;line-height:1.45}
 #sidebar .input-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
 #sidebar .input-hint{color:var(--ui-muted);font-size:11px}
 #sidebar #chat-status:empty{display:none}
@@ -1592,6 +1597,10 @@ let reviewFocus = null, reviewPreviewSeq = 0;
 const sourceStatuses = new Map();
 let sourceCheckTimer = 0, sourceCheckSeq = 0;
 let anchorFilter = '';
+// The anchor list folds away by default (it is long) and remembers the reader's choice.
+const ANCHOR_NAV_KEY = 'thesis-detective-wall-anchor-nav';
+let anchorNavOpen = false;
+try { anchorNavOpen = localStorage.getItem(ANCHOR_NAV_KEY) === '1'; } catch {}
 const isDim = c => activeTags.size > 0 && !(c.tags || []).some(id => activeTags.has(id))
   || !!anchorFilter && c.level !== anchorFilter;
 const nid = p => p + (uid++).toString(36);
@@ -1703,9 +1712,16 @@ function renderBandNav() {
   if (anchors.length || suggestions.length) {
     const section = mk('section', '', '');
     section.id = 'anchor-nav';
-    const title = mk('h2', '', '錨點');
-    title.id = 'anchor-nav-title';
+    const title = mk('button', '', `錨點（${anchors.length}）` + (anchorFilter ? '・篩選中' : ''));
+    title.type = 'button'; title.id = 'anchor-nav-title';
+    title.setAttribute('aria-expanded', anchorNavOpen);
+    title.onclick = () => {
+      anchorNavOpen = !anchorNavOpen;
+      try { localStorage.setItem(ANCHOR_NAV_KEY, anchorNavOpen ? '1' : '0'); } catch {}
+      renderBandNav();
+    };
     section.append(title);
+    if (!anchorNavOpen) { bandNav.append(section); updateBandNav(); return; }
     const filters = mk('div', '');
     filters.id = 'anchor-filters';
     for (const [level, label] of [['source', '只看源頭'], ['key', '只看重點']]) {

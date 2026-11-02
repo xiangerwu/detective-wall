@@ -213,6 +213,10 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sleep\.webp$/);
     assert.ok(await page.locator('#mascot-image').evaluate(img => img.complete && img.naturalWidth > 0));
     await page.fill('#chat-input', 'warmup');
+    assert.ok(await page.evaluate(() => {
+      const send = document.querySelector('#chat-send').getBoundingClientRect(), status = document.querySelector('#chat-status').getBoundingClientRect();
+      return !status.height || status.top >= send.bottom;
+    }), 'the status line sits below 送出 instead of covering it');
     await page.click('#chat-send');
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
       && [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('warmup')));

@@ -1,3 +1,5 @@
+<img src="assets/icon/icon-256.png" alt="CaseGraph 圖示" width="128" align="right">
+
 # CaseGraph 案件圖譜
 
 **繁體中文** | [English](README.en.md)

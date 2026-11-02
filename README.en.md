@@ -1,3 +1,5 @@
+<img src="assets/icon/icon-256.png" alt="CaseGraph icon" width="128" align="right">
+
 # CaseGraph
 
 [繁體中文](README.md) | **English**

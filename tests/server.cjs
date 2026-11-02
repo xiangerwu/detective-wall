@@ -81,6 +81,11 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     assert.equal(response.status, 200);
     assert.equal(response.headers?.['content-type'], 'image/png');
     assert.equal(response.body instanceof Buffer, true, 'paper grain is served as binary');
+    for (const size of [16, 32, 256]) {
+      response = await request(server.url, `/assets/icon/icon-${size}.png`);
+      assert.equal(response.status, 200, `app icon ${size} is served`);
+      assert.equal(response.headers?.['content-type'], 'image/png');
+    }
     console.log('PASS paper grain asset route');
     response = await request(server.url, '/api', 'GET', undefined, {host: 'localhost:' + port, origin: 'http://localhost:' + port});
     assert.equal(response.status, 200, 'localhost Host and Origin are accepted');

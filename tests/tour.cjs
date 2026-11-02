@@ -337,6 +337,7 @@ async function tourBandAndAnchor(page, combo) {
   await capture(page, combo, 'band-nav');
   await page.evaluate(() => { byId('shoup').level = 'source'; byId('pss').level = 'key'; render(); });
   await page.waitForSelector('#anchor-nav');
+  if (await page.getAttribute('#anchor-nav-title', 'aria-expanded') !== 'true') await page.click('#anchor-nav-title');
   await page.click('#anchor-filters button[data-level="source"]');
   check(await page.evaluate(() => anchorFilter === 'source' && document.querySelector('[data-anchor-card]')), '錨點清單可篩選源頭並列出卡片', combo.key);
   await capture(page, combo, 'anchor-nav');
