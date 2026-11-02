@@ -156,6 +156,11 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     console.log('PASS proposal preview uses the server placement dry-run without changing wall or proposal status');
     console.log('PASS propose_changes validates, leaves the wall unchanged, is idempotent, and reports status');
 
+    await page.evaluate(() => refreshAiProposals());
+    await page.waitForSelector('#ai-proposal-list .ai-row button');
+    assert.deepEqual(await page.locator('#ai-proposal-list .ai-row button').allTextContents(), ['檢視變更']);
+    assert.equal(await page.locator('#ai-proposal-list .ai-row button').evaluateAll(buttons => buttons.some(button => /套用/.test(button.textContent))), false);
+    assert.equal(await page.locator('#ai-review-open').isDisabled(), false);
     await page.locator('#ai-proposal-list .ai-row button').first().click();
     await page.waitForSelector('#proposal-review:not([hidden])');
     const proposalRows = page.locator('#review-list .review-check');

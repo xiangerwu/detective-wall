@@ -203,6 +203,9 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.goto(base + '/#wall=chat-wall');
     await page.waitForFunction(() => window.wallReady === true);
     await openSidebar(page);
+    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.equal(await page.locator('#chat-section .panel-meta').textContent(), '即時串流');
+    assert.equal(await page.locator('#chat-input').getAttribute('placeholder'), '在這裡追問案件…');
     await page.waitForFunction(() => document.querySelector('#chat-client')?.options.length === 2);
     await page.selectOption('#chat-client', 'claude');
     await page.click('#chat-new');
@@ -238,6 +241,7 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.fill('#chat-input', 'progress sleep');
     await page.click('#chat-send');
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
+    assert.equal(await page.locator('#chat-progress-track').isVisible(), false, 'progress bar stays hidden without percentage data');
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-thinking\.webp$/);
     assert.ok(await page.locator('#mascot-image').evaluate(img => img.complete && img.naturalWidth > 0));
     assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/claude-thinking\.webp$/);

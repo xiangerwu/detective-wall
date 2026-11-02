@@ -354,6 +354,9 @@ async function tourImport(page, combo) {
 
 async function tourSidebarPanels(page, combo) {
   await openSidebar(page);
+  check((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理')
+    && await page.locator('#sidebar .theme-picker, #sidebar #theme').count() === 0
+    && await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim())), '右欄使用 P17 標頭、編號卡片與狀態文字', combo.key);
   for (const [id, feature] of [['chat-client-panel', 'sidebar-chat-client'], ['ai-section', 'sidebar-ai'], ['ai-audit-section', 'sidebar-audit'], ['chat-section', 'sidebar-chat'], ['chat-input-panel', 'sidebar-input']]) {
     const heading = page.locator(`#${id} > h2`);
     await heading.scrollIntoViewIfNeeded();
@@ -497,7 +500,7 @@ function auditSource() {
     };
     group('buttons', ['#add-card','#add-note','#add-image','#add-band','#export','#export-canvas','#import','#reset']);
     group('inputs', ['#wall-search','#source-folders','#tag-new-name','#chat-client','#chat-input','#f-title','#f-kind','#f-note','#f-links','#edge-label'], false, ['radius','fontSize','padding','border']);
-    group('headings', ['header h1','#activity-panel h2','#sidebar h2','#proposal-review h2','#importer h2','#backups h2'], false, ['fontSize']);
+    group('headings', ['body > header h1','#activity-panel h2','#sidebar h2','#proposal-review h2','#importer h2','#backups h2'], false, ['fontSize']);
     group('popup-panels', ['#tabmenu','#layout-wall-menu','#search-results','#tagpop','#card-menu','#edgepop','#bandpop'], true, ['radius','border','shadow']);
     group('menu-items', ['#layout-wall-menu button','#card-menu button','.search-result','#f-tag-list [role=option]'], false, ['radius','fontSize','padding','border']);
     const focusable = [...document.querySelectorAll('button,a,input,select,textarea,[role=button],[role=menuitem],[tabindex]:not([tabindex="-1"])')]

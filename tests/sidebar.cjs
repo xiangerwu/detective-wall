@@ -12,9 +12,12 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const errs = [];
     page.on('pageerror', e => errs.push(e.message));
     await page.goto(PAGE); await ready(page); await openActivity(page, 'files');
-    const header = await page.locator('header').boundingBox(), side = await page.locator('#sidebar').boundingBox();
+    const header = await page.locator('body > header').boundingBox(), side = await page.locator('#sidebar').boundingBox();
     ok(header.height < 100, 'header is one toolbar row plus the tab row at 1400px (' + header.height + 'px)');
     ok(await page.isVisible('#sidebar') && Math.round(side.x + side.width) === 1400 && await page.getAttribute('#toggle-sidebar', 'aria-expanded') === 'true', 'sidebar open by default on the right');
+    ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理')
+      && !(await page.locator('#sidebar .theme-picker, #sidebar #theme').count()), 'P17 sidebar header is present without a theme dropdown');
+    ok(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim())), 'P17 sidebar cards have numbered steps and status text');
     for (const id of ['export', 'export-canvas', 'import', 'reset'])
       if (!await page.locator('#activity-panel #' + id).count()) ok(false, id + ' is in the files activity panel');
     ok(JSON.stringify(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id))) === JSON.stringify(['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel'])
@@ -39,7 +42,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.locator('#ai-section h2').click();
     ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed') && panel.offsetHeight < 80)
       && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false'
-      && !(await page.locator('#ai-section .section-help').isVisible()), 'sidebar rows collapse to their title row without keeping the old height');
+      && !(await page.locator('#ai-section .helper').isVisible()), 'sidebar rows collapse to their title row without keeping the old height');
     await page.reload(); await ready(page);
     ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed'))
       && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false', 'collapsed sidebar row survives reload');

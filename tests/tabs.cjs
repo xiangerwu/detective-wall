@@ -16,7 +16,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const ids = () => page.locator('.wall-tab').evaluateAll(els => els.map(el => el.dataset.id));
     const current = () => page.evaluate(() => currentWall.id);
 
-    const header = await page.locator('header').boundingBox(), tab0 = await page.locator('.wall-tab').boundingBox();
+    const header = await page.locator('body > header').boundingBox(), tab0 = await page.locator('.wall-tab').boundingBox();
     ok(JSON.stringify(await names()) === '["案件圖譜"]' && await page.getAttribute('.wall-tab', 'aria-selected') === 'true', 'one selected tab at startup');
     ok(Math.abs(tab0.y + tab0.height - (header.y + header.height)) <= 2, 'tabs sit on the header bottom edge');
     ok(!(await page.isVisible('#storage-warning')) && await page.locator('#tabrow #storage-warning').count() === 1, 'storage warning shares the tab row');

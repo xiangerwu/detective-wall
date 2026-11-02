@@ -492,6 +492,99 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm);font-size:var(--control-font)
 }
 
+/* P17: the AI area is a stack of numbered, independently resizable cards. */
+#sidebar{gap:0;padding:14px 14px 22px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
+#sidebar .sidebar-header{display:block;flex:none;margin:0 0 12px;padding:4px 2px 12px;background:transparent;border:0;border-bottom:2px solid var(--ui-border)}
+#sidebar .sidebar-header h1{margin:0;font-size:19px;letter-spacing:.02em;font-weight:700}
+#sidebar .eyebrow{margin:0 0 2px;color:var(--ui-accent);font-size:11px;font-weight:800;letter-spacing:.12em}
+#sidebar > .side-panel{position:relative;flex:none;min-height:40px;margin:0 0 10px;padding:0 12px 12px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:var(--ui-surface);box-shadow:0 5px 12px var(--ui-shadow-soft);resize:vertical;overflow:auto}
+#sidebar > .side-panel::after{content:'⋰';position:absolute;right:7px;bottom:3px;color:var(--ui-muted);font-size:11px;line-height:1;pointer-events:none}
+#sidebar > .side-panel.dragging{opacity:.65}
+#sidebar > .side-panel.collapsed{height:auto!important;min-height:0;resize:none;overflow:hidden;padding-bottom:0}
+#sidebar > .side-panel.collapsed>:not(.side-panel-drag,.panel-title){display:none!important}
+#sidebar .side-panel-drag{position:absolute;top:8px;left:7px;z-index:1;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;color:var(--ui-muted);font-size:13px;line-height:1;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none}
+#sidebar .side-panel-drag:hover,#sidebar .side-panel-drag:focus-visible{border-color:var(--ui-border);background:var(--ui-hover);color:var(--ui-text)}
+#sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
+#sidebar .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;margin:0 -2px 10px;padding:8px 4px 8px 35px;border-bottom:1px solid var(--ui-border);cursor:pointer;user-select:none}
+#sidebar .panel-title:hover{background:color-mix(in srgb,var(--ui-hover) 38%,transparent)}
+#sidebar .title-label{display:flex;align-items:center;gap:7px;min-width:0;font-size:14px;font-weight:750}
+#sidebar .title-label::before{content:'01';display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:var(--ui-active);color:var(--ui-text);font-size:10px;font-weight:800}
+#sidebar [data-step="2"] .title-label::before{content:'02'}
+#sidebar [data-step="3"] .title-label::before{content:'03'}
+#sidebar [data-step="4"] .title-label::before{content:'04'}
+#sidebar [data-step="5"] .title-label::before{content:'05'}
+#sidebar [data-step="6"] .title-label::before{content:'06'}
+#sidebar .title-label::after{content:'⌄';display:inline-block;margin-left:2px;color:var(--ui-text);font-size:13px}
+#sidebar .side-panel.collapsed .title-label::after{content:'›'}
+#sidebar .panel-meta{margin-left:auto;color:var(--ui-muted);font-size:11px;font-weight:600;white-space:nowrap}
+#sidebar > #chat-client-panel{height:118px}
+#sidebar > #ai-section{height:360px}
+#sidebar > #ai-audit-section{height:154px}
+#sidebar > #chat-progress{height:142px}
+#sidebar > #chat-section{height:520px}
+#sidebar > #chat-input-panel{height:184px}
+#sidebar .client-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+#sidebar .client-field{display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ui-muted);font-size:12px}
+#sidebar .client-field select{width:100%}
+#sidebar .status-line{grid-column:1/-1;margin:5px 0 0;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
+#sidebar .status-line:empty{display:none}
+#sidebar .status-line::before{content:'●';margin-right:5px;color:var(--ui-success);font-size:9px}
+#sidebar .helper{margin:0 0 8px;color:var(--ui-muted);font-size:12px;line-height:1.55}
+#sidebar .action-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+#sidebar .check{display:flex;align-items:center;gap:6px;color:var(--ui-text);font-size:12px}
+#sidebar .check input{accent-color:var(--ui-accent)}
+#sidebar #ai-review-open{flex:none}
+#sidebar .proposal-stack,#sidebar .audit-stack{display:flex;flex-direction:column;gap:7px;min-height:0}
+#sidebar .ai-empty{margin:0;color:var(--ui-muted);font-size:12px}
+#sidebar .proposal-card{display:grid;grid-template-columns:5px minmax(0,1fr);gap:10px;padding:9px;border:1px solid color-mix(in srgb,var(--ui-border) 85%,transparent);border-radius:var(--radius-md);background:var(--ui-raised)}
+#sidebar .proposal-card::before{content:'';grid-row:1/3;width:5px;border-radius:5px;background:var(--ui-warning)}
+#sidebar .card-copy{min-width:0}
+#sidebar .card-copy strong{display:block;font-size:13px;line-height:1.35}
+#sidebar .card-copy small{display:block;margin-top:3px;color:var(--ui-muted);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#sidebar .card-actions{grid-column:2;display:flex;justify-content:flex-end;gap:5px;margin-top:4px}
+#sidebar .card-actions button{padding:4px 7px;font-size:11px}
+#sidebar .audit-card{display:flex;align-items:flex-start;gap:9px;padding:10px;border:1px solid color-mix(in srgb,var(--ui-border) 85%,transparent);border-radius:var(--radius-md);background:var(--ui-raised)}
+#sidebar .audit-icon{display:grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;color:var(--ui-panel);background:var(--ui-success);font-size:12px;font-weight:800}
+#sidebar .audit-copy{min-width:0;flex:1}
+#sidebar .audit-copy strong{display:block;font-size:12px}
+#sidebar .audit-copy small{display:block;margin-top:3px;color:var(--ui-muted);font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+#sidebar .audit-card button{flex:none;padding:4px 7px;font-size:11px}
+#sidebar #chat-progress{padding-bottom:12px}
+#sidebar .progress-card{display:flex;flex-direction:column;gap:8px;padding-top:0}
+#sidebar .progress-summary{display:flex;align-items:center;gap:9px}
+#sidebar .progress-summary img{width:34px;height:34px;flex:none;border-radius:50%;border:1px solid var(--ui-border);object-fit:cover}
+#sidebar .progress-summary strong{display:block;font-size:13px}
+#sidebar .progress-summary small{display:block;color:var(--ui-muted);font-size:11px;line-height:1.35}
+#sidebar .progress-summary button{margin-left:auto;padding:4px 8px}
+#sidebar .progress-track{height:6px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--ui-text) 14%,transparent)}
+#sidebar .progress-track span{display:block;width:0;height:100%;border-radius:inherit;background:var(--ui-accent)}
+#sidebar #chat-progress-list{display:flex;flex-direction:row;gap:6px;margin:0;padding:0;list-style:none;color:var(--ui-muted);font-size:11px;overflow:auto}
+#sidebar #chat-progress-list:empty{display:none}
+#sidebar #chat-progress-list li{flex:1;min-width:0;padding:4px 5px;border-radius:4px;background:color-mix(in srgb,var(--ui-text) 7%,transparent);overflow-wrap:anywhere}
+#sidebar #chat-progress-list li::before{content:'✓';margin-right:4px;color:var(--ui-success)}
+#sidebar #chat-progress-list li:last-child::before{content:'…';color:var(--ui-warning)}
+#sidebar .chat-window{display:flex;flex-direction:column;gap:10px;height:calc(100% - 52px);overflow:auto;padding:1px 1px 4px;scrollbar-color:var(--ui-border) transparent}
+#sidebar .chat-line{display:flex;align-items:flex-end;gap:7px}
+#sidebar .chat-line.user{justify-content:flex-end}
+#sidebar .chat-avatar{width:30px;height:30px;flex:none;border-radius:50%;border:1px solid var(--ui-border);object-fit:cover;background:var(--ui-raised)}
+#sidebar .chat-message{max-width:88%;padding:8px 10px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);overflow-wrap:anywhere}
+#sidebar .chat-message.user{background:var(--ui-active);border-bottom-right-radius:3px}
+#sidebar .chat-message.assistant{background:var(--ui-raised);border-bottom-left-radius:3px}
+#sidebar .chat-message small{display:block;margin-bottom:3px;color:var(--ui-muted);font-size:11px}
+#sidebar .chat-message.assistant .md{line-height:1.5}
+#sidebar .chat-message.assistant .md :is(p,ul,ol,pre,blockquote){margin:0 0 6px}
+#sidebar .chat-message.assistant .md :is(ul,ol){padding-left:1.4em}
+#sidebar .chat-message.assistant .md code{padding:1px 3px;border-radius:3px;background:color-mix(in srgb,var(--ui-text) 13%,transparent)}
+#sidebar .chat-message.assistant .md pre{margin:7px 0 0;padding:8px;border:1px solid color-mix(in srgb,var(--ui-accent) 45%,var(--ui-border));border-radius:var(--radius-sm);background:var(--ui-input);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,"Noto Sans Mono",monospace}
+#sidebar .chat-message.assistant .md pre code{padding:0;background:none}
+#sidebar .input-panel #chat-form{display:flex;flex-direction:column;gap:8px;height:calc(100% - 52px);min-height:0}
+#sidebar #chat-input{width:100%;min-height:70px;flex:1;resize:none;line-height:1.45}
+#sidebar .input-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#sidebar .input-hint{color:var(--ui-muted);font-size:11px}
+#sidebar #chat-status:empty{display:none}
+#sidebar #chat-status{margin-top:6px;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
+#sidebar #chat-status.error{color:var(--ui-danger)}
+
 /* Technology is the existing dense style. Paper is deliberately light so it reads on all six walls. */
 [data-card-style=paper] .card-paper{--paper-bg:#fbf7ee;--paper-ink:#2a2722;--paper-body:#514a42;background:var(--paper-bg);border:1px solid color-mix(in srgb,var(--paper-ink) 24%,transparent);border-top:3px solid var(--builds);color:var(--paper-ink);box-shadow:0 10px 18px var(--ui-shadow-soft),0 2px 3px var(--ui-shadow-soft);transform:none}
 [data-card-style=paper] .card-paper.c-amber{--paper-bg:#ffe985}
@@ -764,48 +857,56 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </div>
 
 <div id="sidebar-resize" role="separator" aria-orientation="vertical" aria-controls="sidebar" aria-label="調整側欄寬度（可用左右鍵）" tabindex="0"></div>
-<aside id="sidebar">
-  <section id="chat-client-panel" class="side-panel" data-name="模型選擇">
-    <h2>模型選擇</h2>
-    <div class="chat-client-row">
-      <label class="chat-client">客戶端
-        <select id="chat-client" aria-label="AI 客戶端">
-          <option value="claude">Claude Code</option>
-          <option value="codex">codex</option>
-        </select>
-      </label>
-      <button id="chat-new" type="button">開新對話</button>
-    </div>
-    <small id="chat-client-state" role="status"></small>
-  </section>
-  <section id="ai-section" class="side-panel" data-name="AI 提案">
-    <h2>AI 提案 <span id="ai-pending-count">(0)</span></h2>
-    <p class="section-help">逐項檢視並套用 AI 提出的變更。</p>
-    <label class="ai-toggle"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label>
-    <div id="ai-proposal-list"></div>
-  </section>
-  <section id="ai-audit-section" class="side-panel" data-name="AI 紀錄">
-    <h2>AI 紀錄</h2>
-    <p class="section-help">已套用的 AI 變更，必要時可回復。</p>
-    <div id="ai-audit-list"></div>
-  </section>
-  <section id="chat-progress" class="side-panel" data-name="執行中進度" role="status" hidden>
-    <div id="chat-progress-head"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.webp" alt="" aria-hidden="true" decoding="async"><span id="chat-elapsed">執行中 0 秒</span><button id="chat-stop" type="button" class="danger">停止</button></div>
-    <ol id="chat-progress-list"></ol>
-  </section>
-  <section id="chat-section" class="side-panel" data-name="AI 對話">
-    <h2>AI 對話</h2>
-    <p class="section-help">和目前這面牆的 AI 對話；修改仍會先變成提案。</p>
-    <div id="chat-messages" role="log" aria-live="polite"></div>
-  </section>
-  <section id="chat-input-panel" class="side-panel" data-name="輸入框">
-    <form id="chat-form">
-      <textarea id="chat-input" maxlength="12000" placeholder="請輸入給 AI 的訊息" aria-label="AI 訊息"></textarea>
-      <div class="row chat-actions"><button id="chat-send" class="on">送出</button></div>
-    </form>
-    <div id="chat-status" role="status"></div>
-  </section>
-</aside>
+ <aside id="sidebar" aria-label="AI 偵探副駕">
+   <header class="sidebar-header">
+     <p class="eyebrow">CASEGRAPH / AI CONTROL</p>
+     <h1>案件圖譜助理</h1>
+   </header>
+   <section id="chat-client-panel" class="side-panel" data-step="1" data-name="模型與對話">
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">模型與對話</span><span id="chat-client-meta" class="panel-meta">連線中</span></h2>
+     <div class="client-card">
+       <label class="client-field">客戶端
+         <select id="chat-client" aria-label="AI 客戶端">
+           <option value="claude">Claude Code</option>
+           <option value="codex">codex</option>
+         </select>
+       </label>
+       <button id="chat-new" type="button">開新對話</button>
+       <p id="chat-client-state" class="status-line" role="status"></p>
+     </div>
+   </section>
+   <section id="ai-section" class="side-panel" data-step="2" data-name="AI 提案">
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 提案</span><span id="ai-pending-count" class="panel-meta">0 件待審</span></h2>
+     <p class="helper">先看變更的影響範圍，再決定是否套用到牆面。</p>
+     <div class="action-line"><label class="check"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label><button id="ai-review-open" type="button" disabled>開啟審核</button></div>
+     <div id="ai-proposal-list" class="proposal-stack"></div>
+   </section>
+   <section id="ai-audit-section" class="side-panel" data-step="3" data-name="AI 紀錄">
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 紀錄</span><span id="ai-audit-meta" class="panel-meta">最近 0 筆</span></h2>
+     <p class="helper">已套用的變更會留在這裡，需要時可回復。</p>
+     <div id="ai-audit-list" class="audit-stack"></div>
+   </section>
+   <section id="chat-progress" class="side-panel" data-step="4" data-name="執行中進度" role="status" hidden>
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">執行中進度</span><span id="progress-state" class="panel-meta">分析中</span></h2>
+     <div class="progress-card">
+       <div class="progress-summary"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.webp" alt="" aria-hidden="true" decoding="async"><div><strong id="chat-elapsed">執行中 0 秒</strong><small id="chat-progress-summary">正在處理訊息</small></div><button id="chat-stop" type="button" class="danger">停止</button></div>
+       <div id="chat-progress-track" class="progress-track" hidden aria-label="對話進度"><span id="chat-progress-bar"></span></div>
+       <ol id="chat-progress-list" class="progress-list"></ol>
+     </div>
+   </section>
+   <section id="chat-section" class="side-panel" data-step="5" data-name="AI 對話">
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 對話</span><span class="panel-meta">即時串流</span></h2>
+     <div id="chat-messages" class="chat-window" role="log" aria-live="polite"></div>
+   </section>
+   <section id="chat-input-panel" class="side-panel input-panel" data-step="6" data-name="輸入訊息">
+     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">輸入訊息</span><span class="panel-meta">可貼上 Markdown</span></h2>
+     <form id="chat-form">
+       <textarea id="chat-input" maxlength="12000" placeholder="在這裡追問案件…" aria-label="AI 訊息"></textarea>
+       <div class="input-actions"><span class="input-hint">AI 修改會建立提案</span><button id="chat-send" class="on" type="submit">送出</button></div>
+     </form>
+     <div id="chat-status" role="status"></div>
+   </section>
+ </aside>
 <div id="mascot" aria-label="AI 桌寵">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
   <img id="mascot-image" src="/assets/avatars/claude-body-sleep.webp" alt="AI 桌寵（可拖曳）" decoding="async">
@@ -1476,7 +1577,7 @@ const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strin
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
-let chatClient = 'claude', chatClients = new Map(), chatBusy = false, chatSeq = 0, chatProgressTimer = 0, chatProgressStarted = 0, chatProgressLines = [], chatStopRequested = false, chatMessages = [];
+let chatClient = 'claude', chatClients = new Map(), chatBusy = false, chatSeq = 0, chatProgressTimer = 0, chatProgressStarted = 0, chatProgressLines = [], chatProgressPercent = null, chatStopRequested = false, chatMessages = [];
 let view = {s: 1, x: 0, y: 0}, curType = 'builds', selCard = null, selEdge = null, drag = null, tempLine = null, uid = Date.now(), lastPointer = null;
 let lastJSON = JSON.stringify(data), lastChange = -Infinity;
 let initialJSON;
@@ -4474,31 +4575,37 @@ async function refreshAiProposals() {
   try {
     const result = await store.listProposals('pending', currentWall.id);
     const list = $('#ai-proposal-list'), count = result?.pending ?? result?.counts?.pending ?? 0;
-    $('#ai-pending-count').textContent = `(${count})`;
+    const proposals = result?.proposals || [];
+    $('#ai-pending-count').textContent = `${count} 件待審`;
+    $('#ai-review-open').disabled = !proposals.length;
     list.replaceChildren();
-    for (const proposal of result?.proposals || []) {
-      const row = mk('div', 'ai-row'), info = mk('div'), open = mk('button', '', '檢視');
+    for (const proposal of proposals) {
+      const row = mk('article', 'ai-row proposal-card'), copy = mk('div', 'card-copy'), actions = mk('div', 'card-actions'), open = mk('button', '', '檢視變更');
       const units = {add_card: '張新卡', update_card: '張修改', delete_card: '張刪除', add_edge: '條連線', delete_edge: '條刪線'};
       const pending = Object.entries(proposal.pendingTypes || {}).map(([type, n]) => `${n} ${units[type] || type}`).join('，');
+      const types = Object.keys(proposal.pendingTypes || {}).map(type => ({add_card: '卡片', update_card: '卡片', delete_card: '卡片', add_edge: '關係線', delete_edge: '關係線'}[type] || type));
       const when = new Date(proposal.created).toLocaleString('zh-TW', {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'});
-      info.className = 'ai-info';
-      info.title = `${proposal.rationale || ''}\n\n提案 ID：${proposal.proposalId}`.trim();
-      info.append(mk('b', '', proposal.rationale || 'AI 提案'));
-      info.append(mk('small', '', `${pending || '無待處理項目'}｜${when}`));
+      copy.title = `${proposal.rationale || ''}\n\n提案 ID：${proposal.proposalId}`.trim();
+      copy.append(mk('strong', '', proposal.rationale || 'AI 提案'));
+      copy.append(mk('small', '', `${[...new Set(types)].join('、') || '內容調整'} · ${pending || '無待處理項目'} · ${when}`));
+      open.type = 'button'; open.title = '檢視這筆提案的變更';
       open.onclick = () => changeWall(async () => {
         const detail = await store.getProposal(proposal.proposalId);
         if (detail) openProposalImporter(detail);
       });
-      row.append(info, open); list.append(row);
+      actions.append(open); row.append(copy, actions); list.append(row);
     }
-    if (!result?.proposals?.length) list.append(mk('p', 'ai-empty', '目前沒有待審提案'));
+    if (!proposals.length) list.append(mk('p', 'ai-empty', '目前沒有待審提案'));
     const audits = await store.listAudit(currentWall.id), auditList = $('#ai-audit-list');
+    $('#ai-audit-meta').textContent = `最近 ${audits.length} 筆`;
     auditList.replaceChildren();
     for (const audit of audits) {
-      const row = mk('div', 'ai-row'), info = mk('div'), affected = [...new Set([...(audit.affected?.cards || []), ...(audit.affected?.edges || [])])];
-      info.append(mk('b', '', new Date(audit.at).toLocaleString('zh-TW') + '｜' + (audit.proposalId || audit.actor)));
-      info.append(mk('small', '', affected.length ? affected.join('、') : '無受影響項目'));
-      const revert = mk('button', '', audit.revertedAt ? '已回復' : '回復這次套用');
+      const row = mk('article', 'ai-row audit-card'), icon = mk('span', 'audit-icon', '✓'), info = mk('div', 'audit-copy'), affected = [...new Set([...(audit.affected?.cards || []), ...(audit.affected?.edges || [])])];
+      const when = new Date(audit.at).toLocaleString('zh-TW', {month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'});
+      info.append(mk('strong', '', audit.proposalId ? 'AI 提案變更' : `${audit.actor || 'AI'} 變更`));
+      info.append(mk('small', '', `${when} · ${affected.length ? `影響 ${affected.length} 項：${affected.join('、')}` : '無受影響項目'}`));
+      const revert = mk('button', '', audit.revertedAt ? '已回復' : '回復');
+      revert.title = '回復這次套用';
       revert.disabled = !!audit.revertedAt;
       revert.onclick = () => changeWall(async () => {
         if (revert.disabled) return;
@@ -4514,11 +4621,12 @@ async function refreshAiProposals() {
           else throw error;
         }
       });
-      row.append(info, revert); auditList.append(row);
+      row.append(icon, info, revert); auditList.append(row);
     }
     if (!audits.length) auditList.append(mk('p', 'ai-empty', '目前沒有 AI 紀錄'));
   } catch {}
 }
+$('#ai-review-open').onclick = () => $('#ai-proposal-list .ai-row button')?.click();
 function chatStatus(text = '', error = false) {
   const status = $('#chat-status');
   status.textContent = text;
@@ -4533,8 +4641,12 @@ function updateChatElapsed() {
 }
 function startChatProgress() {
   clearInterval(chatProgressTimer);
-  chatProgressStarted = Date.now(); chatProgressLines = [];
+  chatProgressStarted = Date.now(); chatProgressLines = []; chatProgressPercent = null;
   $('#chat-progress-list').replaceChildren();
+  $('#chat-progress-track').hidden = true;
+  $('#chat-progress-bar').style.width = '0%';
+  $('#chat-progress-summary').textContent = '正在處理訊息';
+  $('#progress-state').textContent = '分析中';
   $('#chat-progress').hidden = false;
   updateChatElapsed();
   chatProgressTimer = setInterval(updateChatElapsed, 1000);
@@ -4548,11 +4660,20 @@ function chatProgressEvent(type, value) {
   if (type === 'progress' && typeof value?.text === 'string') {
     chatProgressLines = [...chatProgressLines, value.text].slice(-6);
     const list = $('#chat-progress-list'); list.replaceChildren(...chatProgressLines.map(line => mk('li', '', line)));
+    $('#chat-progress-summary').textContent = chatProgressLines.at(-1) || '正在處理訊息';
     list.scrollTop = list.scrollHeight;
     updateChatElapsed();
   }
-  if (type === 'stopped') { chatStopRequested = true; chatStatus('已停止'); }
-  if (type === 'failed' && value?.error) chatStatus('錯誤：' + value.error, true);
+  if (type === 'progress') {
+    const percent = Number(value?.percent ?? value?.progress);
+    if (Number.isFinite(percent)) {
+      chatProgressPercent = clamp(percent <= 1 ? percent * 100 : percent, 0, 100);
+      $('#chat-progress-track').hidden = false;
+      $('#chat-progress-bar').style.width = chatProgressPercent + '%';
+    }
+  }
+  if (type === 'stopped') { chatStopRequested = true; $('#progress-state').textContent = '已停止'; $('#chat-progress-summary').textContent = '執行已暫停'; chatStatus('已停止'); }
+  if (type === 'failed' && value?.error) { $('#progress-state').textContent = '錯誤'; $('#chat-progress-summary').textContent = '執行失敗'; chatStatus('錯誤：' + value.error, true); }
 }
 const mascot = $('#mascot'), mascotImage = $('#mascot-image'), mascotBlink = $('#mascot-blink'), mascotTransition = $('#mascot-transition'), mascotBubble = $('#mascot-bubble'), mascotResize = $('#mascot-resize');
 const mascotTransitions = {
@@ -4717,6 +4838,7 @@ function updateChatControls() {
   $('#chat-client').disabled = chatBusy;
   $('#chat-stop').hidden = !chatBusy;
   $('#chat-stop').disabled = !chatBusy || chatStopRequested;
+  $('#chat-client-meta').textContent = info?.available ? '已連線' : '未連線';
   const state = $('#chat-client-state');
   state.textContent = info?.available ? '' : '此客戶端無法使用，請確認已安裝並登入。';
   updateChatMascot();

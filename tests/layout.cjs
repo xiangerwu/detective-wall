@@ -38,6 +38,9 @@ const base = process.env.WALL_TEST_URL;
     assert.equal(await page.evaluate(() => activityPanel.offsetWidth), widened);
     await openSidebar(page);
     assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel']);
+    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('CASEGRAPH / AI CONTROL'));
+    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
     assert.ok(await page.isVisible('#activity-resize') && await page.isVisible('#sidebar-resize'));
     assert.equal(await page.evaluate(() => {
       const visible = el => getComputedStyle(el).display !== 'none';

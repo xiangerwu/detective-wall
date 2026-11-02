@@ -95,7 +95,7 @@ async function themeStyles(page, theme) {
   assert.ok(same(result.backgrounds.header, result.tokens['--ui-panel']), `${theme}: header is not --ui-panel`);
   assert.ok(same(result.backgrounds.activitybar, result.tokens['--ui-bar']), `${theme}: activity bar is not --ui-bar`);
   assert.ok(same(result.backgrounds.activityPanel, result.tokens['--ui-panel']), `${theme}: activity panel is not --ui-panel`);
-  assert.ok(same(result.backgrounds.sidebar, result.tokens['--ui-panel']), `${theme}: sidebar is not --ui-panel`);
+    assert.ok(same(result.backgrounds.sidebar, result.tokens['--ui-bg']), `${theme}: sidebar is not --ui-bg`);
   assert.ok(same(result.backgrounds.panel, result.tokens['--ui-surface']), `${theme}: editor is not --ui-surface`);
   assert.ok(same(result.backgrounds.input, result.tokens['--ui-input']), `${theme}: input is not --ui-input`);
   assert.ok(same(result.backgrounds.dialog, result.tokens['--ui-surface']), `${theme}: dialog is not --ui-surface`);
@@ -292,6 +292,9 @@ async function themeStyles(page, theme) {
     await page.evaluate(() => showActivity(null));
     await page.locator('#sidebar').screenshot({path: path.join(out, 'ai-area.png')});
     assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel']);
+    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
+    assert.equal(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.filter(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim()).length), 6);
     console.log('PASS right AI area screenshot is captured');
     assert.equal(errors.length, 0, 'page errors: ' + errors.join('; '));
     console.log('PASS no page errors');
