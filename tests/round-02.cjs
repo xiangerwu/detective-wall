@@ -133,6 +133,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.click('#im-apply'); await settled(page);
     ok(await label('incoming').textContent() === payload && await page.locator('img:not(#sidebar img):not(#mascot img)').count() === 0 && dialogs.length === 0, 'malicious title renders only as text on wall');
 
+    await openActivity(page, 'files');
     const download = page.waitForEvent('download');
     await page.click('#export');
     const chunks = [];

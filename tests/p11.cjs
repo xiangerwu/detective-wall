@@ -100,6 +100,7 @@ async function setWallFixture(page, fixture, selected = []) {
     await page.goto(`${base}/#wall=p11-wall`); await ready(page); await openSidebar(page);
     await page.evaluate(() => setCardStyle('tech'));
     await page.evaluate(() => setLayoutMode('full'));
+    await page.click('#ai-tab-proposals');
     await page.check('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked);
 

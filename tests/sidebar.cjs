@@ -12,48 +12,23 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const errs = [];
     page.on('pageerror', e => errs.push(e.message));
     await page.goto(PAGE); await ready(page); await openActivity(page, 'files');
-    const header = await page.locator('body > header').boundingBox(), side = await page.locator('#sidebar').boundingBox();
+    const header = await page.locator('#topbar').boundingBox(), side = await page.locator('#sidebar').boundingBox();
     ok(header.height < 100, 'header is one toolbar row plus the tab row at 1400px (' + header.height + 'px)');
     ok(await page.isVisible('#sidebar') && Math.round(side.x + side.width) === 1400 && await page.getAttribute('#toggle-sidebar', 'aria-expanded') === 'true', 'sidebar open by default on the right');
-    ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理')
-      && !(await page.locator('#sidebar .theme-picker, #sidebar #theme').count()), 'P17 sidebar header is present without a theme dropdown');
-    ok(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim())), 'P17 sidebar cards have numbered steps and status text');
+    ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾')
+      && !(await page.locator('#sidebar .theme-picker, #sidebar #theme').count()), 'AI case-folder header is present without a theme dropdown');
     for (const id of ['export', 'export-canvas', 'import', 'reset'])
-      if (!await page.locator('#activity-panel #' + id).count()) ok(false, id + ' is in the files activity panel');
-    ok(JSON.stringify(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id))) === JSON.stringify(['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel'])
-      && !(await page.locator('#sidebar #export').count()) && !(await page.locator('#chat-mascot-panel').count()), 'right sidebar rows run model, proposals, audit, progress, conversation, and input');
-    ok(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(p => getComputedStyle(p).resize === 'vertical')), 'every sidebar row has a vertical resize grip');
+      if (!await page.locator('#rail-panel #' + id).count()) ok(false, id + ' is in the files rail panel');
+    ok(await page.locator('#case-folder-tabs [role=tab]').count() === 4
+      && !(await page.locator('#sidebar #export').count()) && !(await page.locator('#chat-mascot-panel').count()), 'AI case-folder exposes model, proposals, audit, and chat tabs');
+    for (const [tab, pane] of [['chat', '#case-pane-chat'], ['proposals', '#case-pane-proposals'], ['audit', '#case-pane-audit'], ['model', '#case-pane-model']]) {
+      await page.click(`#ai-tab-${tab}`);
+      ok(await page.locator(pane).isVisible() && await page.getAttribute(`#ai-tab-${tab}`, 'aria-selected') === 'true', `AI case-folder switches to ${tab}`);
+    }
+    await page.click('#ai-tab-chat');
     ok(await page.locator('#mascot').isVisible() && await page.locator('#mascot').evaluate(el => getComputedStyle(el).position === 'fixed'), 'the character is a fixed mascot outside the sidebar');
-    const panelOrderKey = 'thesis-detective-wall-side-panel-order';
-    ok(await page.locator('#sidebar > .side-panel > .side-panel-drag').count() === 6
-      && await page.locator('#sidebar > .side-panel > .side-panel-drag').evaluateAll(handles => handles.every(handle => handle.title.includes('拖曳調整') && handle.getAttribute('aria-label').includes('拖曳調整'))), 'every sidebar row has a labelled order handle');
-    const source = await page.locator('#ai-section .side-panel-drag').boundingBox(), target = await page.locator('#chat-client-panel').boundingBox();
-    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2); await page.mouse.down();
-    await page.mouse.move(target.x + target.width / 2, target.y + 1, {steps: 5}); await page.mouse.up();
-    const draggedOrder = await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id));
-    ok(draggedOrder[0] === 'ai-section' && draggedOrder[1] === 'chat-client-panel', 'dragging a row handle moves it before another row');
-    await page.reload(); await ready(page);
-    ok((await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id))).slice(0, 2).join(',') === 'ai-section,chat-client-panel', 'row order survives reload');
-    await page.focus('#ai-section .side-panel-drag'); await page.keyboard.press('ArrowDown');
-    ok((await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.map(panel => panel.id))).slice(0, 2).join(',') === 'chat-client-panel,ai-section'
-      && await page.evaluate(() => document.activeElement === $('#ai-section .side-panel-drag')), 'arrow key moves a row and keeps focus on its handle');
-    const collapsedKey = 'thesis-detective-wall-side-panel-collapsed';
-    const expandedHeight = await page.locator('#ai-section').evaluate(panel => panel.offsetHeight);
-    await page.locator('#ai-section h2').click();
-    ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed') && panel.offsetHeight < 80)
-      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false'
-      && !(await page.locator('#ai-section .helper').isVisible()), 'sidebar rows collapse to their title row without keeping the old height');
-    await page.reload(); await ready(page);
-    ok(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed'))
-      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'false', 'collapsed sidebar row survives reload');
-    await page.locator('#ai-section h2').click();
-    ok(!(await page.locator('#ai-section').evaluate(panel => panel.classList.contains('collapsed')))
-      && await page.getAttribute('#ai-section h2', 'aria-expanded') === 'true'
-      && await page.locator('#ai-section').evaluate((panel, height) => panel.offsetHeight >= height, expandedHeight), 'clicking the row title expands it again');
-    await page.evaluate(key => localStorage.removeItem(key), collapsedKey);
-    await page.evaluate(key => localStorage.removeItem(key), panelOrderKey);
-    ok(await page.locator('#activitybar button').count() === 7 && await page.locator('#activitybar button[title][aria-label]').count() === 7
-      && await page.locator('#activitybar svg').count() === 7, 'activity bar has seven titled, labelled inline SVG icons');
+    ok(await page.locator('#rail .rail-activity').count() === 7 && await page.locator('#rail .rail-activity[title][aria-label]').count() === 7
+      && await page.locator('#rail .rail-activity svg').count() === 7, 'rail has seven titled, labelled inline SVG icons');
 
     const width = () => page.evaluate(() => $('#sidebar').offsetWidth);
     ok(await width() === 300, 'default width 300px');
@@ -61,7 +36,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.mouse.move(grip.x + 2, grip.y + 300); await page.mouse.down();
     await page.mouse.move(grip.x - 198, grip.y + 300, {steps: 5}); await page.mouse.up();
     ok(Math.abs(await width() - 500) <= 3, 'dragging the right edge widens the sidebar (' + await width() + 'px)');
-    ok(await page.evaluate(() => vp.clientWidth + activitybar.offsetWidth + activityPanel.offsetWidth + activityResizer.offsetWidth + resizer.offsetWidth + sidebar.offsetWidth === 1400)
+    ok(await page.evaluate(() => vp.clientWidth + rail.offsetWidth + activityPanel.offsetWidth + railResizer.offsetWidth + resizer.offsetWidth + sidebar.offsetWidth === 1400)
       && await page.evaluate(() => Math.abs(parseFloat(bg.style.width) * view.s - vp.clientWidth) < 1), 'viewport and background follow the right drag');
     const grip2 = await page.locator('#sidebar-resize').boundingBox();
     await page.mouse.move(grip2.x + 2, grip2.y + 300); await page.mouse.down(); await page.mouse.move(1390, grip2.y + 300, {steps: 5}); await page.mouse.up();
@@ -71,23 +46,15 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await reload(page);
     ok(await width() === 252, 'right width survives reload');
 
-    const leftWidth = () => page.evaluate(() => activityPanel.offsetWidth);
-    const leftGrip = await page.locator('#activity-resize').boundingBox();
-    await page.mouse.move(leftGrip.x + 2, leftGrip.y + 300); await page.mouse.down();
-    await page.mouse.move(leftGrip.x + 202, leftGrip.y + 300, {steps: 5}); await page.mouse.up();
-    ok(Math.abs(await leftWidth() - 500) <= 3, 'dragging the left edge widens the activity panel (' + await leftWidth() + 'px)');
-    const leftGrip2 = await page.locator('#activity-resize').boundingBox();
-    await page.mouse.move(leftGrip2.x + 2, leftGrip2.y + 300); await page.mouse.down(); await page.mouse.move(100, leftGrip2.y + 300, {steps: 5}); await page.mouse.up();
-    ok(await leftWidth() === 220, 'left activity panel width clamps at 220px');
-    await page.focus('#activity-resize'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
-    ok(await leftWidth() === 252, 'right arrow widens the left activity panel by 16px');
+    await openActivity(page, 'files');
+    ok(await page.evaluate(() => activityPanel.offsetWidth === 300 && !localStorage.getItem('thesis-detective-wall-activity-width')), 'rail panel keeps its fixed shell width and ignores the old width key');
     await page.click('#activity-history');
     ok(await page.isVisible('#history-section') && !(await page.isVisible('#files-section')) && await page.getAttribute('#activity-history', 'aria-pressed') === 'true', 'activity icons keep only the active panel open');
     await page.click('#activity-history');
-    ok(!(await page.isVisible('#activity-panel')) && await page.getAttribute('#activity-history', 'aria-pressed') === 'false', 'clicking the active activity icon collapses the panel');
+    ok(!(await page.isVisible('#rail-panel')) && await page.getAttribute('#activity-history', 'aria-pressed') === 'false', 'clicking the active activity icon collapses the panel');
     await openActivity(page, 'files');
     await reload(page);
-    ok(await leftWidth() === 252 && await page.isVisible('#files-section') && await page.getAttribute('#activity-files', 'aria-pressed') === 'true', 'left panel id and width survive reload');
+    ok(!(await page.isVisible('#rail-panel')) && await page.getAttribute('#activity-files', 'aria-pressed') === 'false', 'activity panel state is transient and old activity values are ignored');
 
     await page.click('#zoom-fit');  // the board cannot be scrolled, so bring every card into view before clicking one
     await page.click('.card');
@@ -123,10 +90,10 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.click('#toggle-sidebar');
     ok(!(await page.isVisible('#sidebar')) && !(await page.isVisible('#sidebar-resize')) && await page.getAttribute('#toggle-sidebar', 'aria-expanded') === 'false', 'toggle hides the sidebar and its edge');
     await page.waitForFunction(() => Math.abs(parseFloat(bg.style.width) * view.s - vp.clientWidth) < 1);
-    ok(await page.evaluate(open => vp.clientWidth + activitybar.offsetWidth + activityPanel.offsetWidth + activityResizer.offsetWidth === 1400
+    ok(await page.evaluate(open => vp.clientWidth + rail.offsetWidth + (activityPanel.hidden ? 0 : activityPanel.offsetWidth) + railResizer.offsetWidth === 1400
       && vp.clientWidth > open, vpOpen), 'viewport and background widen after hiding the right sidebar');
     await page.click('.card');
-    ok(await page.isVisible('#panel') && !(await page.isVisible('#sidebar section')), 'editing with the sidebar hidden shows only the editor');
+    ok(await page.isVisible('#panel') && !(await page.isVisible('#case-folder')), 'editing with the sidebar hidden shows only the editor');
     await page.screenshot({ path: path.join(OUT, 'editor-only.png') });
     await page.click('#f-close');
     ok(!(await page.isVisible('#sidebar')), 'closing the editor hides the sidebar again');

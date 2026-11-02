@@ -203,12 +203,14 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.goto(base + '/#wall=chat-wall');
     await page.waitForFunction(() => window.wallReady === true);
     await openSidebar(page);
-    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾'));
     assert.equal(await page.locator('#chat-section .panel-meta').textContent(), '即時串流');
     assert.equal(await page.locator('#chat-input').getAttribute('placeholder'), '在這裡追問案件…');
     await page.waitForFunction(() => document.querySelector('#chat-client')?.options.length === 2);
+    await page.click('#ai-tab-model');
     await page.selectOption('#chat-client', 'claude');
     await page.click('#chat-new');
+    await page.click('#ai-tab-chat');
     await page.waitForFunction(() => document.querySelectorAll('#chat-messages .chat-message').length === 0);
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sleep\.webp$/);
     assert.ok(await page.locator('#mascot-image').evaluate(img => img.complete && img.naturalWidth > 0));
@@ -254,7 +256,9 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     ]);
     await page.screenshot({path: path.join(out, 'chat-progress.png')});
     await page.waitForFunction(() => document.querySelector('#chat-progress').hidden);
+    await page.click('#ai-tab-model');
     await page.selectOption('#chat-client', 'codex');
+    await page.click('#ai-tab-chat');
     await page.waitForFunction(() => document.querySelector('#mascot-image')?.getAttribute('src').includes('/assets/avatars/codex-body-'));
     await page.fill('#chat-input', 'progress sleep');
     await page.click('#chat-send');
@@ -267,7 +271,9 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.waitForFunction(() => document.querySelector('#chat-progress').hidden);
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/codex-body-happy\.webp$/);
     assert.match(await page.locator('#chat-messages .chat-line.ai .chat-avatar').last().getAttribute('src'), /\/assets\/avatars\/codex-happy\.webp$/);
+    await page.click('#ai-tab-model');
     await page.selectOption('#chat-client', 'claude');
+    await page.click('#ai-tab-chat');
 
     await page.fill('#chat-input', 'stop');
     await page.click('#chat-send');

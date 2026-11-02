@@ -57,6 +57,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.evaluate(() => { byId('shoup').tags.push('unknown'); data.edges.forEach(e => { e.label = e.id; }); save(); render(); });
     ok(await card('shoup').locator('.tag-chip').count() === 1, 'unknown tag ids are ignored on cards');
 
+    await openActivity(page, 'tags');
     await chip(witness.id).locator('.tag-toggle').click();
     ok(await card('shoup').evaluate(el => !el.classList.contains('dim')) && await card('dt').evaluate(el => !el.classList.contains('dim')) && await card('pss').evaluate(el => el.classList.contains('dim') && getComputedStyle(el).opacity === '0.15'), 'filter dims only cards without active tags');
     ok(await page.locator('.hit[data-id="e1"]').evaluate(el => !el.previousElementSibling.classList.contains('dim')) && await page.locator('.hit[data-id="e2"]').evaluate(el => el.previousElementSibling.classList.contains('dim')) && await page.locator('.str-label[data-id="e2"]').evaluate(el => el.classList.contains('dim') && getComputedStyle(el).opacity === '0.15'), 'strings and labels dim when either end is dimmed');
@@ -76,6 +77,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await reload(page);
     ok(await page.locator('.dim').count() === 0 && await page.evaluate(async () => !('activeTags' in (await store.getWall(currentWall.id)).data)), 'filter state is not saved and reload clears it');
 
+    await openActivity(page, 'tags');
     await chip(witness.id).locator('.tag-edit').click();
     await page.fill('#tag-name', '  Sources  ');
     await page.click('#tagpop [data-color="green"]');
@@ -83,9 +85,10 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const popup = await page.locator('#tagpop').boundingBox();
     await page.click('#zoom-out');
     const zoomed = await page.locator('#tagpop').boundingBox();
-    ok(await page.locator('#tagpop').evaluate(el => el.closest('#activity-panel') && getComputedStyle(el).transform === 'none') && Math.abs(popup.width - zoomed.width) < 1, 'tag popup is in the activity panel without inverse zoom scaling');
+    ok(await page.locator('#tagpop').evaluate(el => el.closest('#rail-panel') && getComputedStyle(el).transform === 'none') && Math.abs(popup.width - zoomed.width) < 1, 'tag popup is in the rail panel without inverse zoom scaling');
     await reload(page);
     ok((await tags())[0].name === 'Sources' && (await tags())[0].color === 'green', 'rename and colour persist');
+    await openActivity(page, 'tags');
     await chip(witness.id).locator('.tag-toggle').click();
     await chip(witness.id).locator('.tag-edit').click();
     await page.getByRole('button', {name: '刪除標籤', exact: true}).click();

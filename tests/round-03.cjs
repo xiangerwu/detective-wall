@@ -66,6 +66,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await link.getAttribute('target') === '_blank' && await link.getAttribute('rel') === 'noopener noreferrer', 'hook also protects raw HTML links after repeated renders');
 
     await setNote('# 標題\n\n**粗體** *斜體* [連結](https://example.com)\n\n> 引言\n\n1. 清單\n\n```\n程式碼\n```\n\n尾行');
+    // In the icon rail the panels are flyouts that close when another rail control is used, so reopen 外觀 first.
+    await openActivity(page, 'theme');
     for (const theme of ['moon', 'whiteboard', 'wood', 'paper', 'cork', 'cyber']) {
       await page.selectOption('#theme', theme);
       const colors = await page.evaluate(id => Object.keys(COLORS).map(color => {

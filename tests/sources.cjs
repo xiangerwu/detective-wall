@@ -29,6 +29,7 @@ const request = (pathname, method = 'GET', value) => new Promise((resolve, rejec
 });
 const idle = page => page.waitForFunction(() => !wallBusy && !store.hasPendingWrites());
 const downloadJson = async (page, selector) => {
+  await openActivity(page, 'files');
   const waiting = page.waitForEvent('download');
   await page.click(selector);
   const download = await waiting;

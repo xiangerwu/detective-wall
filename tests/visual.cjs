@@ -60,9 +60,9 @@ async function themeStyles(page, theme) {
     const style = selector => getComputedStyle(document.querySelector(selector));
     const backgrounds = {
       body: color(style('body').backgroundColor),
-      header: color(style('header').backgroundColor),
-      activitybar: color(style('#activitybar').backgroundColor),
-      activityPanel: color(style('#activity-panel').backgroundColor),
+      header: color(style('#topbar').backgroundColor),
+      rail: color(style('#rail').backgroundColor),
+      railPanel: color(style('#rail-panel').backgroundColor),
       sidebar: color(style('#sidebar').backgroundColor),
       panel: color(style('#panel').backgroundColor),
       input: color(style('#chat-input').backgroundColor),
@@ -93,8 +93,8 @@ async function themeStyles(page, theme) {
   const same = (a, b) => a.every((value, index) => Math.abs(value - b[index]) < 1);
   assert.ok(same(result.backgrounds.body, result.tokens['--ui-bg']), `${theme}: body background is not --ui-bg`);
   assert.ok(same(result.backgrounds.header, result.tokens['--ui-panel']), `${theme}: header is not --ui-panel`);
-  assert.ok(same(result.backgrounds.activitybar, result.tokens['--ui-bar']), `${theme}: activity bar is not --ui-bar`);
-  assert.ok(same(result.backgrounds.activityPanel, result.tokens['--ui-panel']), `${theme}: activity panel is not --ui-panel`);
+  assert.ok(same(result.backgrounds.rail, result.tokens['--ui-bar']), `${theme}: rail is not --ui-bar`);
+  assert.ok(same(result.backgrounds.railPanel, result.tokens['--ui-panel']), `${theme}: rail panel is not --ui-panel`);
     assert.ok(same(result.backgrounds.sidebar, result.tokens['--ui-bg']), `${theme}: sidebar is not --ui-bg`);
   assert.ok(same(result.backgrounds.panel, result.tokens['--ui-surface']), `${theme}: editor is not --ui-surface`);
   assert.ok(same(result.backgrounds.input, result.tokens['--ui-input']), `${theme}: input is not --ui-input`);
@@ -286,16 +286,16 @@ async function themeStyles(page, theme) {
     const restored = await page.locator('#panel').boundingBox();
     assert.ok(Math.abs(restored.width - after.width) < 2 && Math.abs(restored.height - after.height) < 2);
     await page.keyboard.press('Escape');
-    console.log('PASS editor resize persists, body scrolls independently, and header stays fixed');
+    console.log('PASS editor resize persists, body scrolls independently, and top strip stays fixed');
 
     await openSidebar(page);
     await page.evaluate(() => showActivity(null));
     await page.locator('#sidebar').screenshot({path: path.join(out, 'ai-area.png')});
-    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel']);
-    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.deepEqual(await page.locator('#case-folder [data-ai-pane] > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-progress', 'chat-section', 'chat-input-panel', 'ai-section', 'ai-audit-section', 'chat-client-panel']);
+    assert.ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾'));
     assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
-    assert.equal(await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.filter(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim()).length), 6);
-    console.log('PASS right AI area screenshot is captured');
+    assert.equal(await page.locator('#case-folder-tabs [role=tab]').count(), 4);
+    console.log('PASS right AI case-folder screenshot is captured');
     assert.equal(errors.length, 0, 'page errors: ' + errors.join('; '));
     console.log('PASS no page errors');
   } finally {

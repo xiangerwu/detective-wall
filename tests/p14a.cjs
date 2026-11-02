@@ -37,15 +37,14 @@ fs.mkdirSync(OUT, {recursive: true});
     console.log('PASS A1 floating toolbar, two-click Delete, edge cleanup, one-step undo, and input Backspace');
 
     await page.click('#toggle-sidebar');
-    await page.locator('#ai-section h2').click();
-    assert.equal(await page.getAttribute('#ai-section h2', 'aria-expanded'), 'false');
-    assert.ok(await page.locator('#ai-section').evaluate(panel => panel.offsetHeight < 80));
-    await page.screenshot({path: path.join(OUT, 'sidebar-collapsed.png')});
-    await reload(page);
-    assert.equal(await page.getAttribute('#ai-section h2', 'aria-expanded'), 'false', 'collapsed sidebar state survives reload');
-    await page.locator('#ai-section h2').click();
-    await page.evaluate(() => localStorage.removeItem(SIDE_PANEL_COLLAPSED_KEY));
-    console.log('PASS A2 sidebar title rows, collapse state, aria-expanded, and reload persistence');
+    for (const tab of ['chat', 'proposals', 'audit', 'model']) {
+      await page.click(`#ai-tab-${tab}`);
+      assert.equal(await page.getAttribute(`#ai-tab-${tab}`, 'aria-selected'), 'true');
+      assert.equal(await page.locator(`[data-ai-pane="${tab}"]`).isVisible(), true, `${tab} case-folder content is visible`);
+    }
+    await page.screenshot({path: path.join(OUT, 'case-folder-tabs.png')});
+    await page.click('#ai-tab-chat');
+    console.log('PASS A2 AI case-folder tabs switch model, proposals, audit, and conversation content');
 
     const bandCount = await page.locator('#band-nav button[data-band-id]').count();
     assert.equal(bandCount, await page.evaluate(() => data.bands.length), 'A3 band nav has one item per band');

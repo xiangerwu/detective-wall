@@ -135,6 +135,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.equal(missing, outOfScope);
     console.log('PASS AI proposals are disabled by default and scope errors are indistinguishable');
 
+    await page.click('#ai-tab-proposals');
     await page.check('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked === true);
     const enabled = dataOf(await call(connection.client, 'propose_changes', proposal));
@@ -443,6 +444,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     await page.evaluate(() => save(true));
     console.log('PASS Shift+left marquee selects and moves a group, while right-drag is left to the browser');
 
+    await page.click('#ai-tab-proposals');
     await page.uncheck('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked === false);
     assert.equal(errorOf(await call(connection.client, 'propose_changes', {...proposal, idempotencyKey: 'p4-after-off'})), 'AI proposals are disabled');

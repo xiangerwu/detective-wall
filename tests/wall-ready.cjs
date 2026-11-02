@@ -19,7 +19,7 @@ const openActivity = async (page, id) => {
   const button = page.locator(`#activity-${id}`);
   if (await button.getAttribute('aria-pressed') !== 'true') await button.click();
   await page.waitForFunction(id => document.querySelector(`#activity-${id}`)?.getAttribute('aria-pressed') === 'true'
-    && !document.querySelector('#activity-panel').hidden, id);
+    && !document.querySelector('#rail-panel').hidden, id);
 };
 const openSidebar = async page => {
   if (await page.getAttribute('#toggle-sidebar', 'aria-expanded') !== 'true') await page.click('#toggle-sidebar');

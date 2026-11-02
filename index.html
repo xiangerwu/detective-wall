@@ -11,7 +11,7 @@
 <script src="/layout.js"></script>
 <style>
 :root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;
-  --radius-sm:5px;--radius-md:6px;--radius-lg:8px;
+  --radius-sm:5px;--radius-md:6px;--radius-lg:8px;--pill-radius:999px;--rail-icon-w:78px;--rail-full-w:232px;--rail-panel-w:300px;
   --font-xs:12px;--font-sm:13px;--font-body:14px;--font-title:16px;
   --control-font:var(--font-sm);--control-pad-y:5px;--control-pad-x:8px;--popup-shadow:0 12px 40px var(--ui-shadow);
   --paper-shadow-top:var(--ui-shadow-soft);--paper-shadow-near:var(--ui-shadow-soft);--paper-shadow-bottom:var(--ui-shadow);--paper-shadow-drag:var(--ui-shadow);--paper-curl-shadow:var(--ui-shadow-soft);
@@ -21,6 +21,7 @@
   --ui-danger:#ffadb5;--ui-danger-strong:#e5484d;--ui-danger-soft:#32171c;--ui-success:#8ff0b6;--ui-warning:#e6b450;
   --ui-shadow:rgba(0,0,0,.58);--ui-shadow-soft:rgba(0,0,0,.42);--ui-backdrop:rgba(0,0,0,.65);--ui-selection:#9cc4ff;
   --ui-pin-light:#ff9aa4;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-bg:linear-gradient(#121a23 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#121a23 1px,transparent 1px) 0 0/18px 18px,#0b1016;
   --wall-color:#0b1016;--wall-label-bg:#1b2530;--band:#8fb8de;--band-line:#2b3c50;--band-label-bg:#1b2530;--band-label-ink:#e3ecf3;--builds:#e5484d;--uses:#4cc3ff;--question:#e6b450;--glow-r:2px}
 [data-theme=whiteboard]{--wall-bg:linear-gradient(#e2e7eb 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#e2e7eb 1px,transparent 1px) 0 0/18px 18px,#f7f9fa;
@@ -29,6 +30,7 @@
   --ui-danger:#ffccd1;--ui-danger-strong:#d32f2f;--ui-danger-soft:#4b2025;--ui-success:#a8e5bd;--ui-warning:#e08e0b;
   --ui-shadow:rgba(35,45,52,.32);--ui-shadow-soft:rgba(35,45,52,.2);--ui-backdrop:rgba(34,42,48,.45);--ui-selection:#8bc4ef;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#f7f9fa;--wall-label-bg:#ffffff;--band:#2e3a44;--band-line:#b4c0cb;--band-label-bg:#f7f9fa;--band-label-ink:#2e3a44;--builds:#d32f2f;--uses:#1565c0;--question:#e08e0b;--glow-r:0px}
 [data-theme=wood]{--wall-bg:linear-gradient(90deg,rgba(0,0,0,.09) 2px,transparent 2px) 0 0/14px 100%,#6b4a2f;
   --ui-bg:#2a1d14;--ui-panel:#33231a;--ui-bar:#21160f;--ui-surface:#493124;--ui-raised:#5f422f;--ui-input:#241910;
@@ -36,6 +38,7 @@
   --ui-danger:#ffb8ad;--ui-danger-strong:#e0303f;--ui-danger-soft:#5a2524;--ui-success:#b9efc7;--ui-warning:#e8d29a;
   --ui-shadow:rgba(20,10,4,.56);--ui-shadow-soft:rgba(20,10,4,.36);--ui-backdrop:rgba(20,10,4,.62);--ui-selection:#b8e4ff;
   --ui-pin-light:#ffb7bd;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#6b4a2f;--wall-label-bg:#f2e6d0;--band:#e8d29a;--band-line:rgba(255,230,190,.35);--band-label-bg:#2a1d14;--band-label-ink:#f2e6d0;--builds:#e0303f;--uses:#7fc4e8;--question:#e8d29a;--uses-ink:#1d5a80;--question-ink:#7a5a12;--glow-r:1px}
 [data-theme=paper]{--wall-bg:linear-gradient(rgba(150,110,40,.18) 1px,transparent 1px) 0 0/100% 18px,#f1e4bf;
   --ui-bg:#3b2a1e;--ui-panel:#493527;--ui-bar:#2e2118;--ui-surface:#594331;--ui-raised:#6d5139;--ui-input:#2b1f17;
@@ -43,6 +46,7 @@
   --ui-danger:#ffccd1;--ui-danger-strong:#b3202a;--ui-danger-soft:#5a2026;--ui-success:#b5e5bc;--ui-warning:#e6c275;
   --ui-shadow:rgba(63,45,20,.34);--ui-shadow-soft:rgba(63,45,20,.22);--ui-backdrop:rgba(63,45,20,.5);--ui-selection:#8db7d8;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#f1e4bf;--wall-label-bg:#fbf7ee;--band:#7a5c2e;--band-line:#c4a766;--band-label-bg:#fbf7ee;--band-label-ink:#3b2a1e;--builds:#b3202a;--uses:#2a5d8f;--question:#7a6a4f;--glow-r:0px}
 [data-theme=cork]{--wall-bg:url('/assets/cork.jpg') repeat;
   --ui-bg:#33241a;--ui-panel:#3f2d21;--ui-bar:#271a12;--ui-surface:#513820;--ui-raised:#69482b;--ui-input:#2d1f16;
@@ -50,6 +54,7 @@
   --ui-danger:#ffbaa9;--ui-danger-strong:#b3101f;--ui-danger-soft:#5d2925;--ui-success:#b7edc5;--ui-warning:#ffd27b;
   --ui-shadow:rgba(35,16,5,.56);--ui-shadow-soft:rgba(35,16,5,.36);--ui-backdrop:rgba(35,16,5,.62);--ui-selection:#b9e7ff;
   --ui-pin-light:#ffb7bd;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#a8713f;--wall-label-bg:#fff0d5;--band:#4a2a0e;--band-line:rgba(58,34,16,.45);--band-label-bg:#fff0d5;--band-label-ink:#6e3f00;--builds:#b3101f;--uses:#0a4f78;--question:#f3e2b8;--question-ink:#6e3f00;--glow-r:0px}
 [data-theme=cyber]{--wall-bg:linear-gradient(rgba(58,209,255,.13) 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,rgba(58,209,255,.13) 1px,transparent 1px) 0 0/18px 18px,#04122a;
   --ui-bg:#143b5d;--ui-panel:#071b33;--ui-bar:#05182c;--ui-surface:#10375a;--ui-raised:#1b476b;--ui-input:#061a30;
@@ -57,50 +62,53 @@
   --ui-danger:#ff9bb3;--ui-danger-strong:#ff3d7f;--ui-danger-soft:#41152a;--ui-success:#8ff0b6;--ui-warning:#ffd23d;
   --ui-shadow:rgba(0,0,0,.62);--ui-shadow-soft:rgba(0,0,0,.44);--ui-backdrop:rgba(0,0,0,.68);--ui-selection:#80dfff;
   --ui-pin-light:#ff9aa4;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
+  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#04122a;--wall-label-bg:#071b33;--band:#3ad1ff;--band-line:rgba(58,209,255,.4);--band-label-bg:#071b33;--band-label-ink:#e5fbff;--builds:#ff3d7f;--uses:#3ad1ff;--question:#ffd23d;--glow-r:2px}
 *{box-sizing:border-box}
 body{margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden;background:var(--ui-bg);color:var(--ui-text);font:14px/1.5 "Microsoft JhengHei UI","Microsoft JhengHei","PingFang TC","Noto Sans CJK TC",system-ui,sans-serif}
-header{position:relative;flex:none;z-index:20;display:flex;flex-wrap:wrap;gap:4px 7px;align-items:center;padding:6px 8px;background:var(--ui-panel);border-bottom:1px solid var(--ui-border)}
-header h1{margin:0 4px 0 0;font-size:16px;font-weight:600}
+#topbar{position:relative;flex:none;z-index:20;padding:7px 10px;background:var(--ui-panel);border-bottom:1px solid var(--ui-border)}
 button{font:inherit;font-size:13px;color:var(--ui-text);background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:5px;padding:4px 10px;cursor:pointer}
 button:hover{border-color:var(--ui-accent);background:var(--ui-hover)}
-/* only the top toolbar stays frameless until hover; panels keep visible buttons */
-header button:not(.on):not(.wall-tab){background:transparent;border-color:transparent}
-header button:not(.on):not(.wall-tab):hover{border-color:var(--ui-border);background:var(--ui-hover)}
+/* only the top strip stays frameless until hover; panels keep visible buttons */
+#topbar button:not(.on):not(.wall-tab){background:transparent;border-color:transparent}
+#topbar button:not(.on):not(.wall-tab):hover{border-color:var(--ui-border);background:var(--ui-hover)}
 /* the tab menu lives inside header but is a popup panel, so its buttons keep their frames and swatch colours */
 #tabmenu button:not(.swatch){background:var(--ui-raised);border-color:var(--ui-border)}
 #tabmenu button.swatch{background:var(--c-bg);border-color:var(--c-top)}
+/* The frameless top-strip rule is more specific, so keep colour swatches visible in the popup. */
+#topbar #tabmenu button.swatch{background:var(--c-bg);border-color:var(--c-top)}
 button:disabled{opacity:.4;cursor:default}
 button.on{border-color:var(--ui-accent);background:var(--ui-active)}
 button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
-#types{display:flex;align-items:center;gap:0;padding:2px;border:1px solid var(--ui-border);border-radius:5px}
+#types{display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:color-mix(in srgb,var(--rail-bg) 70%,transparent)}
 #types::before{content:'新連線';padding:0 5px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
-#types button{border:0;border-radius:3px;padding:4px 6px}
+#types button{border:0;border-radius:var(--radius-md);padding:5px 6px}
 #types button:hover{border-color:transparent;background:var(--ui-hover)}
 #types button.on{border-color:transparent;background:var(--ui-active)}
 #types button svg{border-radius:3px;background:var(--wall-label-bg)}  /* the sample sits on the edge-label paper with the label ink, so it reads on dark chrome and on any selection colour */
 .theme{font-size:13px;color:var(--ui-muted)}
 .theme select{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:3px 6px}
 /* Same labelled group as 新連線: the main button runs the current mode, the arrow picks another. */
-#layout-wall-control{position:relative;display:flex;align-items:center;padding:2px;border:1px solid var(--ui-border);border-radius:5px}
-#layout-wall-control::before{content:'整理';padding:0 5px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
-header #layout-wall-control > button{padding:4px 7px;border:0;border-radius:3px 0 0 3px;background:var(--ui-active);font-size:12px}
-header #layout-wall-control > button:hover{background:var(--ui-hover)}
-header #layout-wall-control > #layout-wall-arrow{min-width:20px;padding:4px 3px;border-left:1px solid var(--ui-border);border-radius:0 3px 3px 0}
+#layout-wall-control{position:relative;display:flex;align-items:center;padding:3px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:color-mix(in srgb,var(--rail-bg) 70%,transparent)}
+#layout-wall-control::before{content:'整理版面';padding:0 6px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
+#layout-wall-control > button{padding:5px 7px;border:0;border-radius:var(--radius-md);background:var(--ui-active);font-size:12px}
+#layout-wall-control > button:hover{background:var(--ui-hover)}
+#layout-wall-control > #layout-wall-arrow{min-width:24px;padding:5px 3px;border-left:1px solid var(--ui-border);border-radius:var(--radius-md)}
 #layout-wall-menu{position:absolute;z-index:41;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:2px;min-width:126px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
 #layout-wall-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
 #layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
-/* wall tabs sit on the header's bottom border, like spreadsheet or browser tabs */
-#tabrow{flex-basis:100%;display:flex;align-items:flex-end;gap:4px;margin-bottom:-7px;min-width:0;padding-left:28px}  /* start the tabs past the 40px activity bar */
-#wall-tabs{display:flex;gap:2px;min-width:0;overflow-x:auto;touch-action:none}
-.wall-tab{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 14px;color:var(--ui-muted);background:var(--ui-surface);border-radius:6px 6px 0 0;border-bottom-color:transparent;border-top:3px solid var(--c-top,var(--ui-border))}
-.wall-tab[aria-selected=true]{color:var(--ui-text);background:var(--ui-bg);border-bottom-color:var(--ui-bg)}
+/* Wall tabs are rounded pills in the hybrid shell. */
+#tabrow{display:flex;align-items:center;gap:8px;min-width:0;min-height:38px}
+#wall-tabs{display:flex;gap:6px;min-width:0;overflow-x:auto;touch-action:none}
+.wall-tab{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 14px;color:var(--ui-muted);background:var(--ui-surface);border-radius:var(--pill-radius);border-top:2px solid var(--c-top,var(--ui-border));box-shadow:0 2px 5px var(--shell-shadow)}
+.wall-tab[aria-selected=true]{color:var(--ui-text);background:var(--ui-active);border-color:var(--c-top,var(--ui-accent));box-shadow:0 4px 10px var(--shell-shadow)}
 .wall-tab.dragging{opacity:.6;cursor:grabbing}
 .wall-tab input{width:140px;font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-accent);border-radius:3px;padding:0 4px}
-#add-wall{margin-bottom:3px;padding:2px 9px}
+#add-wall{padding:3px 10px;border-radius:var(--pill-radius)}
 #storage-warning{align-self:center;margin-left:auto;color:var(--ui-warning)}
 #save-state{align-self:center;color:var(--ui-muted);font-size:12px}
 #wall-notice{align-self:center;color:var(--ui-warning);font-size:12px;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#wall-notice:empty{display:none}
 #storage-actions{display:flex;gap:4px;align-items:center}
 #tabmenu{position:fixed;z-index:40;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
 #tab-colors{display:flex;gap:6px}
@@ -112,27 +120,58 @@ header #layout-wall-control > #layout-wall-arrow{min-width:20px;padding:4px 3px;
 #zoom button{border:0;border-radius:3px;padding:4px 6px}
 #zoom button:hover{border-color:transparent;background:var(--ui-hover)}
 #zoom-pct{min-width:58px}
-#toggle-sidebar{position:absolute;top:10px;right:8px;z-index:30;width:28px;height:28px;padding:0;border:0;color:var(--ui-muted);font-size:20px;line-height:1}
+#toggle-sidebar{position:absolute;top:12px;right:10px;z-index:30;width:30px;height:30px;padding:0;border:0;color:var(--ui-muted);font-size:20px;line-height:1}
 #toggle-sidebar:hover,#toggle-sidebar.on{border:0;color:var(--ui-text);background:var(--ui-hover)}
 #main{position:relative;flex:1;min-height:0;display:flex}
-#activitybar{flex:none;width:40px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;background:var(--ui-bar);border-right:1px solid var(--ui-border)}
-#activitybar button{width:32px;height:32px;padding:5px;color:var(--ui-muted);background:transparent;border-color:transparent;border-radius:4px}
-#activitybar button:hover,#activitybar button:focus-visible{color:var(--ui-text);background:var(--ui-hover)}
-#activitybar button.on{color:var(--ui-accent);background:var(--ui-hover);box-shadow:inset 3px 0 0 var(--ui-accent)}  /* active differs from hover, like VS Code's left marker */
-#activitybar svg{display:block;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-#activity-panel{flex:none;width:var(--activity-w,300px);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:44px 14px 12px;background:var(--ui-panel);border-right:1px solid var(--ui-border)}
-#activity-panel h2{margin:0 0 6px;font-size:12px;font-weight:600;color:var(--ui-muted)}
-#activity-panel h3{margin:10px 0 4px;font-size:13px;color:var(--ui-muted)}
-#activity-panel .row{display:flex;flex-wrap:wrap;gap:6px}
-#activity-resize{flex:none;width:5px;cursor:ew-resize;touch-action:none;background:var(--ui-panel);border-right:1px solid var(--ui-border)}
-#activity-resize:hover,#activity-resize:focus-visible{background:var(--ui-accent)}
+#rail-toggle{position:absolute;top:10px;left:10px;z-index:31;width:34px;height:34px;padding:0;border:1px solid var(--ui-border);border-radius:var(--radius-lg);color:var(--ui-text);background:var(--ui-raised);box-shadow:0 4px 10px var(--shell-shadow)}
+#rail-toggle:hover{background:var(--ui-hover)}
+#rail{flex:none;width:var(--rail-w,var(--rail-icon-w));display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:52px 10px 10px;background:var(--rail-bg);border-right:1px solid var(--ui-border);transition:width .18s ease,box-shadow .18s ease}
+#rail .rail-scroll{display:flex;flex-direction:column;gap:10px;min-width:0;overflow:auto;padding-bottom:10px}
+#rail .rail-stack{display:flex;flex-direction:column;gap:7px;min-width:0}
+#rail .rail-control{width:100%;display:flex;align-items:center;gap:8px;min-height:36px;padding:7px 9px;color:var(--ui-text);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
+#rail .rail-control:hover,#rail .rail-control:focus-visible{background:var(--ui-hover);border-color:var(--ui-border)}
+#rail .rail-control.on{background:var(--ui-active);border-color:var(--ui-accent)}
+#rail .rail-control svg{flex:none;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#rail .rail-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rail .rail-divider{height:1px;margin:3px 0;background:var(--ui-border)}
+#rail .rail-bottom{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--ui-border)}
+#rail .rail-activity{width:100%;min-width:0;min-height:36px;display:flex;align-items:center;gap:6px;padding:6px;color:var(--ui-muted);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
+#rail .rail-activity:hover,#rail .rail-activity:focus-visible{color:var(--ui-text);background:var(--ui-hover);border-color:var(--ui-border)}
+#rail .rail-activity.on{color:var(--ui-accent);background:var(--ui-active);box-shadow:inset 3px 0 0 var(--ui-accent)}
+#rail .rail-activity svg{display:block;flex:none;width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.rail-icon #rail{padding-left:10px;padding-right:10px}
+body.rail-icon #rail .rail-control{justify-content:center;padding-left:6px;padding-right:6px}
+body.rail-icon #rail .rail-label,body.rail-icon #rail #types::before,body.rail-icon #rail #layout-wall-control::before{display:none}
+body.rail-icon #rail .rail-bottom{grid-template-columns:1fr}
+body.rail-icon #rail .rail-activity{justify-content:center}
+body.rail-icon #rail #types{flex-direction:column}
+body.rail-icon #rail #types button{width:100%;font-size:0;justify-content:center}
+body.rail-icon #rail #layout-wall-control{justify-content:center}
+body.rail-icon #rail #layout-wall{font-size:0}
+body.rail-icon #rail #layout-wall::after{content:'✣';font-size:16px}
+body.rail-icon #rail #layout-wall-arrow{font-size:12px;min-width:18px;width:18px;padding:5px 1px;border-left:1px solid var(--ui-border)}
+body.rail-icon #rail #zoom{flex-wrap:wrap}
+body.rail-icon #rail #zoom button:not(#zoom-pct){font-size:0;flex:1 1 40%}
+body.rail-icon #rail #zoom button:not(#zoom-pct)::after{font-size:14px}
+body.rail-icon #rail #zoom-out::after{content:'−'}
+body.rail-icon #rail #zoom-in::after{content:'＋'}
+body.rail-icon #rail #zoom-fit::after{content:'⊙'}
+body.rail-full #rail #types button{font-size:12px}
+body.rail-full #rail #types{flex-direction:column;align-items:stretch}
+body.rail-full #rail #types button{width:100%;justify-content:flex-start}
+body.rail-resizing #rail{transition:none}
+body.rail-hidden #rail,body.rail-hidden #rail-resize{display:none}
+#rail-panel{flex:none;width:var(--rail-panel-w);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:52px 14px 12px;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
+#rail-panel h2{margin:0 0 6px;font-size:var(--font-title);font-weight:650;color:var(--ui-text)}
+#rail-panel h3{margin:10px 0 4px;font-size:13px;color:var(--ui-text)}
+#rail-panel .row{display:flex;flex-wrap:wrap;gap:6px}
+#rail-resize{flex:none;width:6px;cursor:ew-resize;touch-action:none;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
+#rail-resize:hover,#rail-resize:focus-visible{background:var(--ui-accent)}
+#rail-panel[hidden],#rail-resize[hidden]{display:none}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
-#sidebar{flex:none;width:var(--side-w,300px);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:44px 14px 12px;background:var(--ui-panel);border-left:1px solid var(--ui-border)}
-#sidebar h2{margin:0 0 6px;font-size:12px;font-weight:600;color:var(--ui-muted)}
-#sidebar .row{display:flex;flex-wrap:wrap;gap:6px}
+#sidebar{flex:none;width:var(--side-w,300px);min-width:0;overflow:hidden;display:block;padding:12px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
 #sidebar-resize{flex:none;width:5px;cursor:ew-resize;touch-action:none;background:var(--ui-panel);border-right:1px solid var(--ui-border)}
 #sidebar-resize:hover,#sidebar-resize:focus-visible{background:var(--ui-accent)}
-body.activity-closed #activity-panel,body.activity-closed #activity-resize{display:none}
 body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 #viewport.panning{cursor:grabbing}
 /* #bg, .band and #strings are resized to the visible area in applyView, so the board has no edge */
@@ -336,13 +375,6 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #chat-progress-head{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ui-text);font-size:12px}
 #chat-progress-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-stop{padding:3px 8px}
-#sidebar > .side-panel{position:relative;flex:none;min-height:40px;overflow:auto;resize:vertical}  /* native grip: each row's height is user-adjustable */
-#sidebar > .side-panel.dragging{opacity:.65}
-#sidebar > .side-panel.collapsed{height:auto!important;min-height:0;resize:none;overflow:hidden}
-#sidebar > .side-panel.collapsed > :not(h2,.side-panel-drag){display:none!important}
-#sidebar .side-panel-drag{position:absolute;top:4px;left:4px;z-index:1;width:28px;height:24px;padding:0;border:1px solid transparent;background:transparent;color:var(--ui-muted);font-size:14px;line-height:1;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none}
-#sidebar .side-panel-drag:hover,#sidebar .side-panel-drag:focus-visible{border-color:var(--ui-border);background:var(--ui-hover);color:var(--ui-text)}
-#sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
 #chat-section{height:260px}
 #mascot{position:fixed;z-index:18;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
 #mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:auto}
@@ -443,17 +475,17 @@ button.danger:hover,button.danger:focus-visible{border-color:var(--ui-danger-str
 input,select,textarea{border-radius:var(--radius-sm)}
 input:not([type=checkbox]):not([type=radio]),select,textarea{color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border)}
 input:disabled,select:disabled,textarea:disabled{cursor:not-allowed}
-#activity-panel,#sidebar{gap:var(--space-5);padding:var(--space-5) var(--space-4) var(--space-4)}
-#activity-panel section,#sidebar section{display:flex;flex-direction:column;gap:var(--space-2)}
-#activity-panel h2,#sidebar h2{font-size:var(--font-title);color:var(--ui-text)}
-#activity-panel h3{margin:var(--space-3) 0 var(--space-1);font-size:var(--font-sm);color:var(--ui-text)}
+#rail-panel{gap:var(--space-5);padding:var(--space-5) var(--space-4) var(--space-4)}
+#rail-panel section{display:flex;flex-direction:column;gap:var(--space-2)}
+#rail-panel h2{font-size:var(--font-title);color:var(--ui-text)}
+#rail-panel h3{margin:var(--space-3) 0 var(--space-1);font-size:var(--font-sm);color:var(--ui-text)}
 .section-help{margin:0;color:var(--ui-muted);font-size:var(--font-xs);line-height:1.55}
-#activity-panel .row,#sidebar .row{gap:var(--space-2)}
-#activity-panel .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-#activity-panel .row > button,#activity-panel .row > span > button{min-width:0}
-#activity-panel .field{gap:var(--space-1)}
-#activity-panel input,#activity-panel select,#activity-panel textarea,#sidebar input,#sidebar select,#sidebar textarea{background:var(--ui-input);padding:7px 9px}
-#activity-panel .hint{padding-left:1.2em}
+#rail-panel .row{gap:var(--space-2)}
+#rail-panel .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+#rail-panel .row > button,#rail-panel .row > span > button{min-width:0}
+#rail-panel .field{gap:var(--space-1)}
+#rail-panel input,#rail-panel select,#rail-panel textarea,#sidebar input,#sidebar select,#sidebar textarea{background:var(--ui-input);padding:7px 9px}
+#rail-panel .hint{padding-left:1.2em}
 #importer,#backups{border-radius:var(--radius-lg);padding:var(--space-5);background:var(--ui-surface);border-color:var(--ui-border);box-shadow:0 18px 48px var(--ui-shadow-soft)}
 #importer h2,#backups h2{font-size:var(--font-title);letter-spacing:.02em}
 .im-row,.backup-row{border-radius:var(--radius-sm)}
@@ -487,7 +519,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #edge-label,#band-title,#tag-name{
   font-size:var(--control-font);padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm)
 }
-#activity-panel input:not([type=checkbox]):not([type=radio]),#activity-panel select,#activity-panel textarea,
+#rail-panel input:not([type=checkbox]):not([type=radio]),#rail-panel select,#rail-panel textarea,
 #sidebar input:not([type=checkbox]):not([type=radio]),#sidebar select,#sidebar textarea,
 #panel input:not([type=checkbox]):not([type=radio]),#panel select,#panel textarea,
 #wall-search,#chat-client,#edge-label,#band-title,#tag-name{
@@ -500,37 +532,27 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   padding:var(--control-pad-y) var(--control-pad-x);border-radius:var(--radius-sm);font-size:var(--control-font)
 }
 
-/* P17: the AI area is a stack of numbered, independently resizable cards. */
-#sidebar{gap:0;padding:14px 14px 22px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
-#sidebar .sidebar-header{display:block;flex:none;margin:0 0 12px;padding:4px 36px 12px 2px;background:transparent;border:0;border-bottom:2px solid var(--ui-border)}
-#sidebar .sidebar-header h1{margin:0;font-size:19px;letter-spacing:.02em;font-weight:700}
-#sidebar .eyebrow{margin:0 0 2px;color:var(--ui-accent);font-size:11px;font-weight:800;letter-spacing:.12em}
-#sidebar > .side-panel{position:relative;flex:none;min-height:40px;margin:0 0 10px;padding:0 12px 12px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:var(--ui-surface);box-shadow:0 5px 12px var(--ui-shadow-soft);resize:vertical;overflow:auto}
-#sidebar > .side-panel::after{content:'⋰';position:absolute;right:7px;bottom:3px;color:var(--ui-muted);font-size:11px;line-height:1;pointer-events:none}
-#sidebar > .side-panel.dragging{opacity:.65}
-#sidebar > .side-panel.collapsed{height:auto!important;min-height:0;resize:none;overflow:hidden;padding-bottom:0}
-#sidebar > .side-panel.collapsed>:not(.side-panel-drag,.panel-title){display:none!important}
-#sidebar .side-panel-drag{position:absolute;top:8px;left:7px;z-index:1;width:24px;height:24px;padding:0;border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;color:var(--ui-muted);font-size:13px;line-height:1;letter-spacing:-2px;cursor:grab;touch-action:none;user-select:none}
-#sidebar .side-panel-drag:hover,#sidebar .side-panel-drag:focus-visible{border-color:var(--ui-border);background:var(--ui-hover);color:var(--ui-text)}
-#sidebar > .side-panel.dragging .side-panel-drag{cursor:grabbing}
-#sidebar .panel-title{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;margin:0 -2px 10px;padding:8px 4px 8px 35px;border-bottom:1px solid var(--ui-border);cursor:pointer;user-select:none}
-#sidebar .panel-title:hover{background:color-mix(in srgb,var(--ui-hover) 38%,transparent)}
-#sidebar .title-label{display:flex;align-items:center;gap:7px;flex:none;white-space:nowrap;font-size:14px;font-weight:750}  /* the title keeps its width; the status text gives way */
-#sidebar .title-label::before{content:'01';display:inline-grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:var(--ui-active);color:var(--ui-text);font-size:10px;font-weight:800}
-#sidebar [data-step="2"] .title-label::before{content:'02'}
-#sidebar [data-step="3"] .title-label::before{content:'03'}
-#sidebar [data-step="4"] .title-label::before{content:'04'}
-#sidebar [data-step="5"] .title-label::before{content:'05'}
-#sidebar [data-step="6"] .title-label::before{content:'06'}
-#sidebar .title-label::after{content:'⌄';display:inline-block;margin-left:2px;color:var(--ui-text);font-size:13px}
-#sidebar .side-panel.collapsed .title-label::after{content:'›'}
-#sidebar .panel-meta{flex:0 1 auto;min-width:0;margin-left:auto;overflow:hidden;text-overflow:ellipsis;color:var(--ui-muted);font-size:11px;font-weight:600;white-space:nowrap}
-#sidebar > #chat-client-panel{height:118px}
-#sidebar > #ai-section{height:360px}
-#sidebar > #ai-audit-section{height:154px}
-#sidebar > #chat-progress{height:142px}
-#sidebar > #chat-section{height:520px}
-#sidebar > #chat-input-panel{height:184px}
+/* P19-R1: the AI area is one rounded case folder with four reachable tabs. */
+#case-folder{position:relative;height:100%;display:flex;flex-direction:column;min-height:0;overflow:hidden;background:var(--folder-bg);border:1px solid var(--ui-border);border-radius:18px 18px 12px 12px;box-shadow:0 8px 20px var(--shell-shadow)}
+#case-folder::before{content:'';position:absolute;z-index:0;top:-1px;left:18px;width:116px;height:14px;background:var(--folder-tab-bg);border:1px solid var(--ui-border);border-bottom:0;border-radius:12px 12px 0 0}
+#case-folder-header{position:relative;z-index:1;flex:none;padding:14px 14px 8px;border-bottom:1px solid var(--ui-border)}
+#case-folder-header .eyebrow{margin:0 0 2px;color:var(--ui-accent);font-size:11px;font-weight:800;letter-spacing:.12em}
+#case-folder-header h1{margin:0;font-size:19px;letter-spacing:.02em;font-weight:700}
+#case-folder-tabs{display:flex;gap:4px;flex:none;padding:8px 8px 0;background:var(--folder-tab-bg);border-bottom:1px solid var(--ui-border)}
+.case-folder-tab{flex:1;min-width:0;padding:7px 5px;color:var(--ui-muted);background:transparent;border:1px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;font-size:12px;white-space:nowrap}
+.case-folder-tab:hover,.case-folder-tab:focus-visible{background:var(--ui-hover);border-color:var(--ui-border)}
+.case-folder-tab[aria-selected=true]{color:var(--ui-text);background:var(--folder-bg);border-color:var(--ui-border);font-weight:700}
+.case-pane{display:flex;flex-direction:column;gap:var(--space-3);min-height:0;overflow:auto;padding:var(--space-3)}
+.case-pane[hidden]{display:none}
+.case-pane > section{display:flex;flex-direction:column;gap:var(--space-2);min-height:0}
+.case-pane > section > h2{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;margin:0;padding:0 0 8px;border-bottom:1px solid var(--ui-border);font-size:var(--font-title);color:var(--ui-text)}
+#case-folder .panel-meta{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;color:var(--ui-muted);font-size:11px;font-weight:600;white-space:nowrap}
+#case-pane-chat{overflow:hidden}
+#case-pane-chat #chat-progress{flex:none;max-height:176px;overflow:auto;padding:8px;border:1px solid var(--ui-border);border-radius:var(--radius-md)}
+#case-pane-chat #chat-section{flex:1;min-height:140px;overflow:hidden}
+#case-pane-chat #chat-input-panel{flex:none;min-height:150px}
+#case-pane-model,#case-pane-proposals,#case-pane-audit{overflow:auto}
+#case-pane-model #chat-client-panel,#case-pane-proposals #ai-section,#case-pane-audit #ai-audit-section{flex:1}
 #sidebar .client-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
 #sidebar .client-field{display:flex;flex-direction:column;gap:3px;min-width:0;color:var(--ui-muted);font-size:12px}
 #sidebar .client-field select{width:100%}
@@ -585,7 +607,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar .chat-message.assistant .md code{padding:1px 3px;border-radius:3px;background:color-mix(in srgb,var(--ui-text) 13%,transparent)}
 #sidebar .chat-message.assistant .md pre{margin:7px 0 0;padding:8px;border:1px solid color-mix(in srgb,var(--ui-accent) 45%,var(--ui-border));border-radius:var(--radius-sm);background:var(--ui-input);white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,"Noto Sans Mono",monospace}
 #sidebar .chat-message.assistant .md pre code{padding:0;background:none}
-#sidebar > .input-panel:not(.collapsed){display:flex;flex-direction:column}  /* the form takes what the title leaves, so the status line never overlaps 送出 */
+#sidebar .input-panel{display:flex;flex-direction:column}  /* the form takes what the content leaves, so the status line never overlaps 送出 */
 #sidebar .input-panel #chat-form{display:flex;flex-direction:column;gap:8px;flex:1 1 auto}
 #sidebar #chat-input{width:100%;min-height:44px;flex:1;resize:none;line-height:1.45}
 #sidebar .input-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -647,49 +669,28 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </style>
 </head>
 <body inert>
-<header>
-  <h1>CaseGraph 案件圖譜</h1>
-  <div id="types" role="radiogroup" aria-label="新連線的關係類型"></div>
-  <button id="add-card">＋ 線索卡</button>
-  <button id="add-note">＋ 疑問便利貼</button>
-  <button id="add-image" title="上傳圖片並建立拍立得照片">＋ 圖片</button>
-  <button id="add-band">＋ 分層</button>
-  <div id="layout-wall-control">
-    <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-haspopup="menu" aria-controls="layout-wall-menu">推開重疊</button>
-    <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu">▾</button>
-    <div id="layout-wall-menu" role="menu" hidden>
-      <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
-      <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
-      <button type="button" role="menuitem" data-mode="full">全部重排</button>
-    </div>
-  </div>
-  <span id="zoom">
-    <button id="zoom-out" title="縮小">－</button>
-    <button id="zoom-pct" title="回到 100%">100%</button>
-    <button id="zoom-in" title="放大">＋</button>
-    <button id="zoom-fit" title="整面牆放進畫面">全覽</button>
-  </span>
-  <div class="search-area">
-    <input id="wall-search" type="search" autocomplete="off" placeholder="搜尋所有牆" aria-label="搜尋所有牆">
-    <div id="search-results" role="listbox" hidden></div>
-  </div>
-  <button id="undo" title="復原（Ctrl+Z）" disabled>↶</button>
-  <button id="redo" title="重做（Ctrl+Y）" disabled>↷</button>
-  <input id="import-file" type="file" accept="application/json,.json,.canvas" hidden>
-  <input id="image-file" type="file" accept="image/*" multiple hidden>
-  <input id="project-file" type="file" accept="application/json,.json" hidden>
+<header id="topbar">
   <div id="tabrow">
     <div id="wall-tabs" role="tablist" aria-label="牆（點兩下改名、右鍵換顏色或刪除、拖曳排序）"></div>
     <button id="add-wall" title="新增一面牆" aria-label="新增一面牆">＋</button>
-    <div id="storage-warning" role="status" hidden></div>
+    <div class="search-area">
+      <input id="wall-search" type="search" autocomplete="off" placeholder="搜尋所有牆" aria-label="搜尋所有牆">
+      <div id="search-results" role="listbox" hidden></div>
+    </div>
+    <button id="undo" title="復原（Ctrl+Z）" aria-label="復原" disabled>↶</button>
+    <button id="redo" title="重做（Ctrl+Y）" aria-label="重做" disabled>↷</button>
     <span id="wall-notice" role="status" aria-live="polite"></span>
     <span id="save-state" role="status">未保存的變更</span>
+    <div id="storage-warning" role="status" hidden></div>
     <div id="storage-actions" hidden>
       <button id="storage-retry">重試</button>
       <button id="storage-latest">載入最新版</button>
       <button id="storage-keep">保留我的修改</button>
     </div>
   </div>
+  <input id="import-file" type="file" accept="application/json,.json,.canvas" hidden>
+  <input id="image-file" type="file" accept="image/*" multiple hidden>
+  <input id="project-file" type="file" accept="application/json,.json" hidden>
   <div id="tabmenu" role="menu" hidden>
     <div id="tab-colors" role="radiogroup" aria-label="分頁顏色"></div>
     <button id="rename-wall" role="menuitem">改名</button>
@@ -698,31 +699,58 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </header>
 
 <div id="main">
-<nav id="activitybar" role="toolbar" aria-label="功能面板">
-  <button id="activity-files" type="button" data-panel="files" title="檔案" aria-label="檔案" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z" fill="currentColor" fill-opacity=".18"/><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7zM3.5 9h17"/></svg>
+<button id="rail-toggle" type="button" aria-controls="rail" aria-expanded="true" aria-label="收起側邊欄" title="收起側邊欄">‹</button>
+<nav id="rail" data-state="icon" aria-label="案件工具側邊欄">
+  <div class="rail-scroll">
+    <div id="types" role="radiogroup" aria-label="新連線的關係類型"></div>
+    <div class="rail-stack">
+      <button id="add-card" class="rail-control" type="button" title="新增線索卡" aria-label="新增線索卡"><span class="rail-icon" aria-hidden="true">＋</span><span class="rail-label">線索卡</span></button>
+      <button id="add-note" class="rail-control" type="button" title="新增疑問便利貼" aria-label="新增疑問便利貼"><span class="rail-icon" aria-hidden="true">▱</span><span class="rail-label">疑問便利貼</span></button>
+      <button id="add-image" class="rail-control" type="button" title="上傳圖片並建立拍立得照片" aria-label="新增圖片"><span class="rail-icon" aria-hidden="true">▧</span><span class="rail-label">圖片</span></button>
+      <button id="add-band" class="rail-control" type="button" title="新增分層" aria-label="新增分層"><span class="rail-icon" aria-hidden="true">≋</span><span class="rail-label">分層</span></button>
+    </div>
+    <div id="layout-wall-control">
+      <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu">推開重疊</button>
+      <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu">▾</button>
+      <div id="layout-wall-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
+        <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
+        <button type="button" role="menuitem" data-mode="full">全部重排</button>
+      </div>
+    </div>
+    <span id="zoom" aria-label="畫布縮放">
+      <button id="zoom-out" title="縮小" aria-label="縮小">－</button>
+      <button id="zoom-pct" title="回到 100%" aria-label="目前縮放比例">100%</button>
+      <button id="zoom-in" title="放大" aria-label="放大">＋</button>
+      <button id="zoom-fit" title="整面牆放進畫面" aria-label="全覽">全覽</button>
+    </span>
+  </div>
+  <div class="rail-bottom" role="toolbar" aria-label="功能面板">
+  <button id="activity-files" class="rail-activity" type="button" data-panel="files" title="檔案" aria-label="檔案" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z" fill="currentColor" fill-opacity=".18"/><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7zM3.5 9h17"/></svg><span class="rail-label">檔案</span>
   </button>
-  <button id="activity-history" type="button" data-panel="history" title="版本" aria-label="版本" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 11h12M4 15.5h7" stroke-opacity=".8"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2" fill="currentColor" fill-opacity=".18"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2"/></svg>
+  <button id="activity-history" class="rail-activity" type="button" data-panel="history" title="版本" aria-label="版本" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 11h12M4 15.5h7" stroke-opacity=".8"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2" fill="currentColor" fill-opacity=".18"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2"/></svg><span class="rail-label">版本</span>
   </button>
-  <button id="activity-templates" type="button" data-panel="templates" title="範本" aria-label="範本" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" fill="currentColor" fill-opacity=".18"/><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+  <button id="activity-templates" class="rail-activity" type="button" data-panel="templates" title="範本" aria-label="範本" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" fill="currentColor" fill-opacity=".18"/><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><span class="rail-label">範本</span>
   </button>
-  <button id="activity-sources" type="button" data-panel="sources" title="資料夾" aria-label="資料夾" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.5" fill="currentColor" fill-opacity=".18"/><circle cx="8" cy="12" r="4.5"/><path d="M12.5 12H21M18 12v3M21 12v2"/></svg>
+  <button id="activity-sources" class="rail-activity" type="button" data-panel="sources" title="資料夾" aria-label="資料夾" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.5" fill="currentColor" fill-opacity=".18"/><circle cx="8" cy="12" r="4.5"/><path d="M12.5 12H21M18 12v3M21 12v2"/></svg><span class="rail-label">資料夾</span>
   </button>
-  <button id="activity-tags" type="button" data-panel="tags" title="標籤" aria-label="標籤" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 5 8-1 8 8-8 8-8-8z" fill="currentColor" fill-opacity=".18"/><path d="m4 5 8-1 8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1.35" fill="currentColor"/></svg>
+  <button id="activity-tags" class="rail-activity" type="button" data-panel="tags" title="標籤" aria-label="標籤" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 5 8-1 8 8-8 8-8-8z" fill="currentColor" fill-opacity=".18"/><path d="m4 5 8-1 8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1.35" fill="currentColor"/></svg><span class="rail-label">標籤</span>
   </button>
-  <button id="activity-theme" type="button" data-panel="theme" title="外觀" aria-label="外觀" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="8.5"/><path d="M8 10h.1M12 7h.1M16 10h.1M9 15c1.8 1.5 4.2 1.5 6 0"/></svg>
+  <button id="activity-theme" class="rail-activity" type="button" data-panel="theme" title="外觀" aria-label="外觀" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="8.5"/><path d="M8 10h.1M12 7h.1M16 10h.1M9 15c1.8 1.5 4.2 1.5 6 0"/></svg><span class="rail-label">外觀</span>
   </button>
-  <button id="activity-help" type="button" data-panel="help" title="說明" aria-label="說明" aria-pressed="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.1 1.7c-1.2 1.1-1.8 1.4-1.8 2.8M12 17h.1"/></svg>
+  <button id="activity-help" class="rail-activity" type="button" data-panel="help" title="說明" aria-label="說明" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.1 1.7c-1.2 1.1-1.8 1.4-1.8 2.8M12 17h.1"/></svg><span class="rail-label">說明</span>
   </button>
+  </div>
 </nav>
 
-<aside id="activity-panel" aria-label="功能面板" hidden>
+<aside id="rail-panel" aria-label="功能面板" hidden>
   <section id="files-section" data-activity-panel="files">
     <h2>檔案</h2>
     <p class="section-help">匯入、匯出與整個專案的保存工具。</p>
@@ -821,7 +849,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   </section>
 </aside>
 
-<div id="activity-resize" role="separator" aria-orientation="vertical" aria-controls="activity-panel" aria-label="調整左側面板寬度（可用左右鍵）" tabindex="0"></div>
+<div id="rail-resize" role="separator" aria-orientation="vertical" aria-controls="rail" aria-label="調整側邊欄寬度（左右鍵切換圖示欄與完整欄）" aria-valuemin="78" aria-valuemax="232" aria-valuenow="78" tabindex="0"></div>
 
 <div id="viewport" tabindex="0" aria-label="案件圖譜畫布">
   <div id="wall">
@@ -866,55 +894,71 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </div>
 
 <div id="sidebar-resize" role="separator" aria-orientation="vertical" aria-controls="sidebar" aria-label="調整側欄寬度（可用左右鍵）" tabindex="0"></div>
- <aside id="sidebar" aria-label="AI 偵探副駕">
-   <header class="sidebar-header">
-     <p class="eyebrow">CASEGRAPH / AI CONTROL</p>
-     <h1>案件圖譜助理</h1>
-   </header>
-   <section id="chat-client-panel" class="side-panel" data-step="1" data-name="模型與對話">
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">模型與對話</span><span id="chat-client-meta" class="panel-meta">連線中</span></h2>
-     <div class="client-card">
-       <label class="client-field">客戶端
-         <select id="chat-client" aria-label="AI 客戶端">
-           <option value="claude">Claude Code</option>
-           <option value="codex">codex</option>
-         </select>
-       </label>
-       <button id="chat-new" type="button">開新對話</button>
-       <p id="chat-client-state" class="status-line" role="status"></p>
+ <aside id="sidebar" aria-label="AI 案件夾">
+   <div id="case-folder">
+     <header id="case-folder-header">
+       <p class="eyebrow">CASEGRAPH / AI CONTROL</p>
+       <h1>AI 案件夾</h1>
+     </header>
+     <div id="case-folder-tabs" role="tablist" aria-label="AI 案件夾分頁">
+       <button id="ai-tab-chat" class="case-folder-tab" type="button" role="tab" data-ai-tab="chat" aria-controls="case-pane-chat" aria-selected="true">對話</button>
+       <button id="ai-tab-proposals" class="case-folder-tab" type="button" role="tab" data-ai-tab="proposals" aria-controls="case-pane-proposals" aria-selected="false">提案</button>
+       <button id="ai-tab-audit" class="case-folder-tab" type="button" role="tab" data-ai-tab="audit" aria-controls="case-pane-audit" aria-selected="false">紀錄</button>
+       <button id="ai-tab-model" class="case-folder-tab" type="button" role="tab" data-ai-tab="model" aria-controls="case-pane-model" aria-selected="false">模型</button>
      </div>
-   </section>
-   <section id="ai-section" class="side-panel" data-step="2" data-name="AI 提案">
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 提案</span><span id="ai-pending-count" class="panel-meta">0 件待審</span></h2>
-     <p class="helper">先看變更的影響範圍，再決定是否套用到牆面。</p>
-     <div class="action-line"><label class="check"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label><button id="ai-review-open" type="button" disabled>開啟審核</button></div>
-     <div id="ai-proposal-list" class="proposal-stack"></div>
-   </section>
-   <section id="ai-audit-section" class="side-panel" data-step="3" data-name="AI 紀錄">
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 紀錄</span><span id="ai-audit-meta" class="panel-meta">最近 0 筆</span></h2>
-     <p class="helper">已套用的變更會留在這裡，需要時可回復。</p>
-     <div id="ai-audit-list" class="audit-stack"></div>
-   </section>
-   <section id="chat-progress" class="side-panel" data-step="4" data-name="執行中進度" role="status" hidden>
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">執行中進度</span><span id="progress-state" class="panel-meta">分析中</span></h2>
-     <div class="progress-card">
-       <div class="progress-summary"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.webp" alt="" aria-hidden="true" decoding="async"><div><strong id="chat-elapsed">執行中 0 秒</strong><small id="chat-progress-summary">正在處理訊息</small></div><button id="chat-stop" type="button" class="danger">停止</button></div>
-       <div id="chat-progress-track" class="progress-track" hidden aria-label="對話進度"><span id="chat-progress-bar"></span></div>
-       <ol id="chat-progress-list" class="progress-list"></ol>
+     <div id="case-pane-chat" class="case-pane" data-ai-pane="chat" role="tabpanel" aria-labelledby="ai-tab-chat">
+       <section id="chat-progress" role="status" hidden>
+         <h2>執行中進度<span id="progress-state" class="panel-meta">分析中</span></h2>
+         <div class="progress-card">
+           <div class="progress-summary"><img id="chat-progress-avatar" class="chat-avatar" src="/assets/avatars/claude-thinking.webp" alt="" aria-hidden="true" decoding="async"><div><strong id="chat-elapsed">執行中 0 秒</strong><small id="chat-progress-summary">正在處理訊息</small></div><button id="chat-stop" type="button" class="danger">停止</button></div>
+           <div id="chat-progress-track" class="progress-track" hidden aria-label="對話進度"><span id="chat-progress-bar"></span></div>
+           <ol id="chat-progress-list" class="progress-list"></ol>
+         </div>
+       </section>
+       <section id="chat-section">
+         <h2>對話<span class="panel-meta">即時串流</span></h2>
+         <div id="chat-messages" class="chat-window" role="log" aria-live="polite"></div>
+       </section>
+       <section id="chat-input-panel" class="input-panel">
+         <h2>輸入訊息<span class="panel-meta">可貼上 Markdown</span></h2>
+         <form id="chat-form">
+           <textarea id="chat-input" maxlength="12000" placeholder="在這裡追問案件…" aria-label="AI 訊息"></textarea>
+           <div class="input-actions"><span class="input-hint">AI 修改會建立提案</span><button id="chat-send" class="on" type="submit">送出</button></div>
+         </form>
+         <div id="chat-status" role="status"></div>
+       </section>
      </div>
-   </section>
-   <section id="chat-section" class="side-panel" data-step="5" data-name="AI 對話">
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">AI 對話</span><span class="panel-meta">即時串流</span></h2>
-     <div id="chat-messages" class="chat-window" role="log" aria-live="polite"></div>
-   </section>
-   <section id="chat-input-panel" class="side-panel input-panel" data-step="6" data-name="輸入訊息">
-     <h2 class="panel-title" role="button" tabindex="0" aria-expanded="true"><span class="title-label">輸入訊息</span><span class="panel-meta">可貼上 Markdown</span></h2>
-     <form id="chat-form">
-       <textarea id="chat-input" maxlength="12000" placeholder="在這裡追問案件…" aria-label="AI 訊息"></textarea>
-       <div class="input-actions"><span class="input-hint">AI 修改會建立提案</span><button id="chat-send" class="on" type="submit">送出</button></div>
-     </form>
-     <div id="chat-status" role="status"></div>
-   </section>
+     <div id="case-pane-proposals" class="case-pane" data-ai-pane="proposals" role="tabpanel" aria-labelledby="ai-tab-proposals" hidden>
+       <section id="ai-section">
+         <h2>提案<span id="ai-pending-count" class="panel-meta">0 件待審</span></h2>
+         <p class="helper">先看變更的影響範圍，再決定是否套用到牆面。</p>
+         <div class="action-line"><label class="check"><input id="ai-proposals-toggle" type="checkbox">允許 AI 提出修改</label><button id="ai-review-open" type="button" disabled>開啟審核</button></div>
+         <div id="ai-proposal-list" class="proposal-stack"></div>
+       </section>
+     </div>
+     <div id="case-pane-audit" class="case-pane" data-ai-pane="audit" role="tabpanel" aria-labelledby="ai-tab-audit" hidden>
+       <section id="ai-audit-section">
+         <h2>紀錄<span id="ai-audit-meta" class="panel-meta">最近 0 筆</span></h2>
+         <p class="helper">已套用的變更會留在這裡，需要時可回復。</p>
+         <div id="ai-audit-list" class="audit-stack"></div>
+       </section>
+     </div>
+     <div id="case-pane-model" class="case-pane" data-ai-pane="model" role="tabpanel" aria-labelledby="ai-tab-model" hidden>
+       <section id="chat-client-panel">
+         <h2>模型<span id="chat-client-meta" class="panel-meta">連線中</span></h2>
+         <div class="client-card">
+           <label class="client-field">客戶端
+             <select id="chat-client" aria-label="AI 客戶端">
+               <option value="claude">Claude Code</option>
+               <option value="codex">codex</option>
+             </select>
+           </label>
+           <button id="chat-new" type="button">開新對話</button>
+           <p id="chat-client-state" class="status-line" role="status"></p>
+         </div>
+       </section>
+     </div>
+   </div>
  </aside>
 <div id="mascot" aria-label="AI 桌寵">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
@@ -1423,7 +1467,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', ACTIVITY_KEY = 'thesis-detective-wall-activity', ACTIVITY_W_KEY = 'thesis-detective-wall-activity-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', SIDE_PANELS_KEY = 'thesis-detective-wall-side-panel-heights', SIDE_PANEL_ORDER_KEY = 'thesis-detective-wall-side-panel-order', SIDE_PANEL_COLLAPSED_KEY = 'thesis-detective-wall-side-panel-collapsed', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', RAIL_KEY = 'thesis-detective-wall-rail', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
 const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
 let layoutMode = 'overlap';
 try {
@@ -2950,6 +2994,9 @@ function buildTypeButtons() {
   for (const [k, t] of Object.entries(TYPES)) {
     const b = document.createElement('button');
     b.dataset.type = k;
+    b.title = t.label;
+    b.setAttribute('aria-label', t.label);
+    b.setAttribute('role', 'radio');
     b.innerHTML = sample(k) + t.label;
     $('#types').append(b);
     pop.append(b.cloneNode(true));
@@ -4434,45 +4481,80 @@ $('#card-style').onchange = ev => { savedCardStyle = ev.target.value; setCardSty
 setTheme(savedTheme ?? 'paper');
 setCardStyle(savedCardStyle || defaultCardStyle(document.documentElement.dataset.theme), false);
 
-const activityPanel = $('#activity-panel'), activityPanels = [...activityPanel.querySelectorAll('[data-activity-panel]')];
-const activityButtons = [...document.querySelectorAll('#activitybar [data-panel]')];
+const activityPanel = $('#rail-panel'), activityPanels = [...activityPanel.querySelectorAll('[data-activity-panel]')];
+const activityButtons = [...document.querySelectorAll('#rail [data-panel]')];
 function showActivity(id) {
   const open = activityPanels.some(section => section.dataset.activityPanel === id) ? id : null;
   activityPanel.hidden = !open;
-  document.body.classList.toggle('activity-closed', !open);
   activityPanels.forEach(section => { section.hidden = section.dataset.activityPanel !== open; });
   activityButtons.forEach(button => {
     const active = button.dataset.panel === open;
     button.classList.toggle('on', active);
     button.setAttribute('aria-pressed', active);
   });
-  try {
-    if (open) localStorage.setItem(ACTIVITY_KEY, open);
-    else localStorage.removeItem(ACTIVITY_KEY);
-  } catch {}
 }
 activityButtons.forEach(button => {
   button.onclick = () => showActivity(button.dataset.panel === activityPanel.querySelector('[data-activity-panel]:not([hidden])')?.dataset.activityPanel ? null : button.dataset.panel);
 });
-const activityBar = $('#activitybar'), activityResizer = $('#activity-resize');
-function setActivityWidth(w) {
-  w = clamp(Math.round(w), 220, Math.min(560, innerWidth - 260));
-  document.body.style.setProperty('--activity-w', w + 'px');
-  activityResizer.setAttribute('aria-valuenow', w);
-  try { localStorage.setItem(ACTIVITY_W_KEY, w); } catch {}
+showActivity(null);
+const rail = $('#rail'), railToggle = $('#rail-toggle'), railResizer = $('#rail-resize');
+const railStates = {hidden: 0, icon: 78, full: 232};
+const railStateForWidth = width => width >= (railStates.icon + railStates.full) / 2 ? 'full' : 'icon';
+function setRailState(state, persist = true) {
+  state = Object.hasOwn(railStates, state) ? state : 'icon';
+  document.body.classList.remove('rail-hidden', 'rail-icon', 'rail-full');
+  document.body.classList.add('rail-' + state);
+  document.body.style.setProperty('--rail-w', railStates[state] + 'px');
+  rail.dataset.state = state;
+  railToggle.textContent = state === 'hidden' ? '›' : '‹';
+  railToggle.setAttribute('aria-expanded', String(state !== 'hidden'));
+  railToggle.setAttribute('aria-label', state === 'hidden' ? '展開側邊欄' : '收起側邊欄');
+  railToggle.title = state === 'hidden' ? '展開側邊欄' : '收起側邊欄';
+  railToggle.classList.toggle('on', state !== 'hidden');
+  railResizer.setAttribute('aria-valuenow', railStates[state]);
+  railResizer.setAttribute('aria-valuetext', state === 'full' ? '完整側邊欄' : state === 'icon' ? '圖示側邊欄' : '側邊欄隱藏');
+  if (persist) try { localStorage.setItem(RAIL_KEY, state); } catch {}
 }
-activityResizer.onpointerdown = ev => { ev.preventDefault(); activityResizer.setPointerCapture(ev.pointerId); };
-activityResizer.onpointermove = ev => {
-  if (activityResizer.hasPointerCapture(ev.pointerId)) setActivityWidth(ev.clientX - activityBar.getBoundingClientRect().right - activityResizer.offsetWidth / 2);
+let savedRail = null;
+try { savedRail = localStorage.getItem(RAIL_KEY); } catch {}
+setRailState(savedRail || 'icon', false);
+railToggle.onclick = () => setRailState(rail.dataset.state === 'hidden' ? 'icon' : 'hidden');
+let railDrag = null;
+railResizer.onpointerdown = ev => {
+  ev.preventDefault(); railResizer.setPointerCapture(ev.pointerId);
+  railDrag = {startX: ev.clientX, startWidth: rail.offsetWidth}; document.body.classList.add('rail-resizing');
 };
-activityResizer.onkeydown = ev => {
-  const step = {ArrowLeft: -16, ArrowRight: 16}[ev.key];
-  if (step) { ev.preventDefault(); setActivityWidth(activityPanel.offsetWidth + step); }
+railResizer.onpointermove = ev => {
+  if (!railDrag || !railResizer.hasPointerCapture(ev.pointerId)) return;
+  const width = clamp(Math.round(railDrag.startWidth + ev.clientX - railDrag.startX), railStates.icon, railStates.full);
+  document.body.style.setProperty('--rail-w', width + 'px');
+  rail.dataset.state = railStateForWidth(width);
+  railResizer.setAttribute('aria-valuenow', width);
 };
-let savedActivity = null, savedActivityWidth = null;
-try { savedActivity = localStorage.getItem(ACTIVITY_KEY); savedActivityWidth = localStorage.getItem(ACTIVITY_W_KEY); } catch {}
-showActivity(savedActivity);
-setActivityWidth(Number(savedActivityWidth) || 300);
+railResizer.onpointerup = railResizer.onpointercancel = () => {
+  if (!railDrag) return;
+  setRailState(railStateForWidth(rail.offsetWidth)); railDrag = null; document.body.classList.remove('rail-resizing');
+};
+railResizer.onkeydown = ev => {
+  const next = ev.key === 'ArrowLeft' ? 'icon' : ev.key === 'ArrowRight' ? 'full' : null;
+  if (next) { ev.preventDefault(); setRailState(next); }
+};
+
+const aiTabs = [...document.querySelectorAll('[data-ai-tab]')], aiPanes = [...document.querySelectorAll('[data-ai-pane]')];
+function showAiTab(name) {
+  const open = aiPanes.some(pane => pane.dataset.aiPane === name) ? name : 'chat';
+  aiTabs.forEach(tab => tab.setAttribute('aria-selected', String(tab.dataset.aiTab === open)));
+  aiPanes.forEach(pane => { pane.hidden = pane.dataset.aiPane !== open; });
+}
+aiTabs.forEach((tab, index) => {
+  tab.onclick = () => showAiTab(tab.dataset.aiTab);
+  tab.onkeydown = ev => {
+    const move = {ArrowLeft: -1, ArrowRight: 1}[ev.key];
+    if (move == null) return;
+    ev.preventDefault(); aiTabs[(index + move + aiTabs.length) % aiTabs.length].focus();
+  };
+});
+showAiTab('chat');
 
 function showSidebar(open) {
   document.body.classList.toggle('side-closed', !open);
@@ -4501,95 +4583,7 @@ let savedSidebar = null, savedWidth = null;
 try { savedSidebar = localStorage.getItem(SIDEBAR_KEY); savedWidth = localStorage.getItem(SIDEBAR_W_KEY); } catch {}
 showSidebar(savedSidebar !== '0');
 setSidebarWidth(Number(savedWidth) || 300);
-// Row heights come from each panel's native resize grip; remember the ones the user set.
 const sidebar = $('#sidebar');
-const sidePanels = [...sidebar.children].filter(panel => panel.matches('.side-panel'));
-const defaultSidePanelOrder = sidePanels.map(panel => panel.id);
-const normalizeSidePanelOrder = order => {
-  const seen = new Set();
-  return [...(Array.isArray(order) ? order : []), ...defaultSidePanelOrder].filter(id => defaultSidePanelOrder.includes(id) && !seen.has(id) && seen.add(id));
-};
-function saveSidePanelOrder() {
-  const order = [...sidebar.children].filter(panel => panel.matches('.side-panel')).map(panel => panel.id);
-  try { localStorage.setItem(SIDE_PANEL_ORDER_KEY, JSON.stringify(order)); } catch {}
-}
-function moveSidePanel(panel, direction) {
-  const panels = [...sidebar.children].filter(item => item.matches('.side-panel'));
-  const target = panels[panels.indexOf(panel) + direction];
-  if (!target) return false;
-  sidebar.insertBefore(panel, direction < 0 ? target : target.nextElementSibling);
-  saveSidePanelOrder();
-  return true;
-}
-let savedSidePanelOrder = null;
-try { savedSidePanelOrder = JSON.parse(localStorage.getItem(SIDE_PANEL_ORDER_KEY)); } catch {}
-const panelsById = new Map(sidePanels.map(panel => [panel.id, panel]));
-for (const id of normalizeSidePanelOrder(savedSidePanelOrder)) sidebar.append(panelsById.get(id));
-const sidePanelName = panel => panel.dataset.name || panel.querySelector('h2').firstChild.textContent.trim();
-for (const panel of sidePanels) {
-  const name = sidePanelName(panel), heading = [...panel.children].find(child => child.matches('h2')) || document.createElement('h2');
-  panel.dataset.name = name;
-  if (!heading.isConnected) { heading.textContent = name; panel.prepend(heading); }
-  heading.setAttribute('role', 'button'); heading.tabIndex = 0; heading.setAttribute('aria-expanded', 'true');
-  const handle = document.createElement('button');
-  handle.type = 'button'; handle.className = 'side-panel-drag'; handle.textContent = '⋮⋮';
-  handle.title = `拖曳調整「${name}」順序`; handle.setAttribute('aria-label', handle.title);
-  handle.onkeydown = ev => {
-    const direction = {ArrowUp: -1, ArrowDown: 1}[ev.key];
-    if (!direction) return;
-    ev.preventDefault(); moveSidePanel(panel, direction); handle.focus();
-  };
-  panel.prepend(handle);
-  const toggle = () => setSidePanelCollapsed(panel, !panel.classList.contains('collapsed'));
-  heading.onclick = toggle;
-  heading.onkeydown = ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggle(); } };
-}
-function saveSidePanelCollapsed() {
-  const collapsed = sidePanels.filter(panel => panel.classList.contains('collapsed')).map(panel => panel.id);
-  try { localStorage.setItem(SIDE_PANEL_COLLAPSED_KEY, JSON.stringify(collapsed)); } catch {}
-}
-function setSidePanelCollapsed(panel, collapsed) {
-  panel.classList.toggle('collapsed', collapsed);
-  const heading = panel.querySelector(':scope > h2');
-  if (heading) heading.setAttribute('aria-expanded', String(!collapsed));
-  saveSidePanelCollapsed();
-}
-try {
-  const collapsed = JSON.parse(localStorage.getItem(SIDE_PANEL_COLLAPSED_KEY));
-  for (const id of Array.isArray(collapsed) ? collapsed : []) {
-    const panel = document.getElementById(id);
-    if (panel && sidePanels.includes(panel)) setSidePanelCollapsed(panel, true);
-  }
-} catch {}
-let sidePanelDrag = null, sidePanelDragged = false;
-sidebar.onpointerdown = ev => {
-  const handle = ev.target.closest('.side-panel-drag');
-  sidePanelDrag = null; sidePanelDragged = false;
-  if (!handle || ev.button !== 0) return;
-  sidePanelDrag = {panel: handle.closest('.side-panel'), sy: ev.clientY};
-};
-sidebar.onpointermove = ev => {
-  if (!sidePanelDrag || (!sidePanelDragged && Math.abs(ev.clientY - sidePanelDrag.sy) < 5)) return;
-  if (!sidePanelDragged) sidebar.setPointerCapture(ev.pointerId);
-  sidePanelDragged = true;
-  ev.preventDefault();
-  sidePanelDrag.panel.classList.add('dragging');
-  const over = [...sidebar.children].filter(panel => panel.matches('.side-panel') && panel !== sidePanelDrag.panel && !panel.hidden)
-    .find(panel => ev.clientY < panel.getBoundingClientRect().top + panel.offsetHeight / 2);
-  if (over !== sidePanelDrag.panel.nextElementSibling) sidebar.insertBefore(sidePanelDrag.panel, over || null);
-};
-sidebar.onpointerup = sidebar.onpointercancel = () => {
-  if (!sidePanelDrag) return;
-  sidePanelDrag.panel.classList.remove('dragging');
-  sidePanelDrag = null;
-  if (sidePanelDragged) saveSidePanelOrder();
-};
-try { for (const [id, height] of Object.entries(JSON.parse(localStorage.getItem(SIDE_PANELS_KEY)) || {})) { const p = document.getElementById(id); if (p) p.style.height = height; } } catch {}
-const panelHeights = new ResizeObserver(() => {
-  const heights = Object.fromEntries(sidePanels.filter(p => p.style.height).map(p => [p.id, p.style.height]));
-  try { localStorage.setItem(SIDE_PANELS_KEY, JSON.stringify(heights)); } catch {}
-});
-for (const p of sidePanels) panelHeights.observe(p);
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
@@ -5072,7 +5066,7 @@ let wallDone = Promise.resolve();  // settles when the running changeWall finish
 function changeWall(action) {
   if (wallBusy) return Promise.resolve();
   // The tab row stays live, so the second click of a double-click still reaches the tab it just switched to.
-  const parts = document.querySelectorAll('header > :not(#tabrow), #main');
+  const parts = document.querySelectorAll('#topbar > :not(#tabrow), #main');
   wallBusy = true;
   parts.forEach(el => { el.inert = true; });
   return wallDone = (async () => {

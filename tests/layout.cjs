@@ -9,7 +9,7 @@ const base = process.env.WALL_TEST_URL;
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(base); await ready(page);
-    const icons = page.locator('#activitybar button');
+    const icons = page.locator('#rail .rail-activity');
     assert.equal(await icons.count(), 7);
     for (let i = 0; i < 7; i++) {
       assert.ok(await icons.nth(i).getAttribute('title'));
@@ -21,30 +21,30 @@ const base = process.env.WALL_TEST_URL;
     assert.equal(await page.isVisible('#files-section'), false);
     assert.equal(await page.isVisible('#history-section'), true);
     await page.click('#activity-history');
-    assert.equal(await page.isVisible('#activity-panel'), false);
+    assert.equal(await page.isVisible('#rail-panel'), false);
     console.log('PASS activity icons switch one left panel at a time and collapse the active panel');
     await page.focus('#activity-help'); await page.keyboard.press('Enter');
     assert.equal(await page.isVisible('#help-section'), true);
     await page.keyboard.press('Space');
-    assert.equal(await page.isVisible('#activity-panel'), false);
+    assert.equal(await page.isVisible('#rail-panel'), false);
     console.log('PASS activity icons open and collapse with Enter and Space');
 
     await openActivity(page, 'files');
-    const before = await page.evaluate(() => activityPanel.offsetWidth);
-    await page.focus('#activity-resize'); await page.keyboard.press('ArrowRight');
-    const widened = await page.evaluate(() => activityPanel.offsetWidth);
-    assert.equal(widened, before + 16);
+    const before = await page.evaluate(() => rail.offsetWidth);
+    await page.locator('#rail-resize').press('ArrowRight');
+    await page.waitForTimeout(260);
+    const widened = await page.evaluate(() => rail.offsetWidth);
+    assert.equal(widened, 232);
     await reload(page);
-    assert.equal(await page.evaluate(() => activityPanel.offsetWidth), widened);
+    assert.equal(await page.evaluate(() => rail.offsetWidth), widened);
     await openSidebar(page);
-    assert.deepEqual(await page.locator('#sidebar > section').evaluateAll(sections => sections.map(section => section.id)), ['chat-client-panel', 'ai-section', 'ai-audit-section', 'chat-progress', 'chat-section', 'chat-input-panel']);
-    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('CASEGRAPH / AI CONTROL'));
-    assert.ok((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理'));
+    assert.deepEqual(await page.locator('#case-folder-tabs [role=tab]').allTextContents(), ['對話', '提案', '紀錄', '模型']);
+    assert.ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾'));
     assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
-    assert.ok(await page.isVisible('#activity-resize') && await page.isVisible('#sidebar-resize'));
+    assert.ok(await page.isVisible('#rail-resize') && await page.isVisible('#sidebar-resize'));
     assert.equal(await page.evaluate(() => {
       const visible = el => getComputedStyle(el).display !== 'none';
-      return vp.clientWidth + activitybar.offsetWidth + activityPanel.offsetWidth + activityResizer.offsetWidth
+      return vp.clientWidth + rail.offsetWidth + activityPanel.offsetWidth + railResizer.offsetWidth
         + (visible(resizer) ? resizer.offsetWidth : 0) + (visible(sidebar) ? sidebar.offsetWidth : 0);
     }), 1400);
     console.log('PASS both panel handles resize independently and the viewport fills the remaining width');

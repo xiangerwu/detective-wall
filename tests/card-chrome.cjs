@@ -84,8 +84,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       const group = getComputedStyle(document.querySelector('#layout-wall-control'));
       return group.borderTopStyle === 'solid' && getComputedStyle(document.querySelector('#layout-wall-control'), '::before').content.includes('整理');
     }), 'layout control is a labelled, bordered button group');
-    ok(await page.evaluate(() => { const tops = [...document.querySelector('body > header').children].filter(k => k.id !== 'tabrow' && k.offsetParent).map(k => Math.round(k.getBoundingClientRect().top)); return Math.max(...tops) - Math.min(...tops) < 12; }), 'toolbar stays on one row at 1400px');
-    await page.locator('body > header').screenshot({path: path.join(OUT, 'header.png')});
+    ok(await page.evaluate(() => { const tops = [...document.querySelector('#topbar #tabrow').children].filter(k => k.offsetParent).map(k => Math.round(k.getBoundingClientRect().top)); return Math.max(...tops) - Math.min(...tops) < 12; }), 'top strip stays on one row at 1400px');
+    await page.locator('#topbar').screenshot({path: path.join(OUT, 'header.png')});
   } finally {
     await browser.close();
   }

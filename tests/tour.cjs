@@ -13,14 +13,14 @@ const themes = (process.env.P15_THEMES || 'whiteboard,wood').split(',').filter(t
 const styles = ['tech', 'paper'];
 const combos = themes.flatMap(theme => styles.map(style => ({theme, style, key: `${theme}-${style}`})));
 const features = [
-  ['toolbar', '頂列工具列'], ['layout', '整理版面與模式'], ['zoom', '縮放與全覽'], ['search', '搜尋與結果'],
-  ['undo-redo', '復原與重做'], ['tabs', '分頁列'], ['panel-files', '檔案面板'], ['panel-history', '版本面板'],
+  ['toolbar', '三段左欄工具'], ['layout', '整理版面與模式'], ['zoom', '縮放與全覽'], ['search', '搜尋與結果'],
+  ['undo-redo', '復原與重做'], ['tabs', '圓角分頁列'], ['panel-files', '檔案面板'], ['panel-history', '版本面板'],
   ['panel-templates', '範本面板'], ['panel-sources', '資料夾面板'], ['panel-tags', '標籤面板'], ['panel-theme', '主題面板'],
   ['panel-help', '說明面板'], ['card-editor', '卡片編輯器全欄位'], ['card-state', '卡片狀態與大小'], ['image', '圖片與拍立得'],
   ['edge-types', '三種連線'], ['edge-popup', '連線浮窗與端點'], ['pick-toolbar', '框選浮動工具列與兩段刪除'],
   ['card-menu', '卡片右鍵選單'], ['band-nav', '分層標籤與清單'], ['anchor-nav', '錨點清單與篩選'],
-  ['import-preview', '匯入預覽'], ['sidebar-chat-client', '右欄模型欄'], ['sidebar-ai', '右欄 AI 提案欄'],
-  ['sidebar-audit', '右欄 AI 紀錄欄'], ['sidebar-chat', '右欄 AI 對話欄'], ['sidebar-input', '右欄輸入欄'],
+  ['import-preview', '匯入預覽'], ['sidebar-chat-client', 'AI 案件夾模型'], ['sidebar-ai', 'AI 案件夾提案'],
+  ['sidebar-audit', 'AI 案件夾紀錄'], ['sidebar-chat', 'AI 案件夾對話'], ['sidebar-input', 'AI 案件夾輸入'],
   ['ai-review', 'AI 提案審核'], ['chat-progress', 'AI 對話進度'], ['mascot', '桌寵與狀態泡泡'],
 ];
 const featureIndex = new Map(features.map(([id], index) => [id, index + 1]));
@@ -355,21 +355,21 @@ async function tourImport(page, combo) {
 
 async function tourSidebarPanels(page, combo) {
   await openSidebar(page);
-  check((await page.locator('#sidebar .sidebar-header').textContent()).includes('案件圖譜助理')
+  check((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾')
     && await page.locator('#sidebar .theme-picker, #sidebar #theme').count() === 0
-    && await page.locator('#sidebar > .side-panel').evaluateAll(panels => panels.every(panel => panel.dataset.step && panel.querySelector('.panel-meta')?.textContent.trim())), '右欄使用 P17 標頭、編號卡片與狀態文字', combo.key);
-  for (const [id, feature] of [['chat-client-panel', 'sidebar-chat-client'], ['ai-section', 'sidebar-ai'], ['ai-audit-section', 'sidebar-audit'], ['chat-section', 'sidebar-chat'], ['chat-input-panel', 'sidebar-input']]) {
-    const heading = page.locator(`#${id} > h2`);
-    await heading.scrollIntoViewIfNeeded();
-    if (await heading.getAttribute('aria-expanded') !== 'false') await heading.click();
-    check(await heading.getAttribute('aria-expanded') === 'false', `${id} 可收合`, combo.key);
+    && await page.locator('#case-folder-tabs [role=tab]').count() === 4, '右欄使用 AI 案件夾四分頁', combo.key);
+  for (const [tab, feature] of [['model', 'sidebar-chat-client'], ['proposals', 'sidebar-ai'], ['audit', 'sidebar-audit'], ['chat', 'sidebar-chat']]) {
+    await page.click(`#ai-tab-${tab}`);
+    check(await page.locator(`[data-ai-pane="${tab}"]`).isVisible()
+      && await page.getAttribute(`#ai-tab-${tab}`, 'aria-selected') === 'true', `${tab} 分頁可切換並顯示內容`, combo.key);
     await capture(page, combo, feature);
-    await heading.click();
   }
+  await capture(page, combo, 'sidebar-input');
 }
 
 async function tourAiReview(page, combo, mcp) {
   await openSidebar(page);
+  await page.click('#ai-tab-proposals');
   await page.check('#ai-proposals-toggle');
   await page.waitForFunction(() => store.getMeta('aiProposals').then(value => value === true));
   await settled(page);
@@ -404,7 +404,9 @@ async function tourAiReview(page, combo, mcp) {
 
 async function tourChat(page, combo) {
   await openSidebar(page);
+  await page.click('#ai-tab-model');
   await page.selectOption('#chat-client', 'claude');
+  await page.click('#ai-tab-chat');
   if (await page.locator('#chat-input').isDisabled()) {
     check(false, 'fake CLI 應讓 Claude 對話可用', combo.key);
     return;
@@ -467,9 +469,9 @@ function auditSource() {
     const foreground = el => parse(getComputedStyle(el).color) || parse(getComputedStyle(el).fill);
     const rows = [];
     const textSelectors = [
-      'header h1','header button','#types button','#layout-wall-menu button','.search-result','.band-label','#band-nav button',
+      '#topbar button','#rail button','#types button','#layout-wall-menu button','.search-result','.band-label','#band-nav button',
       '#anchor-nav-title','#anchor-nav button','.card h3','.card p','.card .md','.card .tag-chip','.card .links a',
-      '#activity-panel h2','#activity-panel h3','#activity-panel button','#activity-panel .section-help','#activity-panel label',
+      '#rail-panel h2','#rail-panel h3','#rail-panel button','#rail-panel .section-help','#rail-panel label',
       '#sidebar h2','#sidebar button','#sidebar .section-help','#sidebar label','#chat-messages .chat-message',
       '#chat-messages .chat-message small','#chat-progress','#chat-progress-list','#mascot-bubble','#edgepop button',
       '#edgepop input','#bandpop input','#bandpop button','#pick-toolbar button','#card-menu button','#panel h2','#panel label',
@@ -482,7 +484,7 @@ function auditSource() {
       const special = el.matches('.band-label,#band-nav button,#anchor-nav button,#anchor-nav-title,.str-label');
       if (el.matches('button.swatch') && !el.innerText.trim()) continue;
       const bg = background(el, special);
-      const icon = el.matches('#activity-panel button,#toggle-sidebar,#zoom button,#undo,#redo') && text.length <= 3;
+      const icon = el.matches('#rail button,#toggle-sidebar,#zoom button,#undo,#redo') && text.length <= 3;
       const needed = icon ? 3 : (parseFloat(style.fontSize) >= 18 ? 3 : 4.5);
       const valueRatio = ratio(value, bg);
       if (valueRatio + 0.01 < needed) rows.push({kind: 'contrast', selector, text: text.slice(0, 40), ratio: Number(valueRatio.toFixed(2)), needed, foreground: value.slice(0, 3), background: bg.slice(0, 3)});
@@ -499,9 +501,11 @@ function auditSource() {
       const mismatches = values.filter(row => JSON.stringify(row.value) !== first);
       if (mismatches.length) rows.push({kind: 'consistency', group: name, expected: values[0], mismatches});
     };
-    group('buttons', ['#add-card','#add-note','#add-image','#add-band','#export','#export-canvas','#import','#reset']);
+    group('rail-buttons', ['#add-card','#add-note','#add-image','#add-band']);
+    group('panel-buttons', ['#export','#export-canvas','#import','#reset']);
     group('inputs', ['#wall-search','#source-folders','#tag-new-name','#chat-client','#chat-input','#f-title','#f-kind','#f-note','#f-links','#edge-label'], false, ['radius','fontSize','padding','border']);
-    group('headings', ['body > header h1','#activity-panel h2','#sidebar h2','#proposal-review h2','#importer h2','#backups h2'], false, ['fontSize']);
+    group('case-folder-heading', ['#case-folder-header h1'], false, ['fontSize']);
+    group('panel-headings', ['#rail-panel h2','#sidebar h2','#proposal-review h2','#importer h2','#backups h2'], false, ['fontSize']);
     group('popup-panels', ['#tabmenu','#layout-wall-menu','#search-results','#tagpop','#card-menu','#edgepop','#bandpop'], true, ['radius','border','shadow']);
     group('menu-items', ['#layout-wall-menu button','#card-menu button','.search-result','#f-tag-list [role=option]'], false, ['radius','fontSize','padding','border']);
     const focusable = [...document.querySelectorAll('button,a,input,select,textarea,[role=button],[role=menuitem],[tabindex]:not([tabindex="-1"])')]
