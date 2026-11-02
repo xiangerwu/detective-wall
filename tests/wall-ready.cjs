@@ -7,8 +7,14 @@ const artifacts = suite => {
   return dir;
 };
 const profile = () => fs.mkdtempSync(path.join(artifacts('profiles'), 'wall-ffprof-'));
-const ready = page => page.waitForFunction(() => window.wallReady === true && !window.wallBusy
-  && !document.body.inert && !document.querySelector('[inert]'));
+// Tests rewrite walls. tests/run.cjs gives each suite its own server and database on a random port;
+// refuse to touch the user's live service on the default port, whoever starts the test.
+const ready = page => {
+  if (/^https?:\/\/(127\.0\.0\.1|localhost):3000(\/|$)/.test(page.url()))
+    throw new Error('refusing to run a test against the live service on port 3000; run it through tests/run.cjs');
+  return page.waitForFunction(() => window.wallReady === true && !window.wallBusy
+    && !document.body.inert && !document.querySelector('[inert]'));
+};
 const reload = async page => {
   await page.evaluate(() => store.listWalls()); // Wait for the async save to commit before leaving.
   await page.reload();

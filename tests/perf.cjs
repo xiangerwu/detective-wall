@@ -173,7 +173,9 @@ async function measureMarquee(page) {
   });
   try {
     const page = context.pages()[0] || await context.newPage();
-    await page.goto(process.env.WALL_TEST_URL || 'http://127.0.0.1:3000');
+    // This suite writes a 500-card wall: it only runs against the throwaway server from tests/run.cjs.
+    if (!process.env.WALL_TEST_URL) throw new Error('perf.cjs must run through tests/run.cjs, never against the live service');
+    await page.goto(process.env.WALL_TEST_URL);
     await ready(page);
     await seed(page);
     const idleFrames = await idleFrameMetrics(page);
