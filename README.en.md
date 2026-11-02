@@ -17,7 +17,7 @@ Requirements:
 - **CLI (optional)**: tested with Claude Code 2.1.314 and codex-cli 0.153.4; older versions may not recognize the flags used here.
 - Optional, only needed when having AI help: a logged-in [Claude Code](https://claude.com/claude-code) or codex CLI, at least one.
 
-Quickest: on Windows double-click `start.cmd`; on macOS/Linux run `./start.sh`. The script checks the Node version, installs packages on the first run, starts the service and opens the browser.
+Quickest: on Windows double-click `start.cmd` to open the CaseGraph launcher; on macOS/Linux run `./start.sh`. The Windows launcher checks the Node version, installs packages in the background on the first run, starts the service and opens the browser.
 
 Or run it by hand:
 
@@ -28,7 +28,7 @@ npm start
 
 After seeing `WALL_READY 3000`, open http://127.0.0.1:3000/ in Firefox. The first startup creates `data/wall.db` and adds 7 sample cards.
 
-The service listens only on the local machine (127.0.0.1). Close the terminal or press Ctrl+C to stop it. All data is in the database; the next `npm start` continues using it.
+The service listens only on the local machine (127.0.0.1). Closing the Windows launcher hides it in the system tray; its context menu can show the window, open the web app/CLI/log, stop the service, or exit. The launcher stops only services it started; it asks for confirmation before stopping or restarting an externally started CaseGraph service. The window can add a Start Menu shortcut, but does not create a desktop shortcut. Runtime logs and launcher files are in `data/launcher/`; the database remains in `data/wall.db` and is reused next time.
 
 ## Basic operations
 

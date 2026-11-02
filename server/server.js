@@ -16,6 +16,7 @@ const {fileURLToPath} = require('node:url');
 const { createDatabase, VersionConflict, safeSourceHref } = require('./db.js');
 // @ts-ignore CommonJS provides __dirname at runtime.
 const projectDir = /** @type {string} */ (__dirname);
+const packageVersion = JSON.parse(fs.readFileSync(path.join(projectDir, '..', 'package.json'), 'utf8')).version;
 
 const HOST = '127.0.0.1';
 const MAX_BODY = 32 * 1024 * 1024;
@@ -483,6 +484,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   const chatBusy = new Set();
   const chatJobs = new Map();
   const chatChannels = new Map();
+  const startedAt = new Date().toISOString();
   const chatChannel = wallId => {
     let channel = chatChannels.get(wallId);
     if (!channel) {
@@ -518,6 +520,11 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   let server;
 
   const handleApi = async (req, res, parts, url) => {
+    if (parts.length === 2 && parts[1] === 'health' && req.method === 'GET') {
+      json(res, 200, {app: 'casegraph', version: packageVersion, pid: process.pid,
+        port: server.address().port, db: databasePath, startedAt});
+      return;
+    }
     if (parts.length === 1 && req.method === 'GET') {
       const walls = store.listWalls(true);
       const currentId = store.getMeta('currentWall');

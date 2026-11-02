@@ -17,7 +17,7 @@
 - **CLI（選用）**：測試過 Claude Code 2.1.314、codex-cli 0.153.4；較舊版本可能不認得本專案使用的旗標。
 - 選用，要讓 AI 幫忙時才需要：已登入的 [Claude Code](https://claude.com/claude-code) 或 codex CLI，至少一個。
 
-最快的方式：Windows 雙擊 `start.cmd`；macOS／Linux 執行 `./start.sh`。腳本會檢查 Node 版本、第一次自動安裝套件、啟動服務並打開瀏覽器。
+最快的方式：Windows 雙擊 `start.cmd` 開啟 CaseGraph 啟動器；macOS／Linux 執行 `./start.sh`。Windows 啟動器會檢查 Node 版本、第一次在背景安裝套件、啟動服務並打開瀏覽器。
 
 也可以手動執行：
 
@@ -28,7 +28,7 @@ npm start
 
 看到 `WALL_READY 3000` 後，用 Firefox 開 http://127.0.0.1:3000/ 。第一次啟動會建立 `data/wall.db`，並放入 7 張示例卡片。
 
-服務只聽本機（127.0.0.1），關掉終端機或按 Ctrl+C 就會停止。資料都在資料庫裡，下次 `npm start` 會接著用。
+服務只聽本機（127.0.0.1）。Windows 啟動器的視窗關閉時會縮到系統匣；右鍵圖示可顯示視窗、開啟網頁／CLI／紀錄、停止服務或結束。啟動器只會停止自己啟動的服務；偵測到外部服務時，重啟／停止前會先確認。可在視窗底部把它加入開始功能表（不建立桌面捷徑）。服務紀錄與啟動器執行期檔案在 `data/launcher/`，資料庫仍在 `data/wall.db`；下次啟動會接著用。
 
 ## 基本操作
 

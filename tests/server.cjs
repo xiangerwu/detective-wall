@@ -72,11 +72,23 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     assert.equal(response.status, 409, 'stale base version is rejected');
     console.log('PASS 409 version conflict');
 
+    const port = new URL(server.url).port;
+    response = await request(server.url, '/api/health');
+    assert.equal(response.status, 200);
+    assert.equal(response.body.app, 'casegraph');
+    assert.equal(response.body.version, require('../package.json').version);
+    assert.equal(Number.isSafeInteger(response.body.pid), true);
+    assert.ok(response.body.pid > 0);
+    assert.equal(response.body.port, Number(port));
+    assert.equal(response.body.db, path.resolve(db));
+    assert.equal(typeof response.body.startedAt, 'string');
+    assert.equal(Number.isNaN(Date.parse(response.body.startedAt)), false);
+    console.log('PASS /api/health fields');
+
     response = await request(server.url, '/api/walls/%E0');
     assert.equal(response.status, 400);
     console.log('PASS malformed URL returns 400');
 
-    const port = new URL(server.url).port;
     response = await request(server.url, '/assets/paper-grain.png');
     assert.equal(response.status, 200);
     assert.equal(response.headers?.['content-type'], 'image/png');
