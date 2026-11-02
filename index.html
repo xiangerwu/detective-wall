@@ -85,7 +85,8 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #types button{border:0;border-radius:var(--radius-md);padding:5px 6px}
 #types button:hover{border-color:transparent;background:var(--ui-hover)}
 #types button.on{border-color:transparent;background:var(--ui-active)}
-#types button svg{border-radius:3px;background:var(--wall-label-bg)}  /* the sample sits on the edge-label paper with the label ink, so it reads on dark chrome and on any selection colour */
+#types button svg{width:28px;height:18px;border-radius:3px;background:var(--rail-bg)}
+#types button svg line{stroke-width:3px}
 .theme{font-size:13px;color:var(--ui-muted)}
 .theme select{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:3px 6px}
 /* Same labelled group as 新連線: the main button runs the current mode, the arrow picks another. */
@@ -126,19 +127,20 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #rail-toggle{position:absolute;top:10px;left:10px;z-index:31;width:34px;height:34px;padding:0;border:1px solid var(--ui-border);border-radius:var(--radius-lg);color:var(--ui-text);background:var(--ui-raised);box-shadow:0 4px 10px var(--shell-shadow)}
 #rail-toggle:hover{background:var(--ui-hover)}
 #rail{flex:none;width:var(--rail-w,var(--rail-icon-w));display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:52px 10px 10px;background:var(--rail-bg);border-right:1px solid var(--ui-border);transition:width .18s ease,box-shadow .18s ease}
-#rail .rail-scroll{display:flex;flex-direction:column;gap:10px;min-width:0;overflow:auto;padding-bottom:10px}
+#rail .rail-scroll{display:flex;flex:1;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:auto;padding-bottom:10px}
 #rail .rail-stack{display:flex;flex-direction:column;gap:7px;min-width:0}
 #rail .rail-control{width:100%;display:flex;align-items:center;gap:8px;min-height:36px;padding:7px 9px;color:var(--ui-text);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
 #rail .rail-control:hover,#rail .rail-control:focus-visible{background:var(--ui-hover);border-color:var(--ui-border)}
 #rail .rail-control.on{background:var(--ui-active);border-color:var(--ui-accent)}
 #rail .rail-control svg{flex:none;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#rail .rail-icon{display:inline-flex;flex:none;width:24px;height:24px;align-items:center;justify-content:center;color:currentColor;font-size:22px;font-weight:800;line-height:1;text-align:center}
 #rail .rail-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #rail .rail-divider{height:1px;margin:3px 0;background:var(--ui-border)}
 #rail .rail-bottom{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--ui-border)}
 #rail .rail-activity{width:100%;min-width:0;min-height:36px;display:flex;align-items:center;gap:6px;padding:6px;color:var(--ui-muted);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
 #rail .rail-activity:hover,#rail .rail-activity:focus-visible{color:var(--ui-text);background:var(--ui-hover);border-color:var(--ui-border)}
 #rail .rail-activity.on{color:var(--ui-accent);background:var(--ui-active);box-shadow:inset 3px 0 0 var(--ui-accent)}
-#rail .rail-activity svg{display:block;flex:none;width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#rail .rail-activity svg{display:block;flex:none;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 body.rail-icon #rail{padding-left:10px;padding-right:10px}
 body.rail-icon #rail .rail-control{justify-content:center;padding-left:6px;padding-right:6px}
 body.rail-icon #rail .rail-label,body.rail-icon #rail #types::before,body.rail-icon #rail #layout-wall-control::before{display:none}
@@ -147,20 +149,39 @@ body.rail-icon #rail .rail-activity{justify-content:center}
 body.rail-icon #rail #types{flex-direction:column}
 body.rail-icon #rail #types button{width:100%;font-size:0;justify-content:center}
 body.rail-icon #rail #layout-wall-control{justify-content:center}
-body.rail-icon #rail #layout-wall{font-size:0}
-body.rail-icon #rail #layout-wall::after{content:'✣';font-size:16px}
-body.rail-icon #rail #layout-wall-arrow{font-size:12px;min-width:18px;width:18px;padding:5px 1px;border-left:1px solid var(--ui-border)}
+body.rail-icon #rail #layout-wall-control .rail-icon{font-size:22px}
+body.rail-icon #rail #layout-wall-arrow{min-width:24px;width:24px;padding:5px 1px;border-left:1px solid var(--ui-border)}
 body.rail-icon #rail #zoom{flex-wrap:wrap}
 body.rail-icon #rail #zoom button:not(#zoom-pct){font-size:0;flex:1 1 40%}
-body.rail-icon #rail #zoom button:not(#zoom-pct)::after{font-size:14px}
-body.rail-icon #rail #zoom-out::after{content:'−'}
-body.rail-icon #rail #zoom-in::after{content:'＋'}
-body.rail-icon #rail #zoom-fit::after{content:'⊙'}
+body.rail-icon #rail #zoom button:not(#zoom-pct) .rail-icon{font-size:22px}
+body.rail-icon #rail #types [data-type="builds"] line{stroke:var(--ui-text) !important}
+body.rail-icon #rail #types [data-type="uses"] line{stroke:var(--ui-text) !important}
+body.rail-icon #rail #types [data-type="question"] line{stroke:var(--ui-text) !important}
 body.rail-full #rail #types button{font-size:12px}
 body.rail-full #rail #types{flex-direction:column;align-items:stretch}
 body.rail-full #rail #types button{width:100%;justify-content:flex-start}
+body.rail-full #rail #activity-navigation{display:none}
+/* The expanded rail keeps the navigation card readable at the shorter test viewport. */
+body.rail-full #rail .rail-scroll{gap:6px}
+body.rail-full #rail #types{padding:3px;gap:1px}
+body.rail-full #rail #types button{padding-top:3px;padding-bottom:3px}
+body.rail-full #rail .rail-stack{gap:3px}
+body.rail-full #rail .rail-control{min-height:30px;padding-top:4px;padding-bottom:4px}
+body.rail-full #rail #layout-wall-control{padding-top:2px;padding-bottom:2px}
+body.rail-full #rail #layout-wall-control > button{padding-top:3px;padding-bottom:3px}
+body.rail-full #rail #zoom button{padding-top:3px;padding-bottom:3px}
+body.rail-full #rail-navigation{gap:5px;padding:6px}
+body.rail-full #rail-navigation-content{gap:5px}
+body.rail-full #rail-band-list{gap:2px}
+body.rail-full #rail-band-list button,body.rail-full #rail-anchor-list button{padding-top:4px;padding-bottom:4px;font-size:11px}
+body.rail-full #rail-anchor-list{gap:4px;padding-top:5px}
+body.rail-full #rail-anchor-filters{gap:3px}
+body.rail-full #rail-anchor-filters button{padding:3px 5px;font-size:11px}
+body.rail-full .rail-anchor-group{gap:2px}
+body.rail-full .rail-anchor-group h3{margin-top:1px;font-size:10px}
 body.rail-resizing #rail{transition:none}
 body.rail-hidden #rail,body.rail-hidden #rail-resize{display:none}
+body.rail-hidden #rail-panel{display:none}
 #rail-panel{flex:none;width:var(--rail-panel-w);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:52px 14px 12px;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
 #rail-panel h2{margin:0 0 6px;font-size:var(--font-title);font-weight:650;color:var(--ui-text)}
 #rail-panel h3{margin:10px 0 4px;font-size:13px;color:var(--ui-text)}
@@ -168,6 +189,29 @@ body.rail-hidden #rail,body.rail-hidden #rail-resize{display:none}
 #rail-resize{flex:none;width:6px;cursor:ew-resize;touch-action:none;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
 #rail-resize:hover,#rail-resize:focus-visible{background:var(--ui-accent)}
 #rail-panel[hidden],#rail-resize[hidden]{display:none}
+#rail-navigation-slot,#rail-navigation-flyout-slot{min-width:0}
+#rail-navigation{display:flex;flex-direction:column;gap:8px;min-width:0;margin-top:2px;padding:8px;background:color-mix(in srgb,var(--rail-bg) 72%,var(--ui-surface));border:1px solid var(--ui-border);border-radius:var(--radius-lg)}
+#rail-navigation[hidden]{display:none}
+#rail-navigation-title{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 7px;color:var(--ui-text);background:transparent;border:0;border-radius:var(--radius-md);font-weight:700;text-align:left}
+#rail-navigation-title:hover,#rail-navigation-title:focus-visible{background:var(--ui-hover)}
+#rail-navigation-title::after{content:'▾';color:var(--ui-accent)}
+#rail-navigation-title[aria-expanded=false]::after{content:'▸'}
+#rail-navigation-content{display:flex;flex-direction:column;gap:8px;min-width:0}
+#rail-navigation-content[hidden]{display:none}
+#rail-band-list{display:flex;flex-direction:column;gap:4px;min-width:0}
+#rail-band-list button,#rail-anchor-list button{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 7px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-md);font-size:12px;text-align:left}
+#rail-band-list button:hover,#rail-band-list button:focus-visible,#rail-anchor-list button:hover,#rail-anchor-list button:focus-visible{background:var(--ui-hover);border-color:var(--ui-accent)}
+#rail-band-list button[aria-current=true],#rail-anchor-list button[aria-pressed=true]{background:var(--ui-active);border-color:var(--ui-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 28%,transparent)}
+#rail-anchor-list{display:flex;flex-direction:column;gap:6px;padding-top:8px;border-top:1px dashed var(--ui-border)}
+#rail-anchor-list-title{display:flex;justify-content:space-between;width:100%;padding:3px 4px;color:var(--ui-text);background:transparent;border:0;font-size:12px;font-weight:700;text-align:left}
+#rail-anchor-list-title::after{content:'▾';color:var(--ui-accent)}
+#rail-anchor-list-title[aria-expanded=false]::after{content:'▸'}
+#rail-anchor-content[hidden]{display:none}
+#rail-anchor-filters{display:flex;gap:4px}
+#rail-anchor-filters button{flex:1;font-size:11px}
+.rail-anchor-group{display:flex;flex-direction:column;gap:3px}
+.rail-anchor-group h3{margin:2px 0 0;color:var(--ui-muted);font-size:11px;font-weight:600}
+.rail-anchor-suggestion-list button{color:var(--ui-muted)}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
 #sidebar{flex:none;width:var(--side-w,300px);min-width:0;overflow:hidden;display:block;padding:12px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
 #sidebar-resize{flex:none;width:5px;cursor:ew-resize;touch-action:none;background:var(--ui-panel);border-right:1px solid var(--ui-border)}
@@ -284,20 +328,6 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .card.mount-tape:hover .pin{transform:scale(1.8);opacity:1}
 .card.picked{outline:2px dashed var(--ui-selection);outline-offset:4px}
 #marquee{position:absolute;z-index:7;border:1px dashed var(--ui-selection);background:color-mix(in srgb,var(--ui-selection) 12%,transparent);pointer-events:none}
-#band-nav{position:absolute;z-index:8;left:8px;top:50%;display:flex;flex-direction:column;gap:4px;max-width:190px;max-height:82%;overflow:auto;padding:4px;transform:translateY(-50%);pointer-events:none}
-#band-nav button{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 8px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border-color:color-mix(in srgb,var(--band-label-ink) 28%,transparent);font-size:12px;text-align:left;pointer-events:auto}
-#band-nav button[aria-current=true]{border-color:var(--ui-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 30%,transparent)}
-#anchor-nav{display:flex;flex-direction:column;gap:4px;margin-top:6px;padding:6px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 28%,transparent);border-radius:4px;pointer-events:auto}  /* one chip so the headings read on patterned walls */
-#anchor-nav-title{display:flex;justify-content:space-between;gap:6px;margin:0;padding:2px 4px;border:0;background:transparent;color:var(--band-label-ink);font-size:12px;font-weight:700;text-align:left;cursor:pointer}
-#anchor-nav-title::after{content:'▸'}
-#anchor-nav-title[aria-expanded=true]::after{content:'▾'}
-#anchor-filters{display:flex;gap:3px}
-#anchor-filters button{flex:1;min-width:0;padding:3px 5px;font-size:11px}
-#anchor-nav button[data-anchor-card]{max-width:180px;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border-color:color-mix(in srgb,var(--band-label-ink) 28%,transparent)}
-#anchor-nav button[data-anchor-filter=true]{color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border-color:color-mix(in srgb,var(--band-label-ink) 28%,transparent)}
-#anchor-nav button[data-anchor-filter=true][aria-pressed=true]{border-color:var(--ui-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 30%,transparent)}
-.anchor-group{display:flex;flex-direction:column;gap:3px}
-.anchor-group h3{margin:3px 0 0;color:var(--band-label-ink);font-size:11px;font-weight:600}
 #pick-toolbar{position:absolute;z-index:10;display:flex;gap:4px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 8px 24px var(--ui-shadow);white-space:nowrap}
 #pick-toolbar button{font-size:12px;padding:4px 8px}
 #card-menu{position:fixed;z-index:45;display:flex;flex-direction:column;gap:2px;min-width:132px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 10px 30px var(--ui-shadow)}
@@ -710,8 +740,8 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
       <button id="add-band" class="rail-control" type="button" title="新增分層" aria-label="新增分層"><span class="rail-icon" aria-hidden="true">≋</span><span class="rail-label">分層</span></button>
     </div>
     <div id="layout-wall-control">
-      <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu">推開重疊</button>
-      <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu">▾</button>
+      <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">✣</span><span class="rail-label">推開重疊</span></button>
+      <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">▾</span></button>
       <div id="layout-wall-menu" role="menu" hidden>
         <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
         <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
@@ -719,13 +749,24 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
       </div>
     </div>
     <span id="zoom" aria-label="畫布縮放">
-      <button id="zoom-out" title="縮小" aria-label="縮小">－</button>
+      <button id="zoom-out" title="縮小" aria-label="縮小"><span class="rail-icon" aria-hidden="true">−</span><span class="rail-label">縮小</span></button>
       <button id="zoom-pct" title="回到 100%" aria-label="目前縮放比例">100%</button>
-      <button id="zoom-in" title="放大" aria-label="放大">＋</button>
-      <button id="zoom-fit" title="整面牆放進畫面" aria-label="全覽">全覽</button>
+      <button id="zoom-in" title="放大" aria-label="放大"><span class="rail-icon" aria-hidden="true">＋</span><span class="rail-label">放大</span></button>
+      <button id="zoom-fit" title="整面牆放進畫面" aria-label="全覽"><span class="rail-icon" aria-hidden="true">⊙</span><span class="rail-label">全覽</span></button>
     </span>
-  </div>
+    <div id="rail-navigation-slot">
+      <section id="rail-navigation" aria-label="分層／錨點" hidden>
+        <button id="rail-navigation-title" type="button" aria-expanded="true">分層／錨點</button>
+        <div id="rail-navigation-content">
+          <div id="rail-band-list" aria-label="分層清單"></div>
+          <div id="rail-anchor-list" aria-label="錨點清單"></div>
+        </div>
+      </section>
+    </div>
   <div class="rail-bottom" role="toolbar" aria-label="功能面板">
+  <button id="activity-navigation" class="rail-activity" type="button" data-panel="navigation" title="分層／錨點" aria-label="分層／錨點" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v5H5zM5 14h14v5H5z" fill="currentColor" fill-opacity=".18"/><path d="M5 5h14v5H5zM5 14h14v5H5zM8 10v4M16 10v4"/></svg><span class="rail-label">分層／錨點</span>
+  </button>
   <button id="activity-files" class="rail-activity" type="button" data-panel="files" title="檔案" aria-label="檔案" aria-pressed="false">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z" fill="currentColor" fill-opacity=".18"/><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7zM3.5 9h17"/></svg><span class="rail-label">檔案</span>
   </button>
@@ -748,9 +789,13 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.1 1.7c-1.2 1.1-1.8 1.4-1.8 2.8M12 17h.1"/></svg><span class="rail-label">說明</span>
   </button>
   </div>
+  </div>
 </nav>
 
 <aside id="rail-panel" aria-label="功能面板" hidden>
+  <section id="rail-navigation-panel" data-activity-panel="navigation">
+    <div id="rail-navigation-flyout-slot"></div>
+  </section>
   <section id="files-section" data-activity-panel="files">
     <h2>檔案</h2>
     <p class="section-help">匯入、匯出與整個專案的保存工具。</p>
@@ -863,7 +908,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <div id="edgepop" hidden></div>
     <div id="bandpop" hidden></div>
   </div>
-  <nav id="band-nav" aria-label="分層快速移動" hidden></nav>
   <div id="marquee" hidden></div>
 </div>
 
@@ -1626,7 +1670,7 @@ const BUILTIN_TEMPLATES = [
 ];
 
 const $ = s => document.querySelector(s);
-const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
+const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), railNavigation = $('#rail-navigation'), railNavigationSlot = $('#rail-navigation-slot'), railNavigationFlyoutSlot = $('#rail-navigation-flyout-slot'), railNavigationTitle = $('#rail-navigation-title'), railNavigationContent = $('#rail-navigation-content'), railBandList = $('#rail-band-list'), railAnchorList = $('#rail-anchor-list'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
@@ -1651,6 +1695,7 @@ let anchorFilter = '';
 const ANCHOR_NAV_KEY = 'thesis-detective-wall-anchor-nav';
 let anchorNavOpen = false;
 try { anchorNavOpen = localStorage.getItem(ANCHOR_NAV_KEY) === '1'; } catch {}
+let railNavigationOpen = true, activeActivityId = null;
 const isDim = c => activeTags.size > 0 && !(c.tags || []).some(id => activeTags.has(id))
   || !!anchorFilter && c.level !== anchorFilter;
 const nid = p => p + (uid++).toString(36);
@@ -1737,7 +1782,7 @@ function applyView() {
   for (const b of wall.querySelectorAll('.band')) Object.assign(b.style, {left: box.left, width: box.width});
   bandpop.style.left = L + 14 + 'px';
   $('#zoom-pct').textContent = Math.round(view.s * 100) + '%';
-  updateBandNav();
+  updateRailNavigation();
   updatePickToolbar();
 }
 
@@ -1749,70 +1794,83 @@ function currentBandIndex() {
   for (let i = 1; i < bands.length; i++) if (bands[i].y <= top) index = i;
   return index;
 }
-function renderBandNav() {
+function placeRailNavigation() {
+  if (!railNavigation) return;
+  const state = $('#rail')?.dataset.state;
+  const open = state === 'full' || state === 'icon' && activeActivityId === 'navigation';
+  (state === 'full' ? railNavigationSlot : railNavigationFlyoutSlot).append(railNavigation);
+  railNavigation.hidden = !open || railNavigation.dataset.empty === 'true';
+  railNavigationTitle.setAttribute('aria-expanded', String(railNavigationOpen));
+  railNavigationContent.hidden = !railNavigationOpen;
+}
+
+function renderRailNavigation() {
   const bands = [...data.bands].sort((a, b) => a.y - b.y);
   const anchors = data.cards.filter(c => c.level === 'source' || c.level === 'key');
   const incoming = new Set(data.edges.map(edge => edge.to)), outgoing = new Set(data.edges.map(edge => edge.from));
   const suggestions = data.cards.filter(c => c.level !== 'source' && !incoming.has(c.id) && outgoing.has(c.id));
-  bandNav.hidden = !bands.length && !anchors.length && !suggestions.length;
-  bandNav.replaceChildren(...bands.map(b => {
+  railNavigation.dataset.empty = String(!bands.length && !anchors.length && !suggestions.length);
+  railBandList.replaceChildren(...bands.map(b => {
     const button = mk('button', '', b.title || '（未命名）');
     button.type = 'button'; button.dataset.bandId = b.id; button.title = b.title || '（未命名）';
     button.onclick = () => jumpToBand(b.id);
     return button;
   }));
+  railAnchorList.replaceChildren();
+  railAnchorList.hidden = !anchors.length && !suggestions.length;
   if (anchors.length || suggestions.length) {
-    const section = mk('section', '', '');
-    section.id = 'anchor-nav';
     const title = mk('button', '', `錨點（${anchors.length}）` + (anchorFilter ? '・篩選中' : ''));
-    title.type = 'button'; title.id = 'anchor-nav-title';
+    title.type = 'button'; title.id = 'rail-anchor-list-title';
     title.setAttribute('aria-expanded', anchorNavOpen);
     title.onclick = () => {
       anchorNavOpen = !anchorNavOpen;
       try { localStorage.setItem(ANCHOR_NAV_KEY, anchorNavOpen ? '1' : '0'); } catch {}
-      renderBandNav();
+      renderRailNavigation();
     };
-    section.append(title);
-    if (!anchorNavOpen) { bandNav.append(section); updateBandNav(); return; }
-    const filters = mk('div', '');
-    filters.id = 'anchor-filters';
-    for (const [level, label] of [['source', '只看源頭'], ['key', '只看重點']]) {
-      const button = mk('button', '', label);
-      button.type = 'button'; button.dataset.anchorFilter = 'true'; button.dataset.level = level;
-      button.setAttribute('aria-pressed', anchorFilter === level);
-      button.onclick = () => { anchorFilter = anchorFilter === level ? '' : level; render(); };
-      filters.append(button);
-    }
-    section.append(filters);
-    const list = (title, cards, className) => {
-      if (!cards.length) return;
-      const group = mk('div', 'anchor-group');
-      group.classList.add(className);
-      group.append(mk('h3', '', title));
-      for (const card of cards) {
-        const button = mk('button', '', `${card.level === 'source' ? '◆ 源頭' : card.level === 'key' ? '★ 重點' : '？'}  ${card.title || '（未命名）'}`);
-        button.type = 'button'; button.dataset.anchorCard = card.id; button.dataset.level = card.level || 'suggestion';
-        button.title = card.title || '（未命名）';
-        button.onclick = () => jumpToCard(card.id);
-        group.append(button);
+    const content = mk('div', '');
+    content.id = 'rail-anchor-content'; content.hidden = !anchorNavOpen;
+    if (anchorNavOpen) {
+      const filters = mk('div', '');
+      filters.id = 'rail-anchor-filters';
+      for (const [level, label] of [['source', '只看源頭'], ['key', '只看重點']]) {
+        const button = mk('button', '', label);
+        button.type = 'button'; button.dataset.anchorFilter = 'true'; button.dataset.level = level;
+        button.setAttribute('aria-pressed', anchorFilter === level);
+        button.onclick = () => { anchorFilter = anchorFilter === level ? '' : level; render(); };
+        filters.append(button);
       }
-      section.append(group);
-    };
-    list('已標記', anchors, 'anchor-list');
-    list('可能是源頭', suggestions, 'anchor-suggestion-list');
-    bandNav.append(section);
+      content.append(filters);
+      const list = (heading, cards, className) => {
+        if (!cards.length) return;
+        const group = mk('div', 'rail-anchor-group');
+        group.classList.add(className);
+        group.append(mk('h3', '', heading));
+        for (const card of cards) {
+          const button = mk('button', '', `${card.level === 'source' ? '◆ 源頭' : card.level === 'key' ? '★ 重點' : '？'}  ${card.title || '（未命名）'}`);
+          button.type = 'button'; button.dataset.anchorCard = card.id; button.dataset.level = card.level || 'suggestion';
+          button.title = card.title || '（未命名）';
+          button.onclick = () => jumpToCard(card.id);
+          group.append(button);
+        }
+        content.append(group);
+      };
+      list('已標記', anchors, 'rail-anchor-list');
+      list('可能是源頭', suggestions, 'rail-anchor-suggestion-list');
+    }
+    railAnchorList.append(title, content);
   }
-  updateBandNav();
+  placeRailNavigation();
+  updateRailNavigation();
 }
-function updateBandNav() {
-  if (bandNav.hidden) return;
+function updateRailNavigation() {
+  if (railNavigation.hidden) return;
   const current = currentBandIndex();
-  bandNav.querySelectorAll('button[data-band-id]').forEach((button, index) => {
+  railBandList.querySelectorAll('button[data-band-id]').forEach((button, index) => {
     const active = index === current;
     button.setAttribute('aria-current', active);
     button.classList.toggle('on', active);
   });
-  bandNav.querySelectorAll('[data-anchor-filter=true]').forEach(button => {
+  railAnchorList.querySelectorAll('[data-anchor-filter=true]').forEach(button => {
     button.setAttribute('aria-pressed', button.dataset.level === anchorFilter);
   });
 }
@@ -2107,7 +2165,7 @@ function renderBands() {
     el.append(label);
     wall.insertBefore(el, svg);
   }
-  renderBandNav();
+  renderRailNavigation();
   applyView();
 }
 
@@ -2689,7 +2747,7 @@ vp.addEventListener('pointerdown', ev => {
     ev.preventDefault();
     return;
   }
-  if (ev.target.closest('a, .fold, #edgepop, #bandpop, #band-nav, #pick-toolbar, #card-menu')) return;
+  if (ev.target.closest('a, .fold, #edgepop, #bandpop, #rail-navigation, #pick-toolbar, #card-menu')) return;
   vp.focus({preventScroll: true});
   lastPointer = toWall(ev);
   const blank = !ev.target.closest('.card, .band-label, .hit, .str-label, .str-label-group');
@@ -2988,7 +3046,7 @@ document.addEventListener('keydown', ev => {
 
 function sample(k) {
   const t = TYPES[k];
-  return `<svg width="28" height="10" aria-hidden="true"><line x1="2" y1="5" x2="26" y2="5" style="stroke:var(--${k}-ink, var(--${k}))" stroke-width="${t.width}" stroke-dasharray="${t.dash}" stroke-linecap="round"/></svg>`;
+  return `<svg class="rail-icon" width="28" height="18" aria-hidden="true"><line x1="2" y1="9" x2="26" y2="9" style="stroke:var(--${k}-ink, var(--${k}))" stroke-width="${t.width}" stroke-dasharray="${t.dash}" stroke-linecap="round"/></svg>`;
 }
 function buildTypeButtons() {
   for (const [k, t] of Object.entries(TYPES)) {
@@ -3510,7 +3568,9 @@ imageFile.onchange = ev => {
 const layoutButton = $('#layout-wall'), layoutArrow = $('#layout-wall-arrow'), layoutMenu = $('#layout-wall-menu');
 const layoutMenuItems = () => [...layoutMenu.querySelectorAll('[data-mode]')];
 function updateLayoutModeUI() {
-  layoutButton.textContent = LAYOUT_MODES[layoutMode];
+  // Only the label changes; replacing the whole content dropped the icon and showed vertical text in the icon rail.
+  layoutButton.querySelector('.rail-label').textContent = LAYOUT_MODES[layoutMode];
+  layoutButton.title = '整理版面：' + LAYOUT_MODES[layoutMode];
   layoutMenuItems().forEach(item => item.setAttribute('aria-current', String(item.dataset.mode === layoutMode)));
 }
 function closeLayoutMenu(focus = false) {
@@ -4485,6 +4545,8 @@ const activityPanel = $('#rail-panel'), activityPanels = [...activityPanel.query
 const activityButtons = [...document.querySelectorAll('#rail [data-panel]')];
 function showActivity(id) {
   const open = activityPanels.some(section => section.dataset.activityPanel === id) ? id : null;
+  activeActivityId = open;
+  if (open === 'navigation') railNavigationOpen = true;
   activityPanel.hidden = !open;
   activityPanels.forEach(section => { section.hidden = section.dataset.activityPanel !== open; });
   activityButtons.forEach(button => {
@@ -4492,10 +4554,15 @@ function showActivity(id) {
     button.classList.toggle('on', active);
     button.setAttribute('aria-pressed', active);
   });
+  placeRailNavigation();
 }
 activityButtons.forEach(button => {
   button.onclick = () => showActivity(button.dataset.panel === activityPanel.querySelector('[data-activity-panel]:not([hidden])')?.dataset.activityPanel ? null : button.dataset.panel);
 });
+railNavigationTitle.onclick = () => {
+  railNavigationOpen = !railNavigationOpen;
+  placeRailNavigation();
+};
 showActivity(null);
 const rail = $('#rail'), railToggle = $('#rail-toggle'), railResizer = $('#rail-resize');
 const railStates = {hidden: 0, icon: 78, full: 232};
@@ -4513,6 +4580,7 @@ function setRailState(state, persist = true) {
   railToggle.classList.toggle('on', state !== 'hidden');
   railResizer.setAttribute('aria-valuenow', railStates[state]);
   railResizer.setAttribute('aria-valuetext', state === 'full' ? '完整側邊欄' : state === 'icon' ? '圖示側邊欄' : '側邊欄隱藏');
+  placeRailNavigation();
   if (persist) try { localStorage.setItem(RAIL_KEY, state); } catch {}
 }
 let savedRail = null;

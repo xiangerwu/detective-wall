@@ -53,10 +53,11 @@ function positions(page) {
     assert.equal(await page.evaluate(() => document.activeElement?.dataset.mode), 'grid');
     await page.keyboard.press('Enter');
     assert.equal(await page.locator('#layout-wall-menu').isVisible(), false);
-    assert.equal(await page.textContent('#layout-wall'), '對齊格線');
+    assert.equal(await page.textContent('#layout-wall .rail-label'), '對齊格線');
+    assert.equal(await page.locator('#layout-wall .rail-icon').count(), 1, 'changing the mode keeps the rail icon, so the icon rail never shows the mode as vertical text');
     assert.equal(await page.evaluate(() => localStorage.getItem(LAYOUT_MODE_KEY)), 'grid');
     await page.reload(); await ready(page);
-    assert.equal(await page.textContent('#layout-wall'), '對齊格線');
+    assert.equal(await page.textContent('#layout-wall .rail-label'), '對齊格線');
     console.log('PASS layout menu lists all modes, supports arrow-key selection, and remembers the main-button mode');
 
     await page.click('#layout-wall-arrow');

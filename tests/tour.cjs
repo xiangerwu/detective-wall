@@ -331,14 +331,15 @@ async function tourCardMenu(page, combo) {
 }
 
 async function tourBandAndAnchor(page, combo) {
-  await page.click('#band-nav button[data-band-id="thesis"]');
+  await page.evaluate(() => { setRailState('full'); render(); });
+  await page.click('#rail-band-list button[data-band-id="thesis"]');
   await page.waitForFunction(() => Math.abs(view.y - (24 - 1020 * view.s)) < 1);
-  check(await page.locator('#band-nav button[aria-current="true"]').getAttribute('data-band-id') === 'thesis', '分層清單可跳到指定分層', combo.key);
+  check(await page.locator('#rail-band-list button[aria-current="true"]').getAttribute('data-band-id') === 'thesis', '分層清單可跳到指定分層', combo.key);
   await capture(page, combo, 'band-nav');
   await page.evaluate(() => { byId('shoup').level = 'source'; byId('pss').level = 'key'; render(); });
-  await page.waitForSelector('#anchor-nav');
-  if (await page.getAttribute('#anchor-nav-title', 'aria-expanded') !== 'true') await page.click('#anchor-nav-title');
-  await page.click('#anchor-filters button[data-level="source"]');
+  await page.waitForSelector('#rail-anchor-list');
+  if (await page.getAttribute('#rail-anchor-list-title', 'aria-expanded') !== 'true') await page.click('#rail-anchor-list-title');
+  await page.click('#rail-anchor-filters button[data-level="source"]');
   check(await page.evaluate(() => anchorFilter === 'source' && document.querySelector('[data-anchor-card]')), '錨點清單可篩選源頭並列出卡片', combo.key);
   await capture(page, combo, 'anchor-nav');
 }
@@ -469,8 +470,8 @@ function auditSource() {
     const foreground = el => parse(getComputedStyle(el).color) || parse(getComputedStyle(el).fill);
     const rows = [];
     const textSelectors = [
-      '#topbar button','#rail button','#types button','#layout-wall-menu button','.search-result','.band-label','#band-nav button',
-      '#anchor-nav-title','#anchor-nav button','.card h3','.card p','.card .md','.card .tag-chip','.card .links a',
+      '#topbar button','#rail button','#types button','#layout-wall-menu button','.search-result','.band-label','#rail-band-list button',
+      '#rail-anchor-list-title','#rail-anchor-list button','.card h3','.card p','.card .md','.card .tag-chip','.card .links a',
       '#rail-panel h2','#rail-panel h3','#rail-panel button','#rail-panel .section-help','#rail-panel label',
       '#sidebar h2','#sidebar button','#sidebar .section-help','#sidebar label','#chat-messages .chat-message',
       '#chat-messages .chat-message small','#chat-progress','#chat-progress-list','#mascot-bubble','#edgepop button',
@@ -481,7 +482,7 @@ function auditSource() {
     for (const selector of textSelectors) for (const el of document.querySelectorAll(selector)) {
       const style = getComputedStyle(el), value = foreground(el), text = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim();
       if (!value || !text || !visible(el)) continue;
-      const special = el.matches('.band-label,#band-nav button,#anchor-nav button,#anchor-nav-title,.str-label');
+      const special = el.matches('.band-label,.str-label');
       if (el.matches('button.swatch') && !el.innerText.trim()) continue;
       const bg = background(el, special);
       const icon = el.matches('#rail button,#toggle-sidebar,#zoom button,#undo,#redo') && text.length <= 3;

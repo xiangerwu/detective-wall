@@ -10,8 +10,8 @@ const base = process.env.WALL_TEST_URL;
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(base); await ready(page);
     const icons = page.locator('#rail .rail-activity');
-    assert.equal(await icons.count(), 7);
-    for (let i = 0; i < 7; i++) {
+    assert.equal(await icons.count(), 8);
+    for (let i = 0; i < 8; i++) {
       assert.ok(await icons.nth(i).getAttribute('title'));
       assert.ok(await icons.nth(i).getAttribute('aria-label'));
       assert.equal(await icons.nth(i).locator('svg').count(), 1);

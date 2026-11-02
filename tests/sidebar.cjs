@@ -27,8 +27,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     }
     await page.click('#ai-tab-chat');
     ok(await page.locator('#mascot').isVisible() && await page.locator('#mascot').evaluate(el => getComputedStyle(el).position === 'fixed'), 'the character is a fixed mascot outside the sidebar');
-    ok(await page.locator('#rail .rail-activity').count() === 7 && await page.locator('#rail .rail-activity[title][aria-label]').count() === 7
-      && await page.locator('#rail .rail-activity svg').count() === 7, 'rail has seven titled, labelled inline SVG icons');
+    ok(await page.locator('#rail .rail-activity').count() === 8 && await page.locator('#rail .rail-activity[title][aria-label]').count() === 8
+      && await page.locator('#rail .rail-activity svg').count() === 8, 'rail has eight titled, labelled inline SVG icons');
 
     const width = () => page.evaluate(() => $('#sidebar').offsetWidth);
     ok(await width() === 300, 'default width 300px');

@@ -46,14 +46,15 @@ fs.mkdirSync(OUT, {recursive: true});
     await page.click('#ai-tab-chat');
     console.log('PASS A2 AI case-folder tabs switch model, proposals, audit, and conversation content');
 
-    const bandCount = await page.locator('#band-nav button[data-band-id]').count();
-    assert.equal(bandCount, await page.evaluate(() => data.bands.length), 'A3 band nav has one item per band');
-    await page.locator('#band-nav button[data-band-id]').nth(1).click();
+    await page.evaluate(() => { setRailState('full'); render(); });
+    const bandCount = await page.locator('#rail-band-list button[data-band-id]').count();
+    assert.equal(bandCount, await page.evaluate(() => data.bands.length), 'A3 rail band nav has one item per band');
+    await page.locator('#rail-band-list button[data-band-id]').nth(1).click();
     await page.screenshot({path: path.join(OUT, 'band-nav.png')});
     const secondBand = await page.evaluate(() => [...data.bands].sort((a, b) => a.y - b.y)[1]);
     assert.ok(await page.evaluate(y => Math.abs(view.y - (24 - y * view.s)) < 1, secondBand.y));
     await page.focus('#viewport'); await page.keyboard.press('PageDown');
-    assert.equal(await page.locator('#band-nav button[aria-current=true]').getAttribute('data-band-id'), 'thesis');
+    assert.equal(await page.locator('#rail-band-list button[aria-current=true]').getAttribute('data-band-id'), 'thesis');
     console.log('PASS A3 band nav click, active state, and PageDown');
 
     await page.evaluate(() => setTheme('cork'));
