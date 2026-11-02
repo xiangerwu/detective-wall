@@ -36,7 +36,7 @@
   --ui-danger:#ffb8ad;--ui-danger-strong:#e0303f;--ui-danger-soft:#5a2524;--ui-success:#b9efc7;--ui-warning:#e8d29a;
   --ui-shadow:rgba(20,10,4,.56);--ui-shadow-soft:rgba(20,10,4,.36);--ui-backdrop:rgba(20,10,4,.62);--ui-selection:#b8e4ff;
   --ui-pin-light:#ffb7bd;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --wall-color:#6b4a2f;--wall-label-bg:#f2e6d0;--band:#e8d29a;--band-line:rgba(255,230,190,.35);--band-label-bg:#2a1d14;--band-label-ink:#f2e6d0;--builds:#e0303f;--uses:#7fc4e8;--question:#e8d29a;--glow-r:1px}
+  --wall-color:#6b4a2f;--wall-label-bg:#f2e6d0;--band:#e8d29a;--band-line:rgba(255,230,190,.35);--band-label-bg:#2a1d14;--band-label-ink:#f2e6d0;--builds:#e0303f;--uses:#7fc4e8;--question:#e8d29a;--uses-ink:#1d5a80;--question-ink:#7a5a12;--glow-r:1px}
 [data-theme=paper]{--wall-bg:linear-gradient(rgba(150,110,40,.18) 1px,transparent 1px) 0 0/100% 18px,#f1e4bf;
   --ui-bg:#3b2a1e;--ui-panel:#493527;--ui-bar:#2e2118;--ui-surface:#594331;--ui-raised:#6d5139;--ui-input:#2b1f17;
   --ui-text:#f3e9d2;--ui-muted:#e5d5bc;--ui-border:#8b7054;--ui-hover:#75553c;--ui-accent:#8db4dc;--ui-active:#2a5d8f;
@@ -78,12 +78,15 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #types button{border:0;border-radius:3px;padding:4px 6px}
 #types button:hover{border-color:transparent;background:var(--ui-hover)}
 #types button.on{border-color:transparent;background:var(--ui-active)}
+#types button svg{border-radius:3px;background:var(--wall-label-bg)}  /* the sample sits on the edge-label paper with the label ink, so it reads on dark chrome and on any selection colour */
 .theme{font-size:13px;color:var(--ui-muted)}
 .theme select{font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:3px 6px}
-#layout-wall-control{position:relative;display:flex}
-#layout-wall-control > button{border-radius:5px 0 0 5px}
-#layout-wall-control > #layout-wall{padding-right:0;padding-left:0;font-size:12px}
-#layout-wall-control > #layout-wall-arrow{min-width:18px;padding:4px 1px;font-size:12px;border-left-color:var(--ui-border);border-radius:0 5px 5px 0}
+/* Same labelled group as 新連線: the main button runs the current mode, the arrow picks another. */
+#layout-wall-control{position:relative;display:flex;align-items:center;padding:2px;border:1px solid var(--ui-border);border-radius:5px}
+#layout-wall-control::before{content:'整理';padding:0 5px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
+header #layout-wall-control > button{padding:4px 7px;border:0;border-radius:3px 0 0 3px;background:var(--ui-active);font-size:12px}
+header #layout-wall-control > button:hover{background:var(--ui-hover)}
+header #layout-wall-control > #layout-wall-arrow{min-width:20px;padding:4px 3px;border-left:1px solid var(--ui-border);border-radius:0 3px 3px 0}
 #layout-wall-menu{position:absolute;z-index:41;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:2px;min-width:126px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
 #layout-wall-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
 #layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
@@ -138,6 +141,9 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .band{position:absolute;border-top:1px dashed var(--band-line);pointer-events:none}
 .band-label{position:absolute;left:14px;top:12px;font-size:16px;font-weight:700;line-height:1.35;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 30%,transparent);border-radius:4px;padding:2px 8px;transition:none;white-space:nowrap;pointer-events:auto;cursor:ns-resize;user-select:none;transform-origin:0 0;transform:scale(var(--inv,1))}
 #strings,#strings-live{position:absolute;z-index:1;pointer-events:none;overflow:visible}
+#string-ends{position:absolute;z-index:3;pointer-events:none;overflow:visible;will-change:transform}
+#string-ends circle{stroke:var(--wall-label-bg);stroke-width:1.5}
+#string-ends circle.dim{opacity:.25}
 #proposal-ghost-strings{position:absolute;z-index:3;pointer-events:none;overflow:visible}
 #proposal-ghosts{position:absolute;left:0;top:0;z-index:3;pointer-events:none}
 .proposal-ghost-card{position:absolute;width:200px;min-height:94px;padding:12px;background:color-mix(in srgb,var(--ui-accent) 20%,transparent);border:2px dashed var(--ui-accent);border-radius:6px;opacity:.62;overflow:hidden}
@@ -211,8 +217,8 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .links{display:flex;flex-wrap:wrap;gap:4px}
 .links a{font-size:11.5px;color:var(--c-link,var(--c-top));text-decoration:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;padding:1px 6px}
 .links a:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
-.links a.source-missing{color:var(--ui-danger);border-color:var(--ui-danger-strong);background:color-mix(in srgb,var(--ui-danger-strong) 12%,transparent)}.search-area{position:relative;flex:none}
-#wall-search{width:min(210px,24vw);font:inherit;font-size:13px;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:5px 8px}
+.links a.source-missing{color:var(--ui-danger);border-color:var(--ui-danger-strong);background:color-mix(in srgb,var(--ui-danger-strong) 12%,transparent)}.search-area{position:relative;flex:1 1 160px;max-width:260px}  /* starts narrow and grows into spare room, so the toolbar fits one row at 1400px */
+#wall-search{width:100%;box-sizing:border-box;font:inherit;font-size:13px;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:5px 8px}
 #search-results{position:absolute;z-index:50;top:calc(100% + 6px);left:0;width:min(480px,calc(100vw - 32px));max-height:360px;overflow:auto;margin:0;padding:4px;list-style:none;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
 .search-result{display:block;width:100%;padding:7px 8px;text-align:left;background:transparent;border:0;border-radius:3px}
 .search-result:hover,.search-result:focus-visible{background:var(--ui-hover)}
@@ -621,11 +627,10 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 [data-card-style=paper] .card-paper.dragging{box-shadow:0 -2px 3px var(--paper-shadow-top),0 10px 14px var(--paper-shadow-near),0 22px 30px var(--paper-shadow-drag);transform:none}
 [data-card-style=paper] .card-paper.note.dragging{transform:rotate(-1.5deg)}
 [data-card-style=paper] .card-paper.curl:not(.folded)::after{content:'';position:absolute;right:-1px;bottom:-1px;z-index:2;width:36px;height:36px;clip-path:polygon(100% 0,100% 100%,0 100%);background:linear-gradient(135deg,transparent 47%,var(--paper-curl-shadow) 48% 53%,color-mix(in srgb,var(--paper-bg) 72%,white) 54%);filter:drop-shadow(-2px -2px 2px var(--paper-shadow-near));pointer-events:none}
-.anchor-badge{position:absolute;z-index:4;top:5px;right:5px;display:inline-flex;align-items:center;gap:3px;max-width:90px;padding:2px 5px;border:1px solid currentColor;border-radius:4px;font-size:10px;font-weight:800;line-height:1.2;letter-spacing:.03em;white-space:nowrap;pointer-events:none}
+.anchor-badge{position:relative;z-index:4;display:inline-flex;width:max-content;margin:0 28px 6px 0;align-items:center;gap:3px;max-width:90px;padding:2px 5px;border:1px solid currentColor;border-radius:4px;font-size:10px;font-weight:800;line-height:1.2;letter-spacing:.03em;white-space:nowrap;pointer-events:none}
 .anchor-badge::first-letter{font-size:12px}
 .anchor-badge.anchor-source{color:#7a1e2a;background:color-mix(in srgb,#ffd9dc 88%,transparent);border-radius:3px 9px 3px 9px}
 .anchor-badge.anchor-key{color:#624711;background:color-mix(in srgb,#ffe8a7 90%,transparent);clip-path:polygon(0 0,100% 0,100% 82%,82% 100%,0 100%)}
-.card.has-anchor h3{padding-right:64px}
 .card.photo-card{--photo-border:#c8c0b4;position:relative;padding:10px 10px 34px;background:var(--photo-frame);border:1px solid var(--photo-border);border-top:1px solid var(--photo-border);border-radius:1px;color:var(--photo-ink);transform:rotate(var(--tilt));box-shadow:0 2px 3px var(--paper-shadow-near),0 12px 20px var(--paper-shadow-bottom)}
 .card.photo-card .card-image{width:100%;height:auto;max-height:220px;aspect-ratio:4/3;object-fit:cover;margin:0;background:#e7e0d6}
 .card.photo-card .image-missing{display:grid;place-items:center;min-height:120px;margin:0;background:#eee8df;color:#6d665d}
@@ -823,6 +828,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <div id="bg"></div>
     <svg id="strings"></svg>
     <svg id="strings-live" aria-hidden="true"></svg>
+    <svg id="string-ends" aria-hidden="true"></svg>
     <div id="edge-handles" class="edge-handle-layer" aria-hidden="true"></div>
     <svg id="proposal-ghost-strings" aria-hidden="true"></svg>
     <div id="proposal-ghosts" aria-hidden="true"></div>
@@ -1576,7 +1582,7 @@ const BUILTIN_TEMPLATES = [
 ];
 
 const $ = s => document.querySelector(s);
-const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
+const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), bandNav = $('#band-nav'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
@@ -1680,6 +1686,8 @@ function applyView() {
   svg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   Object.assign(liveSvg.style, box);
   liveSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
+  Object.assign(endsSvg.style, box);
+  endsSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   Object.assign(ghostSvg.style, box);
   ghostSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   for (const b of wall.querySelectorAll('.band')) Object.assign(b.style, {left: box.left, width: box.width});
@@ -2171,6 +2179,7 @@ function renderStrings(changedCards = null, changedEdges = null) {
       const {d, x, y} = curve(from.point, to.point, spring[e.id]?.s || 0);
       existing.line.setAttribute('d', d);
       existing.hit.setAttribute('d', d);
+      existing.ends.forEach((dot, i) => { const p = i ? to.point : from.point; dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); });
       if (e.label) {
         if (!existing.labelGroup) return renderStrings();
         const {visible, width} = edgeLabelMetrics(e.label);
@@ -2188,7 +2197,7 @@ function renderStrings(changedCards = null, changedEdges = null) {
     return;
   }
 
-  const nodes = [];
+  const nodes = [], endNodes = [];
   stringNodes.clear();
   for (const e of data.edges) {
     const a = cardsById.get(e.from), b = cardsById.get(e.to);
@@ -2200,7 +2209,15 @@ function renderStrings(changedCards = null, changedEdges = null) {
     line.dataset.id = e.id;
     const hit = mkPath('hit', d);
     hit.dataset.id = e.id;
-    const existing = {line, hit, labelGroup: null, labelBox: null, labelText: null};
+    const ends = [from.point, to.point].map(point => {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot.setAttribute('r', 4); dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y);
+      dot.style.fill = `var(--${e.type})`;
+      if (isDim(a) || isDim(b)) dot.classList.add('dim');
+      endNodes.push(dot);
+      return dot;
+    });
+    const existing = {line, hit, ends, labelGroup: null, labelBox: null, labelText: null};
     nodes.push(line, hit);
     if (e.label) {
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -2235,6 +2252,7 @@ function renderStrings(changedCards = null, changedEdges = null) {
   if (tempLine) nodes.push(mkPath('str', tempLine, curType));
   liveSvg.replaceChildren();
   svg.replaceChildren(...nodes);
+  endsSvg.replaceChildren(...endNodes);
   renderHandles();
 }
 function promoteStringNodes(cardIds) {
@@ -2926,7 +2944,7 @@ document.addEventListener('keydown', ev => {
 
 function sample(k) {
   const t = TYPES[k];
-  return `<svg width="28" height="10" aria-hidden="true"><line x1="2" y1="5" x2="26" y2="5" style="stroke:var(--${k})" stroke-width="${t.width}" stroke-dasharray="${t.dash}" stroke-linecap="round"/></svg>`;
+  return `<svg width="28" height="10" aria-hidden="true"><line x1="2" y1="5" x2="26" y2="5" style="stroke:var(--${k}-ink, var(--${k}))" stroke-width="${t.width}" stroke-dasharray="${t.dash}" stroke-linecap="round"/></svg>`;
 }
 function buildTypeButtons() {
   for (const [k, t] of Object.entries(TYPES)) {
