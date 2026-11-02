@@ -10,6 +10,8 @@ const {openSidebar} = require('./wall-ready.cjs');
 
 const out = process.env.WALL_TEST_OUT || path.join(__dirname, '..', 'test-results', 'proposals');
 fs.mkdirSync(out, {recursive: true});
+const p19Out = path.resolve(__dirname, '..', 'test-results', 'p19r2a');
+fs.mkdirSync(p19Out, {recursive: true});
 const base = process.env.WALL_TEST_URL;
 const db = path.join(process.env.TEMP, 'wall.db');
 
@@ -166,14 +168,20 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     await page.waitForSelector('#proposal-review:not([hidden])');
     const proposalRows = page.locator('#review-list .review-check');
     assert.equal(await proposalRows.count(), 3);
-    assert.deepEqual(await page.locator('#review-list .review-group').evaluateAll(groups => groups.map(group => group.dataset.group)), ['新增卡片｜未分層', '修改', '連線']);
+    assert.ok(await page.locator('.review-nested-row[data-op-index="2"]').count(), 'new-card edge is nested under its card');
+    assert.equal(await page.locator('#review-list .review-row[data-op-index="2"] .review-check').isChecked(), true);
+    assert.deepEqual(await page.locator('#review-list .review-group').evaluateAll(groups => groups.map(group => group.dataset.group)), ['新增卡片｜未分層', '修改']);
     await page.locator('#review-list .review-item-toggle').first().click();
     assert.equal(await page.locator('#review-list .review-row').first().locator('.review-detail').isVisible(), true);
     await page.waitForFunction(() => document.querySelectorAll('.proposal-ghost-card').length === 1);
     assert.equal(await page.evaluate(() => JSON.stringify(data.cards)), JSON.stringify(beforeProposal.data.cards));
     console.log('PASS dedicated review panel groups operations, expands Markdown/source details, and renders selected ghosts without mutating data');
-    await proposalRows.nth(0).uncheck();
-    await proposalRows.nth(2).uncheck();
+    await page.locator('#review-list .review-row[data-op-index="0"] .review-check').uncheck();
+    await page.waitForFunction(() => {
+      const edge = document.querySelector('#review-list .review-row[data-op-index="2"]');
+      return edge && !edge.querySelector('.review-check').checked && edge.textContent.includes('隨卡片略過');
+    });
+    assert.equal(await page.locator('#review-list .review-row[data-op-index="1"] .review-check').isChecked(), true);
     await page.click('#review-apply');
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden && byId('target').note === 'AI note');
     assert.equal(await page.locator('.proposal-ghost-card').count(), 0);
@@ -183,10 +191,57 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.equal(partial.data.cards.some(card => card.title === 'AI new'), false);
     status = dataOf(await call(connection.client, 'get_change_status', {proposalId: enabled.proposalId}));
     assert.deepEqual(status.opStatus, ['pending', 'applied', 'pending']);
+    assert.equal(status.counts?.conflict ?? 0, 0, 'skipped card strings do not become conflicts');
     await page.evaluate(async () => { data.cards.find(card => card.id === 'target').title = 'after proposal'; render(); await save(true); });
     await page.waitForFunction(() => document.querySelector('#save-state').textContent.startsWith('已保存'));
     assert.equal((await request('/api/walls/wall-a')).body.data.cards.find(card => card.id === 'target').title, 'after proposal');
     console.log('PASS UI applies selected proposal operations, keeps the rest pending, and saves later without 409');
+
+    const pairProposal = dataOf(await call(connection.client, 'propose_changes', {
+      wallId: 'wall-a', ops: [
+        {op: 'add_card', tempId: 'pair-a', kind: 'card', title: 'Pair A', note: '', tags: [], links: []},
+        {op: 'add_card', tempId: 'pair-b', kind: 'card', title: 'Pair B', note: '', tags: [], links: []},
+        {op: 'add_edge', from: 'pair-a', to: 'pair-b', type: 'builds', label: 'pair'},
+        {op: 'add_edge', from: 'target', to: 'pair-a', type: 'uses', label: 'anchor'},
+      ], idempotencyKey: 'p19-r2a-pair', rationale: 'two new cards',
+    }));
+    await page.evaluate(async id => openProposalImporter(await store.getProposal(id)), pairProposal.proposalId);
+    await page.waitForSelector('#proposal-review:not([hidden])');
+    assert.ok(await page.locator('.review-nested-row[data-op-index="2"]').count());
+    assert.ok(await page.locator('.review-nested-row[data-op-index="3"]').count());
+    await page.locator('#review-list .review-row[data-op-index="0"] .review-check').uncheck();
+    await page.waitForFunction(() => {
+      const pair = document.querySelector('#review-list .review-row[data-op-index="2"]');
+      const anchor = document.querySelector('#review-list .review-row[data-op-index="3"]');
+      return pair?.querySelector('.review-check').disabled
+        && !pair.querySelector('.review-check').checked
+        && pair.textContent.includes('需要兩張卡片都套用')
+        && !anchor.querySelector('.review-check').checked
+        && anchor.textContent.includes('隨卡片略過');
+    });
+    await page.evaluate(() => setTheme('cork'));
+    await page.waitForTimeout(300);
+    await page.screenshot({path: path.join(p19Out, 'proposal-review-unchecked-cork.png')});
+    await page.evaluate(() => setTheme('moon'));
+    await page.waitForTimeout(300);
+    await page.screenshot({path: path.join(p19Out, 'proposal-review-unchecked-moon.png')});
+    await page.locator('#review-list .review-row[data-op-index="0"] .review-check').check();
+    await page.locator('#review-list .review-row[data-op-index="1"] .review-check').uncheck();
+    await page.waitForFunction(() => {
+      const pair = document.querySelector('#review-list .review-row[data-op-index="2"]');
+      const anchor = document.querySelector('#review-list .review-row[data-op-index="3"]');
+      return pair?.querySelector('.review-check').disabled
+        && !pair.querySelector('.review-check').checked
+        && anchor.querySelector('.review-check').checked;
+    });
+    const pairApply = await page.evaluate(() => pending.items.filter(item => item.checked && !item.disabled).map(item => item.opIndex));
+    assert.deepEqual(pairApply, [0, 3], 'two-new edge needs both cards while new-existing edge follows its one card');
+    await page.click('#review-apply');
+    await page.waitForFunction(() => document.querySelector('#proposal-review').hidden);
+    const pairStatus = dataOf(await call(connection.client, 'get_change_status', {proposalId: pairProposal.proposalId}));
+    assert.deepEqual(pairStatus.opStatus, ['applied', 'pending', 'pending', 'applied']);
+    assert.equal(pairStatus.counts?.conflict ?? 0, 0, 'disabled two-new edge is not submitted as a conflict');
+    console.log('PASS new-card review choices gate dependent strings and keep two-new strings conflict-free');
 
     const conflictProposal = dataOf(await call(connection.client, 'propose_changes', {
       wallId: 'wall-a', ops: [
@@ -258,9 +313,35 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.deepEqual([placed.x, placed.y], [repeatPreview.body.positions[0].x, repeatPreview.body.positions[0].y]);
     const overlaps = repeated.cards.filter(card => card !== placed
       && Math.abs(card.x - placed.x) < 200 && Math.abs(card.y - placed.y) < 140);
-    assert.ok(placed.x > anchor.x && placed.x - anchor.x < 400 && placed.y >= anchor.y, JSON.stringify({placed, anchor}));
+    const centerDistance = Math.hypot(placed.x + 100 - (anchor.x + 100), placed.y + 70 - (anchor.y + 70));
+    assert.ok(centerDistance < 500, JSON.stringify({placed, anchor, centerDistance}));
     assert.deepEqual(overlaps, []);
     console.log('PASS a new card lands beside the card it connects to without overlapping');
+
+    const clusterProposal = dataOf(await call(connection.client, 'propose_changes', {
+      wallId: 'wall-a', ops: [
+        {op: 'add_card', tempId: 'cluster-a', kind: 'card', title: 'Cluster A', note: '', tags: [], links: []},
+        {op: 'add_card', tempId: 'cluster-b', kind: 'card', title: 'Cluster B', note: '', tags: [], links: []},
+        {op: 'add_card', tempId: 'cluster-c', kind: 'note', title: 'Cluster C', note: '', tags: [], links: []},
+        {op: 'add_edge', from: 'target', to: 'cluster-a', type: 'builds', label: 'cluster anchor'},
+        {op: 'add_edge', from: 'cluster-a', to: 'cluster-b', type: 'uses', label: 'cluster 1'},
+        {op: 'add_edge', from: 'cluster-b', to: 'cluster-c', type: 'question', label: 'cluster 2'},
+      ], idempotencyKey: 'p19-r2a-cluster', rationale: 'cluster placement',
+    }));
+    response = await request(`/api/proposals/${clusterProposal.proposalId}/apply`, 'POST', {opIndexes: [0, 1, 2, 3, 4, 5]});
+    assert.equal(response.status, 200);
+    const clusterCards = response.body.wall.data.cards.filter(card => card.title.startsWith('Cluster '));
+    const clusterAnchor = response.body.wall.data.cards.find(card => card.id === 'target');
+    const box = card => ({left: card.x, top: card.y, right: card.x + (card.kind === 'note' ? 170 : 200), bottom: card.y + 140});
+    const intersects = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    assert.ok(clusterCards.every(card => Math.hypot(card.x + (card.kind === 'note' ? 85 : 100) - (clusterAnchor.x + 100), card.y + 70 - (clusterAnchor.y + 70)) < 500),
+      JSON.stringify({clusterCards, clusterAnchor}));
+    assert.ok(clusterCards.every(card => response.body.wall.data.cards.filter(other => other !== card).every(other => !intersects(box(card), box(other)))),
+      JSON.stringify(clusterCards));
+    assert.ok(Math.max(...clusterCards.map(card => card.x)) - Math.min(...clusterCards.map(card => card.x)) < 500
+      && Math.max(...clusterCards.map(card => card.y)) - Math.min(...clusterCards.map(card => card.y)) < 500,
+    JSON.stringify(clusterCards));
+    console.log('PASS connected new cards stay clustered near their existing anchor without overlap');
 
     const bandWall = (await request('/api/walls/wall-a')).body;
     bandWall.data.bands = [{id: 'band-first', title: 'First band', y: 0}, {id: 'band-second', title: 'Second band', y: 500}];

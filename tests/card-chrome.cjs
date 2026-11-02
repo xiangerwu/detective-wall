@@ -5,9 +5,11 @@ const playwright = require('playwright-core');
 const {ready, openActivity} = require('./wall-ready.cjs');
 
 // Card corner controls and edge ends, checked in every theme and card style:
-// the level badge never covers the fold button or the title, and every edge end is marked above the cards.
+// the level badge never covers the fold button or the title, and every edge end is a smaller pressed-in pin.
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'card-chrome');
+const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2a');
 fs.mkdirSync(OUT, {recursive: true});
+fs.mkdirSync(P19_OUT, {recursive: true});
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) process.exitCode = 1; };
 
 (async () => {
@@ -38,9 +40,19 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       });
     });
     const ends = () => page.evaluate(() => {
-      const dots = [...document.querySelectorAll('#string-ends circle')];
+      const pins = [...document.querySelectorAll('#string-ends .string-pin')];
       const layer = z => Number(getComputedStyle(z).zIndex);
-      return {dots: dots.length, edges: data.edges.length, above: layer(document.querySelector('#string-ends')) > layer(document.querySelector('.card'))};
+      const hit = (a, b) => Boolean(a && b) && a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+      const details = pins.map(pin => {
+        const card = document.querySelector(`.card[data-id="${CSS.escape(pin.dataset.cardId)}"]`);
+        const box = card?.getBoundingClientRect(), pinBox = pin.getBoundingClientRect();
+        return {id: pin.dataset.cardId, end: pin.dataset.end, card: Boolean(card), inside: Boolean(box && pinBox.left >= box.left && pinBox.right <= box.right
+          && pinBox.top >= box.top && pinBox.bottom <= box.bottom),
+          coversTitle: Boolean(card && hit(pinBox, card.querySelector('h3')?.getBoundingClientRect())),
+          coversBadge: Boolean(card && hit(pinBox, card.querySelector('.anchor-badge')?.getBoundingClientRect())),
+          coversFold: Boolean(card && hit(pinBox, card.querySelector('.fold')?.getBoundingClientRect()))};
+      });
+      return {pins: pins.length, edges: data.edges.length, above: layer(document.querySelector('#string-ends')) > layer(document.querySelector('.card')), details};
     });
     for (const style of ['paper', 'tech']) {
       for (const theme of ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber']) {
@@ -49,7 +61,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         const problems = await overlaps();
         ok(problems.length === 0, `${theme}/${style}: level badges clear the fold button and title ${problems.join(', ')}`);
         const e = await ends();
-        ok(e.dots === e.edges * 2 && e.above, `${theme}/${style}: both ends of every edge are marked above the cards (${e.dots}/${e.edges * 2})`);
+        const badPins = e.details.filter(pin => !pin.card || !pin.inside || pin.coversTitle || pin.coversBadge || pin.coversFold);
+        ok(e.pins === e.edges * 2 && e.above && badPins.length === 0,
+          `${theme}/${style}: one smaller pin per edge end stays inside its card and clear of title/badge/fold (${e.pins}/${e.edges * 2})`);
         // Every selected new-edge type keeps its line sample readable against the selection colour.
         // The button background animates (.15s), so measure only after it settles.
         const samples = [];
@@ -71,13 +85,22 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       }
     }
     // Dots follow a card while it is dragged (incremental string updates).
-    const before = await page.evaluate(() => [...document.querySelectorAll('#string-ends circle')].map(c => c.getAttribute('cx') + ',' + c.getAttribute('cy')).join(' '));
+    const before = await page.evaluate(() => [...document.querySelectorAll('#string-ends .string-pin')].map(c => c.getAttribute('transform')).join(' '));
     const box = await page.locator(`.card[data-id="${await page.evaluate(() => data.edges[0].from)}"] h3`).boundingBox();
     await page.mouse.move(box.x + 10, box.y + 5); await page.mouse.down();
     await page.mouse.move(box.x + 90, box.y + 60, {steps: 5});
-    const during = await page.evaluate(() => [...document.querySelectorAll('#string-ends circle')].map(c => c.getAttribute('cx') + ',' + c.getAttribute('cy')).join(' '));
+    const during = await page.evaluate(() => [...document.querySelectorAll('#string-ends .string-pin')].map(c => c.getAttribute('transform')).join(' '));
     await page.mouse.up();
-    ok(during !== before, 'edge end dots move with a dragged card');
+    ok(during !== before, 'pressed-in edge pins move with a dragged card');
+    await page.evaluate(() => { setTheme('cork'); setCardStyle('paper'); fitView(true); });
+    await page.waitForTimeout(300);
+    const visibleCards = await page.locator('.card').evaluateAll(cards => cards.slice(0, 5).map(card => card.getBoundingClientRect()).reduce((box, next) => box ? {
+      left: Math.min(box.left, next.left), top: Math.min(box.top, next.top), right: Math.max(box.right, next.right), bottom: Math.max(box.bottom, next.bottom),
+    } : {left: next.left, top: next.top, right: next.right, bottom: next.bottom}, null));
+    if (visibleCards) await page.screenshot({path: path.join(P19_OUT, 'pins-close-up-cork.png'), clip: {
+      x: Math.max(0, visibleCards.left - 80), y: Math.max(0, visibleCards.top - 80),
+      width: Math.min(1400, visibleCards.right - visibleCards.left + 160), height: Math.min(900, visibleCards.bottom - visibleCards.top + 160),
+    }});
     // The layout control reads as one bordered button group, like 新連線.
     await openActivity(page, 'files').catch(() => {});
     ok(await page.evaluate(() => {

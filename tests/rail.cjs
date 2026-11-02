@@ -6,7 +6,9 @@ const {ready, reload, settled, openActivity, openSidebar} = require('./wall-read
 
 const PAGE = process.env.WALL_TEST_URL || path.join(__dirname, '..', 'index.html');
 const OUT = path.resolve(process.env.WALL_SCREENSHOT_OUT || path.join(__dirname, '..', 'test-results', 'p19r1'));
+const P19_OUT = path.resolve(__dirname, '..', 'test-results', 'p19r2a');
 fs.mkdirSync(OUT, {recursive: true});
+fs.mkdirSync(P19_OUT, {recursive: true});
 
 function contrast(page, type) {
   return page.evaluate(type => {
@@ -119,6 +121,14 @@ async function snapNavigation(page, theme, width, height, state) {
       await page.click(`#types [data-type="${type}"]`); await page.waitForTimeout(300);
       assert.ok(await contrast(page, type) >= 1.8, `${type} selected sample keeps contrast >= 1.8`);
     }
+    const typeLabels = await page.evaluate(() => ({
+      caption: getComputedStyle(document.querySelector('#types'), '::before').content,
+      labels: [...document.querySelectorAll('#types button')].map(button => button.textContent.trim()),
+      names: [...document.querySelectorAll('#types button')].map(button => ({title: button.title, aria: button.getAttribute('aria-label')})),
+    }));
+    assert.equal(typeLabels.caption, 'none', 'new-string rail has no 新連線 caption');
+    assert.deepEqual(typeLabels.labels, ['', '', ''], 'new-string rail keeps only line samples, not text labels');
+    assert.ok(typeLabels.names.every(name => name.title && name.aria), 'line samples keep tooltip and accessible names');
 
     const panels = {navigation: 'rail-navigation-panel', files: 'files-section', history: 'history-section', templates: 'template-section', sources: 'source-section', tags: 'tags-section', theme: 'theme-section', help: 'help-section'};
     for (const [id, section] of Object.entries(panels)) {
@@ -145,6 +155,13 @@ async function snapNavigation(page, theme, width, height, state) {
     await page.click('#layout-wall-menu [data-mode="grid"]'); await page.click('#layout-wall'); await settled(page);
     await page.click('#zoom-in'); await page.click('#zoom-out'); await page.click('#zoom-fit');
     assert.match(await page.textContent('#zoom-pct'), /%$/);
+
+    await page.evaluate(() => { setTheme('cork'); setCardStyle('tech'); showActivity(null); closePanel(); pop.hidden = bandpop.hidden = true; setRailState('icon'); });
+    await page.waitForTimeout(300);
+    await page.screenshot({path: path.join(P19_OUT, 'rail-icon-cork.png')});
+    await page.evaluate(() => setRailState('full'));
+    await page.waitForTimeout(300);
+    await page.screenshot({path: path.join(P19_OUT, 'rail-full-cork.png')});
 
     for (const theme of ['cork', 'moon']) for (const size of [[1400, 900], [1280, 720]]) {
       for (const state of ['icon', 'full', 'hidden']) await snap(page, theme, size[0], size[1], state);

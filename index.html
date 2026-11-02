@@ -80,9 +80,8 @@ button:hover{border-color:var(--ui-accent);background:var(--ui-hover)}
 button:disabled{opacity:.4;cursor:default}
 button.on{border-color:var(--ui-accent);background:var(--ui-active)}
 button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
-#types{display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:color-mix(in srgb,var(--rail-bg) 70%,transparent)}
-#types::before{content:'新連線';padding:0 5px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
-#types button{border:0;border-radius:var(--radius-md);padding:5px 6px}
+#types{display:flex;align-items:center;gap:4px;padding:5px;border:1px solid var(--ui-border);border-radius:var(--radius-lg);background:color-mix(in srgb,var(--rail-bg) 70%,transparent)}
+#types button{border:0;border-radius:var(--radius-md);padding:5px 6px;justify-content:center}
 #types button:hover{border-color:transparent;background:var(--ui-hover)}
 #types button.on{border-color:transparent;background:var(--ui-active)}
 #types button svg{width:28px;height:18px;border-radius:3px;background:var(--rail-bg)}
@@ -127,8 +126,8 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #rail-toggle{position:absolute;top:10px;left:10px;z-index:31;width:34px;height:34px;padding:0;border:1px solid var(--ui-border);border-radius:var(--radius-lg);color:var(--ui-text);background:var(--ui-raised);box-shadow:0 4px 10px var(--shell-shadow)}
 #rail-toggle:hover{background:var(--ui-hover)}
 #rail{flex:none;width:var(--rail-w,var(--rail-icon-w));display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:52px 10px 10px;background:var(--rail-bg);border-right:1px solid var(--ui-border);transition:width .18s ease,box-shadow .18s ease}
-#rail .rail-scroll{display:flex;flex:1;flex-direction:column;gap:10px;min-width:0;min-height:0;overflow:auto;padding-bottom:10px}
-#rail .rail-stack{display:flex;flex-direction:column;gap:7px;min-width:0}
+#rail .rail-scroll{display:flex;flex:1;flex-direction:column;gap:8px;min-width:0;min-height:0;overflow:auto;padding-bottom:10px}
+#rail .rail-stack{display:flex;flex-direction:column;gap:4px;min-width:0}
 #rail .rail-control{width:100%;display:flex;align-items:center;gap:8px;min-height:36px;padding:7px 9px;color:var(--ui-text);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
 #rail .rail-control:hover,#rail .rail-control:focus-visible{background:var(--ui-hover);border-color:var(--ui-border)}
 #rail .rail-control.on{background:var(--ui-active);border-color:var(--ui-accent)}
@@ -159,11 +158,11 @@ body.rail-icon #rail #types [data-type="uses"] line{stroke:var(--ui-text) !impor
 body.rail-icon #rail #types [data-type="question"] line{stroke:var(--ui-text) !important}
 body.rail-full #rail #types button{font-size:12px}
 body.rail-full #rail #types{flex-direction:column;align-items:stretch}
-body.rail-full #rail #types button{width:100%;justify-content:flex-start}
+body.rail-full #rail #types button{width:100%;justify-content:center}
 body.rail-full #rail #activity-navigation{display:none}
 /* The expanded rail keeps the navigation card readable at the shorter test viewport. */
-body.rail-full #rail .rail-scroll{gap:6px}
-body.rail-full #rail #types{padding:3px;gap:1px}
+body.rail-full #rail .rail-scroll{gap:8px}
+body.rail-full #rail #types{padding:4px;gap:4px}
 body.rail-full #rail #types button{padding-top:3px;padding-bottom:3px}
 body.rail-full #rail .rail-stack{gap:3px}
 body.rail-full #rail .rail-control{min-height:30px;padding-top:4px;padding-bottom:4px}
@@ -225,8 +224,8 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 .band-label{position:absolute;left:14px;top:12px;font-size:16px;font-weight:700;line-height:1.35;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 30%,transparent);border-radius:4px;padding:2px 8px;transition:none;white-space:nowrap;pointer-events:auto;cursor:ns-resize;user-select:none;transform-origin:0 0;transform:scale(var(--inv,1))}
 #strings,#strings-live{position:absolute;z-index:1;pointer-events:none;overflow:visible}
 #string-ends{position:absolute;z-index:3;pointer-events:none;overflow:visible;will-change:transform}
-#string-ends circle{stroke:var(--wall-label-bg);stroke-width:1.5}
-#string-ends circle.dim{opacity:.25}
+#string-ends .string-pin{fill:url(#string-pin-gradient);stroke:var(--ui-pin-dark);stroke-width:1.35;pointer-events:none}  /* no SVG filter: 2000 filtered pins made dragging 4x slower in Firefox */
+#string-ends .string-pin.dim{opacity:.25}
 #proposal-ghost-strings{position:absolute;z-index:3;pointer-events:none;overflow:visible}
 #proposal-ghosts{position:absolute;left:0;top:0;z-index:3;pointer-events:none}
 .proposal-ghost-card{position:absolute;width:200px;min-height:94px;padding:12px;background:color-mix(in srgb,var(--ui-accent) 20%,transparent);border:2px dashed var(--ui-accent);border-radius:6px;opacity:.62;overflow:hidden}
@@ -467,6 +466,7 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 .review-group-head{display:flex;align-items:center;gap:6px;padding:5px 4px;color:var(--ui-text);font-size:var(--font-sm);font-weight:650;background:color-mix(in srgb,var(--ui-raised) 70%,transparent);border-bottom:1px solid var(--ui-border)}
 .review-group-head input{margin:0}
 .review-row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px;align-items:start;padding:5px 4px;border-bottom:1px solid color-mix(in srgb,var(--ui-border) 65%,transparent)}
+.review-nested-row{margin-left:24px;border-left:2px solid color-mix(in srgb,var(--ui-accent) 55%,transparent);background:color-mix(in srgb,var(--ui-raised) 32%,transparent)}
 .review-row.deleted{border-left:3px solid var(--ui-danger-strong);background:var(--ui-danger-soft)}
 .review-row.focused{outline:2px solid var(--ui-accent);outline-offset:-2px}
 .review-row > input{margin:4px 0 0}
@@ -477,6 +477,8 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 .review-line{display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap;overflow:hidden}
 .review-line strong{overflow:hidden;text-overflow:ellipsis}
 .review-band{flex:none;color:var(--ui-muted);font-size:11px}
+.review-skip{display:none;flex:none;padding:1px 5px;border-radius:999px;color:var(--ui-warning);background:color-mix(in srgb,var(--ui-warning) 16%,transparent);font-size:11px}
+.review-skip:not(:empty){display:inline-flex}
 .review-tags{display:inline-flex;gap:3px;overflow:hidden}
 .review-tag{flex:none;padding:0 4px;border-radius:8px;color:var(--c-top);background:var(--c-bg);font-size:10px}
 .review-chevron{color:var(--ui-muted);font-size:11px}
@@ -1974,9 +1976,18 @@ function cardBox(c, el) {
   const size = cardSizes.get(c.id), width = size?.width || element?.offsetWidth || cardW(c), height = size?.height || cardHeight(c, element);
   return {x: c.x, y: c.y, width, height, cx: c.x + width / 2, cy: c.y + height / 2};
 }
+const STRING_PIN_INSET = 10;
+const STRING_PIN_RADIUS = 6;
 function pointAt(c, at, box = cardBox(c)) {
-  if (at.side === 'n' || at.side === 's') return {x: box.x + box.width * at.t, y: at.side === 'n' ? box.y : box.y + box.height};
-  return {x: at.side === 'w' ? box.x : box.x + box.width, y: box.y + box.height * at.t};
+  const inset = Math.min(STRING_PIN_INSET, Math.min(box.width, box.height) / 3);
+  if (at.side === 'n' || at.side === 's') return {
+    x: box.x + inset + (box.width - inset * 2) * at.t,
+    y: at.side === 'n' ? box.y + inset : box.y + box.height - inset,
+  };
+  return {
+    x: at.side === 'w' ? box.x + inset : box.x + box.width - inset,
+    y: box.y + inset + (box.height - inset * 2) * at.t,
+  };
 }
 function autoAt(c, other, rectFor = cardBox) {
   const a = rectFor(c), b = rectFor(other), dx = b.cx - a.cx, dy = b.cy - a.cy;
@@ -2013,11 +2024,32 @@ function edgeEndpoint(edge, end, autoMap, cardsById = new Map(data.cards.map(car
   const manual = normalizeAt(edge[end + 'At']);
   const at = drag?.mode === 'endpoint' && drag.edge === edge && drag.end === end ? drag.at
     : manual || autoMap.get(edge.id + ':' + end) || (other ? autoAt(card, other, rectFor) : {side: 'n', t: .5});
-  return {at, point: pointAt(card, at, rectFor(card))};
+  return {at, point: safeEndpointPoint(card, at, rectFor(card), cardElements.get(card.id), !manual && autoMap.has(edge.id + ':' + end))};
+}
+function safeEndpointPoint(card, at, box, element, automatic = false) {
+  const point = value => pointAt(card, {side: at.side, t: value}, box);
+  if (!element) return point(at.t);
+  const wallBox = wall.getBoundingClientRect();
+  const overlaps = candidate => {
+    const pin = point(candidate), left = pin.x - STRING_PIN_RADIUS, right = pin.x + STRING_PIN_RADIUS,
+      top = pin.y - STRING_PIN_RADIUS, bottom = pin.y + STRING_PIN_RADIUS;
+    const screen = {left: wallBox.left + left * view.s, right: wallBox.left + right * view.s,
+      top: wallBox.top + top * view.s, bottom: wallBox.top + bottom * view.s};
+    return [...element.querySelectorAll('h3, .anchor-badge, .fold')].some(node => {
+      const rect = node.getBoundingClientRect();
+      return screen.left < rect.right && rect.left < screen.right && screen.top < rect.bottom && rect.top < screen.bottom;
+    });
+  };
+  const safe = value => !overlaps(value);
+  if (safe(at.t)) return point(at.t);
+  const candidates = automatic
+    ? [clamp(.62 + at.t * .3, .08, .92), clamp(.72 + at.t * .2, .08, .92), .5, .25, .75, .1, .9]
+    : [.5, .25, .75, .1, .9].sort((a, b) => Math.abs(a - at.t) - Math.abs(b - at.t));
+  return candidates.map(value => ({value, point: point(value)})).find(value => !overlaps(value.value))?.point || point(at.t);
 }
 function pinPos(c) {
   const box = cardBox(c);
-  return {x: box.x + box.width / 2, y: box.y + 1};
+  return pointAt(c, {side: 'n', t: .5}, box);
 }
 
 if (window.DOMPurify) DOMPurify.addHook('afterSanitizeAttributes', node => {
@@ -2281,7 +2313,10 @@ function renderStrings(changedCards = null, changedEdges = null) {
       const {d, x, y} = curve(from.point, to.point, spring[e.id]?.s || 0);
       existing.line.setAttribute('d', d);
       existing.hit.setAttribute('d', d);
-      existing.ends.forEach((dot, i) => { const p = i ? to.point : from.point; dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); });
+      existing.ends.forEach((pin, i) => {
+        const p = i ? to.point : from.point;
+        pin.setAttribute('transform', `translate(${p.x} ${p.y})`);
+      });
       if (e.label) {
         if (!existing.labelGroup) return renderStrings();
         const {visible, width} = edgeLabelMetrics(e.label);
@@ -2311,10 +2346,16 @@ function renderStrings(changedCards = null, changedEdges = null) {
     line.dataset.id = e.id;
     const hit = mkPath('hit', d);
     hit.dataset.id = e.id;
-    const ends = [from.point, to.point].map(point => {
+    const ends = [
+      {point: from.point, card: a, end: 'from'},
+      {point: to.point, card: b, end: 'to'},
+    ].map(({point, card, end}) => {
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('r', 4); dot.setAttribute('cx', point.x); dot.setAttribute('cy', point.y);
-      dot.style.fill = `var(--${e.type})`;
+      dot.classList.add('pin', 'string-pin');
+      dot.setAttribute('r', STRING_PIN_RADIUS);
+      dot.setAttribute('transform', `translate(${point.x} ${point.y})`);
+      dot.dataset.cardId = card.id;
+      dot.dataset.end = end;
       if (isDim(a) || isDim(b)) dot.classList.add('dim');
       endNodes.push(dot);
       return dot;
@@ -2354,7 +2395,12 @@ function renderStrings(changedCards = null, changedEdges = null) {
   if (tempLine) nodes.push(mkPath('str', tempLine, curType));
   liveSvg.replaceChildren();
   svg.replaceChildren(...nodes);
-  endsSvg.replaceChildren(...endNodes);
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+  gradient.id = 'string-pin-gradient'; gradient.setAttribute('cx', '35%'); gradient.setAttribute('cy', '35%');
+  gradient.innerHTML = '<stop offset="0%" stop-color="var(--ui-pin-light)"/><stop offset="60%" stop-color="var(--ui-pin)"/><stop offset="100%" stop-color="var(--ui-pin-dark)"/>';
+  defs.append(gradient);
+  endsSvg.replaceChildren(defs, ...endNodes);
   renderHandles();
 }
 function promoteStringNodes(cardIds) {
@@ -2883,9 +2929,13 @@ vp.addEventListener('pointerup', ev => {
     if (d.moved) renderBands(); else openBand(d.b);
   } else if (d.mode === 'endpoint') {
     const point = toWall(ev), box = cardBox(d.card);
-    if (d.moved && point.x >= box.x && point.x <= box.x + box.width && point.y >= box.y && point.y <= box.y + box.height) {
+    const margin = STRING_PIN_INSET + STRING_PIN_RADIUS;
+    if (d.moved && point.x >= box.x - margin && point.x <= box.x + box.width + margin
+      && point.y >= box.y - margin && point.y <= box.y + box.height + margin) {
       d.edge[d.end + 'At'] = {...d.at};
     }
+    clearTimeout(hoverEdgeTimer);
+    hoverEdge = null;
     renderStrings(null, new Set([d.edge.id]));
   } else if (d.mode === 'resize') {
     if (d.moved) { render(); save(true); }
@@ -3055,7 +3105,7 @@ function buildTypeButtons() {
     b.title = t.label;
     b.setAttribute('aria-label', t.label);
     b.setAttribute('role', 'radio');
-    b.innerHTML = sample(k) + t.label;
+    b.innerHTML = sample(k);
     $('#types').append(b);
     pop.append(b.cloneNode(true));
   }
@@ -4005,7 +4055,9 @@ function openProposalImporter(proposal) {
     else if (op.type === 'add_edge') head = `${title(op.from)} → ${title(op.to)}（${TYPES[op.edgeType].label}）`;
     else if (op.type === 'delete_card') head = '刪除：' + title(op.cardId);
     else head = `刪除連線：${title(op.from)} → ${title(op.to)}`;
-    return {op, opIndex, group: groupOf(op), icon: iconOf(op), head, deletions,
+    const cardDeps = op.type === 'add_edge' ? [...new Set([op.from, op.to].filter(id => added.has(id)))] : [];
+    return {op, opIndex, group: cardDeps.length ? null : groupOf(op), parentTempId: cardDeps[0], cardDeps,
+      icon: iconOf(op), head, deletions,
       checked: proposal.opStatus?.[opIndex] === 'pending' && !deletions,
       disabled: proposal.opStatus?.[opIndex] && proposal.opStatus[opIndex] !== 'pending'};
   });
@@ -4016,9 +4068,45 @@ function openProposalImporter(proposal) {
   const list = $('#review-list'); list.replaceChildren();
   const groups = new Map();
   for (const item of items) {
+    if (item.parentTempId) continue;
     if (!groups.has(item.group)) groups.set(item.group, []);
     groups.get(item.group).push(item);
   }
+  const nested = new Map();
+  for (const item of items) if (item.parentTempId) {
+    if (!nested.has(item.parentTempId)) nested.set(item.parentTempId, []);
+    nested.get(item.parentTempId).push(item);
+  }
+  const appendRow = (section, item, nestedRow = false) => {
+    const row = mk('div', 'review-row' + (nestedRow ? ' review-nested-row' : '') + (item.deletions ? ' deleted' : ''));
+    row.dataset.opIndex = item.opIndex;
+    if (item.parentTempId) row.dataset.parentTempId = item.parentTempId;
+    const check = mk('input'); check.type = 'checkbox'; check.className = 'review-check'; check.dataset.opIndex = item.opIndex;
+    check.checked = item.checked; check.disabled = item.disabled || item.dependencyDisabled;
+    const toggle = mk('button', 'review-item-toggle'); toggle.type = 'button'; toggle.dataset.opIndex = item.opIndex;
+    toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-controls', 'review-detail-' + item.opIndex);
+    const line = mk('span', 'review-line'), tags = mk('span', 'review-tags');
+    line.append(mk('span', 'review-icon', item.icon), mk('strong', '', item.head));
+    if (item.op.band) line.append(mk('span', 'review-band', item.op.band));
+    for (const tag of item.op.tags || []) tags.append(mk('span', 'review-tag c-slate', tag));
+    if (tags.childNodes.length) line.append(tags);
+    const skip = mk('span', 'review-skip');
+    line.append(skip);
+    toggle.append(line, mk('span', 'review-chevron', '⌄'));
+    const detail = mk('div', 'review-detail'); detail.id = 'review-detail-' + item.opIndex;
+    appendReviewDetail(detail, item, title);
+    row.append(check, toggle, detail); section.append(row);
+    toggle.onclick = () => {
+      const expanded = !row.classList.contains('expanded');
+      row.classList.toggle('expanded', expanded); toggle.setAttribute('aria-expanded', expanded);
+      focusReviewItem(item);
+    };
+    check.onchange = () => {
+      item.checked = check.checked;
+      syncProposalReviewDependencies();
+      updateReviewControls(); updateReviewPreview();
+    };
+  };
   for (const [group, groupItems] of groups) {
     const section = mk('section', 'review-group'); section.dataset.group = group;
     const head = mk('div', 'review-group-head'), groupCheck = mk('input');
@@ -4026,43 +4114,54 @@ function openProposalImporter(proposal) {
     groupCheck.setAttribute('aria-label', '選取整組：' + group);
     head.append(groupCheck, mk('span', '', `${group}（${groupItems.length}）`)); section.append(head);
     for (const item of groupItems) {
-      const row = mk('div', 'review-row' + (item.deletions ? ' deleted' : ''));
-      row.dataset.opIndex = item.opIndex;
-      const check = mk('input'); check.type = 'checkbox'; check.className = 'review-check'; check.dataset.opIndex = item.opIndex;
-      check.checked = item.checked; check.disabled = item.disabled;
-      const toggle = mk('button', 'review-item-toggle'); toggle.type = 'button'; toggle.dataset.opIndex = item.opIndex;
-      toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-controls', 'review-detail-' + item.opIndex);
-      const line = mk('span', 'review-line'), tags = mk('span', 'review-tags');
-      line.append(mk('span', 'review-icon', item.icon), mk('strong', '', item.head));
-      if (item.op.band) line.append(mk('span', 'review-band', item.op.band));
-      for (const tag of item.op.tags || []) tags.append(mk('span', 'review-tag c-slate', tag));
-      if (tags.childNodes.length) line.append(tags);
-      toggle.append(line, mk('span', 'review-chevron', '⌄'));
-      const detail = mk('div', 'review-detail'); detail.id = 'review-detail-' + item.opIndex;
-      appendReviewDetail(detail, item, title);
-      row.append(check, toggle, detail); section.append(row);
-      toggle.onclick = () => {
-        const expanded = !row.classList.contains('expanded');
-        row.classList.toggle('expanded', expanded); toggle.setAttribute('aria-expanded', expanded);
-        focusReviewItem(item);
-      };
-      check.onchange = () => { item.checked = check.checked; updateReviewControls(); updateReviewPreview(); };
+      appendRow(section, item);
+      for (const child of nested.get(item.op.tempId) || []) appendRow(section, child, true);
     }
     groupCheck.onchange = () => {
-      for (const item of groupItems) {
+      const allItems = groupItems.flatMap(item => [item, ...(nested.get(item.op.tempId) || [])]);
+      for (const item of allItems) {
         if (item.disabled) continue;
         item.checked = groupCheck.checked;
         const box = list.querySelector(`.review-check[data-op-index="${item.opIndex}"]`);
         if (box) box.checked = item.checked;
       }
+      syncProposalReviewDependencies();
       updateReviewControls(); updateReviewPreview();
     };
     list.append(section);
   }
+  syncProposalReviewDependencies();
   updateReviewControls(); updateReviewMarks(proposal);
   $('#proposal-review').hidden = false;
   $('#review-close').focus();
   updateReviewPreview();
+}
+function syncProposalReviewDependencies() {
+  if (!pending?.proposal) return;
+  const cards = new Map(pending.items.filter(item => item.op.type === 'add_card').map(item => [item.op.tempId, item]));
+  for (const item of pending.items) {
+    if (item.op.type !== 'add_edge' || !item.cardDeps?.length) continue;
+    const ready = item.cardDeps.every(tempId => cards.get(tempId)?.checked);
+    const wasDisabled = item.dependencyDisabled;
+    if (!ready) {
+      item.wasDependencyChecked = item.checked || item.wasDependencyChecked !== false;
+      item.checked = false;
+      item.dependencyDisabled = true;
+      item.skipReason = item.cardDeps.length === 1 ? '隨卡片略過' : '需要兩張卡片都套用';
+    } else {
+      item.dependencyDisabled = false;
+      item.skipReason = '';
+      if (wasDisabled && item.wasDependencyChecked !== false) item.checked = true;
+      item.wasDependencyChecked = undefined;
+    }
+    const row = document.querySelector(`#review-list .review-row[data-op-index="${item.opIndex}"]`);
+    if (!row) continue;
+    const box = row.querySelector('.review-check'), reason = row.querySelector('.review-skip');
+    box.checked = item.checked;
+    box.disabled = item.disabled || item.dependencyDisabled;
+    reason.textContent = item.skipReason || '';
+    reason.hidden = !item.skipReason;
+  }
 }
 function appendReviewDetail(detail, item, title) {
   const op = item.op;
@@ -4103,6 +4202,7 @@ function appendReviewLinks(detail, links) {
   detail.append(box);
 }
 function reviewChecks() { return [...document.querySelectorAll('#review-list .review-check')]; }
+const reviewItemSelected = item => item.checked && !item.disabled && !item.dependencyDisabled;
 function updateReviewControls() {
   const boxes = reviewChecks(), selected = boxes.filter(box => box.checked && !box.disabled).length;
   $('#review-count').textContent = `已選 ${selected} 項`;
@@ -4137,7 +4237,7 @@ function focusReviewItem(item) {
 async function updateReviewPreview() {
   const proposal = pending?.proposal, sequence = ++reviewPreviewSeq;
   if (!proposal) return;
-  const opIndexes = pending.items.filter(item => item.checked && !item.disabled).map(item => item.opIndex);
+  const opIndexes = pending.items.filter(reviewItemSelected).map(item => item.opIndex);
   try {
     const preview = await store.previewProposal(proposal.proposalId, opIndexes);
     if (sequence !== reviewPreviewSeq || pending?.proposal !== proposal) return;
@@ -4410,26 +4510,28 @@ function closeReview() {
 $('#review-close').onclick = closeReview;
 $('#review-all').onclick = () => {
   if (!pending) return;
-  pending.items.forEach(item => { if (!item.disabled) item.checked = true; });
+  pending.items.forEach(item => { if (!item.disabled && !item.dependencyDisabled) item.checked = true; });
   reviewChecks().forEach(box => { if (!box.disabled) box.checked = true; });
+  syncProposalReviewDependencies();
   updateReviewControls(); updateReviewPreview();
 };
 $('#review-none').onclick = () => {
   if (!pending) return;
   pending.items.forEach(item => { if (!item.disabled) item.checked = false; });
   reviewChecks().forEach(box => { if (!box.disabled) box.checked = false; });
+  syncProposalReviewDependencies();
   updateReviewControls(); updateReviewPreview();
 };
 $('#review-reject').onclick = () => changeWall(async () => {
   if (!pending?.proposal) return;
-  const opIndexes = pending.items.filter(item => item.checked && !item.disabled).map(item => item.opIndex);
+  const opIndexes = pending.items.filter(reviewItemSelected).map(item => item.opIndex);
   if (!opIndexes.length) return;
   await store.rejectProposal(pending.proposal.proposalId, opIndexes);
   closeReview(); await refreshAiProposals();
 });
 $('#review-apply').onclick = () => changeWall(async () => {
   if (!pending?.proposal) return;
-  const opIndexes = pending.items.filter(item => item.checked && !item.disabled).map(item => item.opIndex);
+  const opIndexes = pending.items.filter(reviewItemSelected).map(item => item.opIndex);
   if (!opIndexes.length) return;
   const proposalId = pending.proposal.proposalId;
   await store.flushWrites();

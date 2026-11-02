@@ -363,16 +363,56 @@ function placeCard(data, op) {
   return freeGridSpot(data.cards, (band?.y || 0) + 60, cardWidth(op), cardHeight(op));
 }
 
-function layoutNewCards(data, newIds) {
-  const cards = data.cards.map(card => ({
-    id: card.id,
-    width: cardWidth(card),
-    height: cardHeight(card),
-    fixed: !newIds.has(card.id),
-    x: card.x,
-    y: card.y,
-  }));
-  const positions = wallLayout.layout(cards, data.edges);
+function layoutNewCards(data, newIds, bandY = new Map()) {
+  const byId = new Map(data.cards.map(card => [card.id, card]));
+  const neighbours = new Map([...newIds].map(id => [id, []]));
+  for (const edge of data.edges) {
+    if (neighbours.has(edge.from)) neighbours.get(edge.from).push(edge.to);
+    if (neighbours.has(edge.to)) neighbours.get(edge.to).push(edge.from);
+  }
+  const components = [], unseen = new Set(newIds);
+  while (unseen.size) {
+    const start = [...unseen].sort()[0], component = [], queue = [start];
+    unseen.delete(start);
+    while (queue.length) {
+      const id = queue.shift(); component.push(id);
+      for (const next of neighbours.get(id) || []) if (unseen.has(next)) { unseen.delete(next); queue.push(next); }
+    }
+    components.push(component.sort());
+  }
+  const fixed = data.cards.filter(card => !newIds.has(card.id));
+  for (const component of components) {
+    const anchors = new Set();
+    for (const id of component) for (const next of neighbours.get(id) || []) if (!newIds.has(next) && byId.has(next)) anchors.add(next);
+    let origin;
+    if (anchors.size) {
+      const points = [...anchors].map(id => byId.get(id)).map(card => ({x: card.x + cardWidth(card) / 2, y: card.y + cardHeight(card) / 2}));
+      origin = {x: points.reduce((sum, point) => sum + point.x, 0) / points.length,
+        y: points.reduce((sum, point) => sum + point.y, 0) / points.length};
+    } else if ([...component].some(id => Number.isFinite(bandY.get(id)))) {
+      const width = Math.max(...component.map(id => cardWidth(byId.get(id))));
+      const height = Math.max(...component.map(id => cardHeight(byId.get(id))));
+      const y = Math.min(...component.map(id => bandY.get(id)).filter(Number.isFinite));
+      const point = freeGridSpot(fixed, y, width, height);
+      origin = {x: point.x + width / 2, y: point.y + height / 2};
+    } else {
+      const width = Math.max(...component.map(id => cardWidth(byId.get(id))));
+      const height = Math.max(...component.map(id => cardHeight(byId.get(id))));
+      const point = freeGridSpot(fixed, 0, width, height);
+      origin = {x: point.x + width / 2, y: point.y + height / 2};
+    }
+    const radius = component.length === 1 ? 240 : 250;
+    component.forEach((id, index) => {
+      const angle = component.length === 1 ? 0 : -Math.PI / 4 + index * Math.PI * 2 / component.length;
+      const card = byId.get(id), width = cardWidth(card), height = cardHeight(card);
+      card.x = origin.x + Math.cos(angle) * radius - width / 2;
+      card.y = origin.y + Math.sin(angle) * radius - height / 2;
+    });
+  }
+  // Use the same rectangle+gap collision code as the wall layout controls for the final nudge.
+  const cards = data.cards.map(card => ({id: card.id, width: cardWidth(card), height: cardHeight(card),
+    fixed: !newIds.has(card.id), x: card.x, y: card.y}));
+  const positions = wallLayout.resolveOverlaps(cards);
   for (const card of data.cards) if (newIds.has(card.id)) {
     const point = positions[card.id];
     if (point) { card.x = point.x; card.y = point.y; }
@@ -392,7 +432,7 @@ function simulateProposal(row, wallRow, opIndexes) {
   }
   const affected = {cards: [], edges: [], opIndexes: []};
   const results = ops.map((op, index) => ({index, status: opStatus[index], selected: selected.has(index), changed: false}));
-  const newNonBandIds = new Set();
+  const newCardIds = new Set(), newBandY = new Map();
   const addAffected = (kind, value) => { if (value && !affected[kind].includes(value)) affected[kind].push(value); };
   const resolveEndpoint = value => tempIds.get(value) || value;
   for (let index = 0; index < ops.length; index++) {
@@ -421,7 +461,11 @@ function simulateProposal(row, wallRow, opIndexes) {
         }
       } else {
         after.cards.push(card);
-        if (op.band === undefined) newNonBandIds.add(id);
+        newCardIds.add(id);
+        if (op.band !== undefined) {
+          const band = after.bands.find(value => value?.title === op.band);
+          if (band) newBandY.set(id, band.y + 60);
+        }
         result.changed = true;
         addAffected('cards', id);
       }
@@ -458,7 +502,7 @@ function simulateProposal(row, wallRow, opIndexes) {
     result.status = 'applied';
     affected.opIndexes.push(index);
   }
-  if (newNonBandIds.size) layoutNewCards(after, newNonBandIds);
+  if (newCardIds.size) layoutNewCards(after, newCardIds, newBandY);
   return {ops, baseCards, opStatus, before, after, tempIds, affected, results, changed: proposalJson(before) !== proposalJson(after)};
 }
 
