@@ -113,8 +113,6 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #zoom button{border:0;border-radius:3px;padding:4px 6px}
 #zoom button:hover{border-color:transparent;background:var(--ui-hover)}
 #zoom-pct{min-width:58px}
-#toggle-sidebar{position:absolute;top:12px;right:10px;z-index:30;width:30px;height:30px;padding:0;border:0;color:var(--ui-muted);font-size:20px;line-height:1}
-#toggle-sidebar:hover,#toggle-sidebar.on{border:0;color:var(--ui-text);background:var(--ui-hover)}
 #main{position:relative;flex:1;min-height:0;display:flex}
 #rail-toggle{position:absolute;top:10px;left:10px;z-index:31;width:34px;height:34px;padding:0;border:1px solid var(--ui-border);border-radius:var(--radius-lg);color:var(--ui-text);background:var(--ui-raised);box-shadow:0 4px 10px var(--shell-shadow)}
 #rail-toggle:hover{background:var(--ui-hover)}
@@ -186,10 +184,15 @@ body.rail-hidden #rail-panel{display:none}
 .rail-anchor-group h3{margin:2px 0 0;color:var(--ui-muted);font-size:11px;font-weight:600}
 .rail-anchor-suggestion-list button{color:var(--ui-muted)}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
-#sidebar{flex:none;width:var(--side-w,300px);min-width:0;overflow:hidden;display:block;padding:12px;background:var(--ui-bg);border-left:1px solid var(--ui-border)}
-#sidebar-resize{flex:none;width:5px;cursor:ew-resize;touch-action:none;background:var(--ui-panel);border-right:1px solid var(--ui-border)}
-#sidebar-resize:hover,#sidebar-resize:focus-visible{background:var(--ui-accent)}
-body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
+#sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(380px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 52px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
+#sidebar.is-open{transform:none}
+#sidebar:focus-visible{outline:3px solid var(--ui-accent);outline-offset:4px}
+#sidebar.clipboard-window{display:block}
+#clipboard-peek{position:absolute;z-index:20;inset:0 auto 0 0;width:52px;padding:0;border:0;border-radius:12px 0 0 12px;background:transparent;color:var(--ui-text);cursor:pointer}
+#clipboard-peek span{display:none}
+#clipboard-peek:focus-visible{outline:3px solid var(--ui-accent);outline-offset:-4px}
+#sidebar.is-open #clipboard-peek{pointer-events:none;cursor:default}
+#sidebar.is-open #clipboard-peek:focus-visible{outline:0}
 #viewport.panning{cursor:grabbing}
 /* #bg, .band and #strings are resized to the visible area in applyView, so the board has no edge */
 #wall{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
@@ -293,6 +296,7 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 #f-color{display:flex;flex-wrap:wrap;gap:4px}
 button.swatch,button.swatch.on{width:28px;height:28px;padding:0;background:var(--c-bg);border:2px solid var(--c-top);border-radius:50%}
 button.swatch.custom-swatch{background:conic-gradient(var(--builds),var(--question),var(--uses),var(--builds))}  /* a colour wheel: the word 自訂 did not fit a 22px swatch */
+button.swatch.custom-swatch.has-color{background:var(--c-bg)}
 #f-custom-color{position:absolute;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none}
 button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .pin{position:absolute;left:50%;top:-7px;width:16px;height:16px;margin-left:-8px;border-radius:50%;cursor:crosshair;
@@ -315,7 +319,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #edgepop,#bandpop{position:absolute;z-index:6;display:flex;gap:4px;padding:6px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;white-space:nowrap;
   transform-origin:0 0;transform:scale(var(--inv,1)) translate(-50%,-130%)}
 #bandpop{transform:scale(var(--inv,1));margin-top:48px}
-#panel{position:fixed;z-index:35;width:360px;height:560px;min-width:0;min-height:0;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 16px 42px var(--ui-shadow)}
+#panel{position:fixed;z-index:42;width:360px;height:560px;min-width:0;min-height:0;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 16px 42px var(--ui-shadow)}
 #panel-titlebar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-weight:600;cursor:move;user-select:none}
 #panel-titlebar button{width:26px;height:26px;padding:0;line-height:1;border:0;background:transparent;color:var(--ui-muted);font-size:20px}
 #panel-titlebar button:hover,#panel-titlebar button:focus-visible{color:var(--ui-text);background:var(--ui-hover)}
@@ -394,7 +398,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #chat-progress-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-stop{padding:3px 8px}
 #chat-section{height:260px}
-#mascot{position:fixed;z-index:18;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
+#mascot{position:fixed;z-index:1000;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
 #mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:auto}
 #mascot-image{cursor:grab}
 body.wall-pointer #mascot *{pointer-events:none!important}
@@ -416,6 +420,7 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.mood-sweat #mascot-image{animation:mascot-shake .48s ease-out 1,mascot-breathe 4.8s ease-in-out .48s infinite}
 #mascot.mood-sleep #mascot-image{animation:mascot-breathe 7.5s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){
+  #sidebar{transition:none!important}
   #mascot-image,#mascot-blink,#mascot-transition{animation:none!important;transition:none!important}
   #mascot-bubble{transition:none!important}
 }
@@ -442,7 +447,7 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 .im-row ins{color:var(--ui-success);text-decoration:none}
 #importer .row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px}
 
-#proposal-review{position:fixed;z-index:34;right:14px;bottom:14px;width:min(560px,calc(100vw - 28px));height:min(760px,calc(100vh - 28px));display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 18px 48px var(--ui-shadow-soft)}
+#proposal-review{position:fixed;z-index:44;right:14px;bottom:14px;width:min(560px,calc(100vw - 28px));height:min(760px,calc(100vh - 28px));display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 18px 48px var(--ui-shadow-soft)}
 #proposal-review[hidden]{display:none}
 .review-header{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-2);flex:none}
 .review-header h2{margin:0;font-size:var(--font-title)}
@@ -710,6 +715,20 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #edgepop [data-type] svg{background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px}
 #edgepop [data-type] line{stroke:var(--ui-text)!important}
 #edgepop [data-type].on svg{background:var(--ui-active)}
+#edgepop{min-width:278px;display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:10px;white-space:normal}
+#edgepop{position:fixed;z-index:900;transform:translate(-50%,-130%);pointer-events:none}
+#edgepop button,#edgepop input{pointer-events:auto}
+#edgepop .edge-popup-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--ui-border);font-size:13px;font-weight:700;pointer-events:none}
+#edgepop .edge-close{width:24px;height:24px;padding:0;border:0;background:transparent;font-size:18px;line-height:1}
+#edgepop .edge-popup-title .edge-close{pointer-events:auto}
+#edgepop .edge-group{display:flex;align-items:center;gap:6px;min-width:0}
+#edgepop .edge-group[data-group=types]{flex-wrap:wrap}
+#edgepop .edge-group[data-group=weights]{flex-wrap:nowrap}
+#edgepop .edge-group[data-group=label]{display:block}
+#edgepop .edge-group[data-group=actions]{justify-content:flex-end;gap:8px}
+#edgepop .edge-group[data-group=actions] button{white-space:nowrap}
+#edgepop .edge-weights{display:flex;gap:6px;overflow:visible;border:0;border-radius:0}
+#edgepop .edge-weights button{border:1px solid var(--ui-border);border-radius:5px;padding:4px 8px}
 
 /* Soft, rounded chrome applies to every transient surface in the new shell. */
 #tabmenu,#layout-wall-menu,#search-results,#tagpop,#card-menu,#edgepop,#bandpop,#pick-toolbar,#panel,#importer,#backups{border-radius:14px;box-shadow:0 14px 34px var(--ui-shadow-soft)}
@@ -723,32 +742,26 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #f-size-reset{color:#2b180c;background:#e5c27f;border-color:#9d7138}
 #f-size-reset:hover,#f-size-reset:focus-visible{color:#2b180c;background:#f0d59d;border-color:#6f4a20}
 
-/* Penco-like clipboard: dark recycled board, brass clip, and offset cream sheets. */
-#case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
+/* Penco-like clipboard: dark recycled hardboard, one centred metal clip, and real file-folder tabs. */
+#case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
 #case-folder::before{display:none}
-#case-folder-header{height:44px;padding:7px 13px 0;border-bottom:0}
-#case-folder-header .eyebrow{color:#e7c681}
-#case-folder-header h1{color:#fff3d6}
+#case-folder-header{position:relative;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;height:92px;padding:54px 12px 0;border-bottom:0}
+#case-folder-header .clipboard-heading{min-width:0;overflow:hidden}
+#case-folder-header .eyebrow{margin:0 0 2px;color:#e7c681;font-size:10px;letter-spacing:.1em;font-weight:800;white-space:nowrap}
+#case-folder-header h1{margin:0;color:#fff3d6;font-size:18px;line-height:1.2;white-space:nowrap}
+#clipboard-close{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:7px;color:#fff3d6;background:rgba(42,21,10,.28);font-size:21px;line-height:1}
+#clipboard-close:hover,#clipboard-close:focus-visible{background:rgba(255,243,214,.18)}
 .clipboard-clip{position:absolute;z-index:12;top:3px;left:50%;width:92px;height:48px;transform:translateX(-50%);border:1px solid #5c4d27;border-radius:9px 9px 18px 18px;background:linear-gradient(110deg,#776c35 0%,#c3a84c 28%,#877a3b 55%,#d0b35a 78%,#6a612f 100%);box-shadow:0 4px 8px rgba(20,11,4,.48);pointer-events:none}
 .clipboard-clip::before{content:'';position:absolute;left:17px;right:17px;top:5px;height:17px;border:2px solid #514723;border-bottom:0;border-radius:12px 12px 0 0;background:linear-gradient(90deg,#9a873c,#d2b45b,#827433)}
 .clipboard-clip::after{content:'';position:absolute;left:12px;right:12px;bottom:7px;height:13px;border-radius:3px 3px 10px 10px;background:rgba(56,38,13,.24)}
 .clipboard-rivet{position:absolute;z-index:1;top:12px;width:9px;height:9px;border:1px solid #51431e;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f1d77a 0 25%,#87752e 48%,#403619 100%);box-shadow:0 1px 1px rgba(0,0,0,.45)}
 .clipboard-rivet:first-child{left:13px}.clipboard-rivet:last-child{right:13px}
-#case-folder-tabs{position:relative;display:block;flex:none;height:82px;padding:0;border:0;background:transparent;overflow:visible}
-.case-folder-tab{position:absolute;top:20px;width:84px;height:42px;padding:8px 5px;color:var(--clipboard-muted);background-color:#f2dfb9;background-image:linear-gradient(180deg,#fff9e9,#f2dfb9);border:1px solid #c8ad78;border-radius:6px 6px 3px 3px;box-shadow:0 4px 8px rgba(38,19,8,.28);font-size:12px;font-weight:700;white-space:nowrap}
-.case-folder-tab:nth-child(1){left:7px;transform:rotate(-2deg);z-index:1}
-.case-folder-tab:nth-child(2){left:56px;top:26px;transform:rotate(1deg);z-index:2}
-.case-folder-tab:nth-child(3){left:105px;top:22px;transform:rotate(-1deg);z-index:3}
-.case-folder-tab:nth-child(4){left:154px;top:27px;transform:rotate(2deg);z-index:4}
+#case-folder-tabs{position:relative;z-index:4;display:flex;align-items:flex-end;gap:0;flex:none;height:54px;padding:0 10px;border:0;background:transparent;overflow:visible}
+.case-folder-tab{position:relative;z-index:1;flex:1 1 0;min-width:0;height:34px;padding:7px 5px;overflow:hidden;color:var(--clipboard-ink);background-color:#e7d0a0;background-image:linear-gradient(180deg,#e7d0a0,#caa873);border:1px solid #9e773f;border-bottom:0;border-radius:9px 9px 0 0;box-shadow:0 4px 8px rgba(38,19,8,.28);font-size:12px;font-weight:700;white-space:nowrap}
+.case-folder-tab + .case-folder-tab{margin-left:-1px}
 .case-folder-tab:hover,.case-folder-tab:focus-visible{color:var(--clipboard-ink);background:#fff8df;border-color:#a77c38}
-.case-folder-tab[aria-selected=true]{top:5px;z-index:10;color:var(--clipboard-ink);background:var(--clipboard-paper);border-color:#b18d55;box-shadow:0 7px 12px rgba(38,19,8,.34);transform:rotate(0)}
-/* The sheet tabs sit side by side as the top edges of a paper stack: scattered, rotated tabs covered each other's names.
-   The clip owns the top centre, so the board title is kept for screen readers only. */
-#case-folder #case-folder-tabs{display:flex;align-items:flex-end;gap:4px;height:auto;padding:4px 8px 0}
-#case-folder .case-folder-tab:nth-child(n){position:relative;top:auto;left:auto;flex:1 1 0;width:auto;min-width:0;height:32px;padding:6px 4px;transform:none;z-index:1;white-space:nowrap}
-#case-folder .case-folder-tab[aria-selected=true]{height:38px;z-index:2}
-#case-folder-header .eyebrow,#case-folder-header h1{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-#case-folder .case-pane{--ui-text:var(--clipboard-ink);--ui-muted:var(--clipboard-muted);--ui-border:#c9ad7f;--ui-surface:#fff3d6;--ui-raised:#fff8e7;--ui-hover:#f4deb3;--ui-active:#f1d18e;--ui-accent:#8a5b23;--ui-warning:#8a5b23;--ui-success:#2e6b4b;--ui-danger:#9a2732;flex:1;margin:0 10px 10px;padding:10px;color:var(--ui-text);background:var(--clipboard-paper);border:1px solid #c9ad7f;border-radius:10px;box-shadow:0 5px 12px rgba(38,19,8,.24)}
+.case-folder-tab[aria-selected=true]{z-index:5;height:44px;margin-bottom:-1px;color:var(--clipboard-ink);background:var(--clipboard-paper);border-color:#b18d55;border-bottom-color:transparent;box-shadow:none;transform:none}
+#case-folder .case-pane{--ui-text:var(--clipboard-ink);--ui-muted:var(--clipboard-muted);--ui-border:#c9ad7f;--ui-surface:#fff3d6;--ui-raised:#fff8e7;--ui-hover:#f4deb3;--ui-active:#f1d18e;--ui-accent:#8a5b23;--ui-warning:#8a5b23;--ui-success:#2e6b4b;--ui-danger:#9a2732;position:relative;z-index:3;flex:1;margin:0 10px 10px;padding:10px;color:var(--ui-text);background:var(--clipboard-paper);border:1px solid #c9ad7f;border-top-color:transparent;border-radius:0 0 10px 10px;box-shadow:0 5px 12px rgba(38,19,8,.24)}
 #case-folder .case-pane input:not([type=checkbox]):not([type=radio]),#case-folder .case-pane select,#case-folder .case-pane textarea{color:var(--shell-ui-text);background:var(--shell-ui-input)}
 #case-folder .case-pane ::placeholder{color:var(--shell-ui-text);opacity:.78}
 
@@ -965,12 +978,12 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <div id="edge-handles" class="edge-handle-layer" aria-hidden="true"></div>
     <svg id="proposal-ghost-strings" aria-hidden="true"></svg>
     <div id="proposal-ghosts" aria-hidden="true"></div>
-    <div id="edgepop" hidden></div>
     <div id="bandpop" hidden></div>
   </div>
   <div id="marquee" hidden></div>
 </div>
 
+<div id="edgepop" hidden></div>
 <div id="pick-toolbar" hidden>
   <button id="pick-delete" type="button" class="danger">刪除選取（0）</button>
   <button id="pick-copy" type="button">複製</button>
@@ -1003,13 +1016,13 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <span id="panel-resize" role="separator" aria-label="調整編輯器大小" tabindex="0"></span>
 </div>
 
-<div id="sidebar-resize" role="separator" aria-orientation="vertical" aria-controls="sidebar" aria-label="調整側欄寬度（可用左右鍵）" tabindex="0"></div>
- <aside id="sidebar" aria-label="AI 案件夾">
+ <aside id="sidebar" class="clipboard-window" aria-label="AI 案件夾" aria-expanded="false" tabindex="0">
+   <button id="clipboard-peek" type="button" aria-label="開啟 AI 案件夾" title="開啟 AI 案件夾"><span aria-hidden="true">AI</span></button>
    <div id="case-folder">
      <div class="clipboard-clip" aria-hidden="true"><span class="clipboard-rivet"></span><span class="clipboard-rivet"></span></div>
      <header id="case-folder-header">
-       <p class="eyebrow">CASEGRAPH / AI CONTROL</p>
-       <h1>AI 案件夾</h1>
+       <div class="clipboard-heading"><p class="eyebrow">CASEGRAPH / AI CONTROL</p><h1>AI 案件夾</h1></div>
+       <button id="clipboard-close" type="button" title="關閉 AI 案件夾" aria-label="關閉 AI 案件夾">×</button>
      </header>
      <div id="case-folder-tabs" role="tablist" aria-label="AI 案件夾分頁">
        <button id="ai-tab-chat" class="case-folder-tab" type="button" role="tab" data-ai-tab="chat" aria-controls="case-pane-chat" aria-selected="true">對話</button>
@@ -1071,14 +1084,13 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
      </div>
    </div>
  </aside>
-<div id="mascot" aria-label="AI 桌寵">
+<div id="mascot" role="button" tabindex="0" aria-label="AI 桌寵；點擊開啟 AI 案件夾" aria-expanded="false">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
   <img id="mascot-image" src="/assets/avatars/claude-body-sleep.webp" alt="AI 桌寵（可拖曳）" decoding="async">
   <img id="mascot-blink" src="/assets/avatars/claude-body-blink.webp" alt="" aria-hidden="true" decoding="async">
   <img id="mascot-transition" src="/assets/avatars/claude-body-sleep.webp" alt="" aria-hidden="true" decoding="async">
   <button id="mascot-resize" type="button" aria-label="調整桌寵大小" title="調整桌寵大小"></button>
 </div>
-<button id="toggle-sidebar" type="button" aria-controls="sidebar" aria-expanded="true" aria-label="收合 AI 對話側欄" title="收合 AI 對話側欄">‹</button>
 </div>
 
 <aside id="proposal-review" role="dialog" aria-modal="false" aria-labelledby="proposal-review-title" hidden>
@@ -1578,7 +1590,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', RAIL_KEY = 'thesis-detective-wall-rail', SIDEBAR_KEY = 'thesis-detective-wall-sidebar', SIDEBAR_W_KEY = 'thesis-detective-wall-sidebar-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', RAIL_KEY = 'thesis-detective-wall-rail', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
 const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
 let layoutMode = 'overlap';
 try {
@@ -1586,7 +1598,6 @@ try {
   if (savedLayoutMode && LAYOUT_MODES[savedLayoutMode]) layoutMode = savedLayoutMode;
 } catch {}
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
-const CUSTOM_COLORS_KEY = 'thesis-detective-wall-custom-colors', CUSTOM_COLOR_LIMIT = 5;
 const isHexColor = value => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
 const normalizeColorValue = value => Object.hasOwn(COLORS, value) ? value : isHexColor(value) ? value.toLowerCase() : null;
 const colorOf = c => normalizeColorValue(c?.color) || (c?.kind === 'note' ? 'amber' : 'slate');
@@ -1628,17 +1639,6 @@ function applyCardColorStyle(element, card) {
     '--paper-top': palette.top, '--photo-frame': palette.bg, '--photo-border': palette.border,
     '--photo-ink': palette.title,
   })) element.style.setProperty(name, color);
-}
-function readCustomColors() {
-  try {
-    const value = JSON.parse(localStorage.getItem(CUSTOM_COLORS_KEY));
-    return Array.isArray(value) ? value.map(normalizeColorValue).filter(isHexColor).slice(0, CUSTOM_COLOR_LIMIT) : [];
-  } catch { return []; }
-}
-function rememberCustomColor(value) {
-  if (!isHexColor(value)) return;
-  const colors = [value.toLowerCase(), ...readCustomColors().filter(item => item !== value.toLowerCase())].slice(0, CUSTOM_COLOR_LIMIT);
-  try { localStorage.setItem(CUSTOM_COLORS_KEY, JSON.stringify(colors)); } catch {}
 }
 let cardStyle = 'tech';
 const SEED = {
@@ -1918,7 +1918,7 @@ function positionCanvasIslands() {
   const viewport = vp.getBoundingClientRect();
   const gap = 8;
   let rowTop = viewport.top + 12;
-  const blockElements = [...document.querySelectorAll('.band-label, #panel, #mascot')];
+  const blockElements = [...document.querySelectorAll('.band-label, #panel, #mascot, #sidebar')];
   const blocks = blockElements.filter(el => {
     const style = getComputedStyle(el), rect = el.getBoundingClientRect();
     return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0
@@ -3222,18 +3222,43 @@ $('#zoom-out').onclick = () => zoomAt(0.8);
 $('#zoom-pct').onclick = () => zoomAt(1 / view.s);
 $('#zoom-fit').onclick = () => fitView(true);
 
+let edgePopupPoint = null;
 function selectEdge(id, p) {
   if (id) bandpop.hidden = true;
   selEdge = id;
   renderStrings();
   pop.hidden = !id;
-  if (!id) return;
-  pop.style.left = p.x + 'px';
-  pop.style.top = p.y + 'px';
+  if (!id) { edgePopupPoint = null; return; }
+  edgePopupPoint = p;
+  placeEdgePopup(p);
   const {type, label, weight = 'normal'} = data.edges.find(e => e.id === id);
   $('#edge-label').value = label || '';
   pop.querySelectorAll('[data-type]').forEach(b => b.classList.toggle('on', b.dataset.type === type));
   pop.querySelectorAll('[data-weight]').forEach(b => { b.classList.toggle('on', b.dataset.weight === weight); b.setAttribute('aria-pressed', b.dataset.weight === weight); });
+}
+function placeEdgePopup(point) {
+  const margin = 8, viewport = vp.getBoundingClientRect();
+  const anchor = {x: viewport.left + view.x + point.x * view.s, y: viewport.top + view.y + point.y * view.s};
+  const above = 'translate(-50%,-130%)', below = 'translate(-50%,8px)';
+  pop.style.transform = above;
+  pop.style.left = anchor.x + 'px';
+  pop.style.top = anchor.y + 'px';
+  let rect = pop.getBoundingClientRect();
+  const islands = canvasIslands.getBoundingClientRect();
+  const overlapsIslands = rect.left < islands.right && rect.right > islands.left && rect.top < islands.bottom && rect.bottom > islands.top;
+  if (rect.top < viewport.top + margin || overlapsIslands) {
+    pop.style.transform = below;
+    const lower = pop.getBoundingClientRect();
+    if (lower.bottom <= viewport.bottom - margin) rect = lower;
+    else pop.style.transform = above;
+  }
+  rect = pop.getBoundingClientRect();
+  const dx = Math.max(viewport.left + margin - rect.left, Math.min(0, viewport.right - margin - rect.right));
+  const dy = Math.max(viewport.top + margin - rect.top, Math.min(0, viewport.bottom - margin - rect.bottom));
+  if (dx || dy) {
+    pop.style.left = anchor.x + dx + 'px';
+    pop.style.top = anchor.y + dy + 'px';
+  }
 }
 function deleteEdge() {
   data.edges = data.edges.filter(e => e.id !== selEdge);
@@ -3261,14 +3286,18 @@ pop.addEventListener('click', ev => {
   else if (b.dataset.auto) { delete edge.fromAt; delete edge.toAt; }
   else return deleteEdge();
   save();
-  selectEdge(selEdge, {x: parseFloat(pop.style.left), y: parseFloat(pop.style.top)});
+  selectEdge(selEdge, edgePopupPoint);
 });
 document.addEventListener('keydown', ev => {
   if (wallBusy || $('#importer').open || $('#backups').open) return;
   if (ev.key === 'Escape') {
+    if (clipboardOpen) { ev.preventDefault(); showClipboard(false); return; }
     if (!layoutMenu.hidden) { ev.preventDefault(); closeLayoutMenu(true); return; }
     if (!$('#proposal-review').hidden) { ev.preventDefault(); closeReview(); return; }
     clearSearch(); $('#tabmenu').hidden = $('#tagpop').hidden = true; bandpop.hidden = true; cardMenu.hidden = true; clearPicked(); selectEdge(null); closePanel();
+  }
+  if (ev.altKey && ev.shiftKey && ev.key.toLowerCase() === 'a') {
+    ev.preventDefault(); showClipboard(true); return;
   }
   if (ev.target.closest?.('input, textarea, select')) return;
   if (ev.key === ']' || ev.key === '[') {
@@ -3303,6 +3332,11 @@ function sample(k) {
   return `<svg class="rail-icon" width="28" height="18" aria-hidden="true"><line x1="2" y1="9" x2="26" y2="9" style="stroke:var(--${k}-ink, var(--${k}))" stroke-width="${t.width}" stroke-dasharray="${t.dash}" stroke-linecap="round"/></svg>`;
 }
 function buildTypeButtons() {
+  const title = mk('div', 'edge-popup-title'), heading = mk('strong', '', '編輯關係線'), close = mk('button', 'edge-close', '×');
+  close.type = 'button'; close.title = close.ariaLabel = '關閉關係線編輯';
+  close.onclick = () => selectEdge(null);
+  title.append(heading, close); pop.append(title);
+  const types = mk('div', 'edge-group'); types.dataset.group = 'types'; types.setAttribute('role', 'group'); types.setAttribute('aria-label', '連線類型');
   for (const [k, t] of Object.entries(TYPES)) {
     const b = document.createElement('button');
     b.type = 'button';
@@ -3311,9 +3345,11 @@ function buildTypeButtons() {
     b.setAttribute('aria-label', t.label);
     b.setAttribute('role', 'radio');
     b.innerHTML = sample(k);
-    pop.append(b);
+    types.append(b);
   }
-  const weights = mk('div', 'edge-weights');
+  pop.append(types);
+  const weights = mk('div', 'edge-group edge-weights');
+  weights.dataset.group = 'weights';
   weights.setAttribute('role', 'group');
   weights.setAttribute('aria-label', '線條粗細');
   for (const [k, w] of Object.entries(WEIGHTS)) {
@@ -3324,6 +3360,7 @@ function buildTypeButtons() {
     weights.append(b);
   }
   pop.append(weights);
+  const labelGroup = mk('div', 'edge-group'); labelGroup.dataset.group = 'label';
   const label = mk('input');
   label.id = 'edge-label';
   label.type = 'text';
@@ -3336,14 +3373,15 @@ function buildTypeButtons() {
     renderStrings();
     save();
   });
-  pop.append(label);
+  labelGroup.append(label); pop.append(labelGroup);
+  const actions = mk('div', 'edge-group'); actions.dataset.group = 'actions';
   const auto = document.createElement('button');
   auto.type = 'button'; auto.dataset.auto = 'true'; auto.textContent = '端點改回自動';
-  pop.append(auto);
+  actions.append(auto);
   const del = document.createElement('button');
   del.className = 'danger';
   del.textContent = '刪除線';
-  pop.append(del);
+  actions.append(del); pop.append(actions);
   pop.addEventListener('click', ev => {
     const b = ev.target.closest('button[data-type]');
     if (b) setType(b.dataset.type);
@@ -3404,15 +3442,9 @@ function renderColorControls() {
     const current = colorOf(byId(selCard));
     if (f.customColor) { f.customColor.value = isHexColor(current) ? current : '#8fb8de'; f.customColor.click(); }
   };
-  swatchStyle(custom, isHexColor(colorOf(byId(selCard))) ? colorOf(byId(selCard)) : '#8fb8de');
+  const own = colorOf(byId(selCard));
+  if (isHexColor(own)) { custom.classList.add('has-color'); swatchStyle(custom, own); }
   f.color.append(custom);
-  for (const value of readCustomColors()) {
-    const b = document.createElement('button');
-    b.type = 'button'; b.className = 'swatch custom-history-swatch'; b.dataset.color = value; b.dataset.historyColor = value;
-    b.title = b.ariaLabel = '最近使用的自訂色 ' + value; b.setAttribute('role', 'radio'); swatchStyle(b, value);
-    b.onclick = () => setCardColor(value);
-    f.color.append(b);
-  }
   const card = byId(selCard);
   if (card) markColor(card);
 }
@@ -3420,7 +3452,6 @@ function setCardColor(value) {
   const c = byId(selCard), color = normalizeColorValue(value);
   if (!c || !color) return;
   c.color = color;
-  if (isHexColor(color)) rememberCustomColor(color);
   renderColorControls();
   render();
   save();
@@ -3902,6 +3933,7 @@ function focusLayoutMode(direction = 0) {
   items[index].focus();
 }
 function openLayoutMenu(direction = 0) {
+  selectEdge(null);
   layoutMenu.hidden = false;
   layoutArrow.setAttribute('aria-expanded', 'true');
   focusLayoutMode(direction);
@@ -4999,34 +5031,47 @@ aiTabs.forEach((tab, index) => {
 });
 showAiTab('chat');
 
-function showSidebar(open) {
-  document.body.classList.toggle('side-closed', !open);
-  $('#toggle-sidebar').setAttribute('aria-expanded', open);
-  $('#toggle-sidebar').textContent = open ? '‹' : '›';
-  $('#toggle-sidebar').setAttribute('aria-label', open ? '收合 AI 對話側欄' : '展開 AI 對話側欄');
-  $('#toggle-sidebar').title = open ? '收合 AI 對話側欄' : '展開 AI 對話側欄';
-  $('#toggle-sidebar').classList.toggle('on', open);
-  try { localStorage.setItem(SIDEBAR_KEY, open ? '1' : '0'); } catch {}
-}
-$('#toggle-sidebar').onclick = () => showSidebar(document.body.classList.contains('side-closed'));
-const resizer = $('#sidebar-resize');
-function setSidebarWidth(w) {
-  w = clamp(Math.round(w), 220, Math.min(720, innerWidth - 200));
-  document.body.style.setProperty('--side-w', w + 'px');
-  resizer.setAttribute('aria-valuenow', w);
-  try { localStorage.setItem(SIDEBAR_W_KEY, w); } catch {}
-}
-resizer.onpointerdown = ev => { ev.preventDefault(); resizer.setPointerCapture(ev.pointerId); };
-resizer.onpointermove = ev => { if (resizer.hasPointerCapture(ev.pointerId)) setSidebarWidth(innerWidth - ev.clientX - resizer.offsetWidth / 2); };
-resizer.onkeydown = ev => {
-  const step = {ArrowLeft: 16, ArrowRight: -16}[ev.key];
-  if (step) { ev.preventDefault(); setSidebarWidth($('#sidebar').offsetWidth + step); }
-};
-let savedSidebar = null, savedWidth = null;
-try { savedSidebar = localStorage.getItem(SIDEBAR_KEY); savedWidth = localStorage.getItem(SIDEBAR_W_KEY); } catch {}
-showSidebar(savedSidebar !== '0');
-setSidebarWidth(Number(savedWidth) || 300);
 const sidebar = $('#sidebar');
+const clipboardPeek = $('#clipboard-peek'), clipboardClose = $('#clipboard-close');
+let clipboardOpen = false, clipboardOpener = null;
+function focusClipboardSheet() {
+  const selected = document.querySelector('#case-folder-tabs [aria-selected=true]');
+  (selected || $('#case-folder')).focus({preventScroll: true});
+}
+function showClipboard(open, focus = true) {
+  open = !!open;
+  if (open) clipboardOpener = document.activeElement;
+  clipboardOpen = open;
+  document.body.classList.toggle('clipboard-open', open);
+  sidebar.classList.toggle('is-open', open);
+  sidebar.setAttribute('aria-expanded', String(open));
+  clipboardPeek.tabIndex = open ? -1 : 0;
+  clipboardPeek.setAttribute('aria-hidden', String(open));
+  try { localStorage.setItem(CLIPBOARD_KEY, open ? '1' : '0'); } catch {}
+  if (!focus) return;
+  requestAnimationFrame(() => {
+    if (open) focusClipboardSheet();
+    else {
+      const target = clipboardOpener && clipboardOpener.isConnected ? clipboardOpener : clipboardPeek;
+      target?.focus({preventScroll: true});
+      clipboardOpener = null;
+    }
+  });
+}
+clipboardPeek.onclick = () => showClipboard(true);
+clipboardClose.onclick = ev => { ev.stopPropagation(); showClipboard(false); };
+sidebar.addEventListener('pointerdown', ev => {
+  if (!clipboardOpen && ev.button === 0) { ev.preventDefault(); showClipboard(true); }
+});
+sidebar.addEventListener('keydown', ev => {
+  if (!clipboardOpen && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); showClipboard(true); }
+});
+document.addEventListener('pointerdown', ev => {
+  if (clipboardOpen && !sidebar.contains(ev.target) && !mascot.contains(ev.target)) showClipboard(false);
+}, true);
+let savedClipboard = null;
+try { savedClipboard = localStorage.getItem(CLIPBOARD_KEY); } catch {}
+showClipboard(savedClipboard === '1', false);
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
@@ -5243,10 +5288,10 @@ mascotImage.onpointerup = mascotImage.onpointercancel = ev => {
   if (!mascotDrag || mascotDrag.id !== ev.pointerId) return;
   const moved = mascotDrag.moved; mascotDrag = null; mascot.classList.remove('dragging');
   if (moved) saveMascotPosition();
-  else {
-    showSidebar(true);
-    requestAnimationFrame(() => $('#chat-input').focus());
-  }
+  else showClipboard(true);
+};
+mascot.onkeydown = ev => {
+  if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); showClipboard(true); }
 };
 mascotResize.onpointerdown = ev => {
   if (ev.button !== 0) return;
@@ -5273,8 +5318,6 @@ requestAnimationFrame(() => {
   } else clampMascot();
   wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
 });
-window.addEventListener('resize', () => clampMascot(true));
-new ResizeObserver(() => clampMascot(true)).observe(vp);
 function updateChatMascot() {
   const last = chatMessages[chatMessages.length - 1];
   const running = chatBusy && !$('#chat-progress').hidden;

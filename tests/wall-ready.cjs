@@ -28,9 +28,13 @@ const openActivity = async (page, id) => {
     && !document.querySelector('#rail-panel').hidden, id);
 };
 const openSidebar = async page => {
-  if (await page.getAttribute('#toggle-sidebar', 'aria-expanded') !== 'true') await page.click('#toggle-sidebar');
-  await page.waitForFunction(() => document.querySelector('#toggle-sidebar')?.getAttribute('aria-expanded') === 'true'
-    && getComputedStyle(document.querySelector('#sidebar')).display !== 'none');
+  if (await page.getAttribute('#sidebar', 'aria-expanded') !== 'true') await page.click('#clipboard-peek');
+  await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true'
+    && document.querySelector('#sidebar')?.classList.contains('is-open'));
+  await page.waitForFunction(() => {
+    const r = document.querySelector('#sidebar')?.getBoundingClientRect();
+    return r && r.right <= innerWidth + 1;
+  });
 };
 const previewBackup = async (page, id) => {
   await openActivity(page, 'history');

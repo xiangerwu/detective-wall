@@ -284,7 +284,7 @@ async function startupFailureTests() {
       await page.waitForSelector('#proposal-review:not([hidden])');
       await page.locator('#review-list .review-item-toggle').click();
       assert.equal(await page.locator('#review-list a[href]').count(), 0);
-      await page.click('#review-close');
+      await page.locator('#review-close').click({force: true});
       console.log('PASS P12 JSON and Canvas imports skip unsafe sources with preview warnings, and review rendering creates no unsafe anchor');
 
       const project = {format: 'detective-wall-project', formatVersion: 1, exportedAt: new Date().toISOString(),

@@ -49,7 +49,7 @@ function railIconAudit(page) {
 
 async function snap(page, theme, width, height, state) {
   await page.setViewportSize({width, height});
-  await page.evaluate(({theme, state}) => { setTheme(theme); setCardStyle('tech'); showSidebar(true); showActivity(null); closePanel(); setRailState(state); }, {theme, state});
+  await page.evaluate(({theme, state}) => { setTheme(theme); setCardStyle('tech'); showClipboard(true); showActivity(null); closePanel(); setRailState(state); }, {theme, state});
   await page.waitForTimeout(260);
   await page.screenshot({path: path.join(OUT, `rail-${state}-${theme}-${width}x${height}.png`)});
 }
@@ -57,7 +57,7 @@ async function snap(page, theme, width, height, state) {
 async function snapNavigation(page, theme, width, height, state) {
   await page.setViewportSize({width, height});
   await page.evaluate(({theme, state}) => {
-    setTheme(theme); setCardStyle('tech'); showSidebar(true); closePanel(); anchorNavOpen = true; railNavigationOpen = true;
+    setTheme(theme); setCardStyle('tech'); showClipboard(true); closePanel(); anchorNavOpen = true; railNavigationOpen = true;
     setRailState(state); render();
     if (state === 'icon') showActivity('navigation'); else showActivity(null);
   }, {theme, state});

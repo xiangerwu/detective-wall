@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const playwright = require('playwright-core');
-const {ready, reload} = require('./wall-ready.cjs');
+const {ready, reload, openSidebar} = require('./wall-ready.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p14a');
@@ -13,8 +13,6 @@ fs.mkdirSync(OUT, {recursive: true});
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
-    await page.click('#toggle-sidebar');
-
     const initial = await page.evaluate(() => ({cards: data.cards.length, edges: data.edges.length}));
     await page.evaluate(() => { clearPicked(); picked.add('mine'); picked.add('q1'); renderCards(); });
     assert.equal(await page.locator('#pick-toolbar').isVisible(), true, 'selected cards show the floating toolbar');
@@ -36,7 +34,7 @@ fs.mkdirSync(OUT, {recursive: true});
     await page.click('#f-close');
     console.log('PASS A1 floating toolbar, two-click Delete, edge cleanup, one-step undo, and input Backspace');
 
-    await page.click('#toggle-sidebar');
+    await openSidebar(page);
     for (const tab of ['chat', 'proposals', 'audit', 'model']) {
       await page.click(`#ai-tab-${tab}`);
       assert.equal(await page.getAttribute(`#ai-tab-${tab}`, 'aria-selected'), 'true');

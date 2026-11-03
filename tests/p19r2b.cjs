@@ -93,7 +93,7 @@ function clipAround(rects, viewport) {
     // Rail and last-used type behaviour. The type controls must only appear after a string exists.
     await page.evaluate(() => localStorage.setItem('thesis-detective-wall-last-type', 'question'));
     await page.reload(); await ready(page);
-    await page.evaluate(() => { setRailState('full', false); showSidebar(false); });
+    await page.evaluate(() => { setRailState('full', false); showClipboard(false); });
     await setFixture(page, [
       {id: 'draw-source', kind: 'card', x: 160, y: 220, title: '來源', note: '', links: []},
       {id: 'draw-target', kind: 'card', x: 560, y: 220, title: '目標', note: '', links: []},
@@ -112,7 +112,7 @@ function clipAround(rects, viewport) {
     'changing the type in the string popup updates the edge and last-used type');
 
     // Clipboard: sheet structure, active z-order, click and keyboard tab semantics, and paper contrast.
-    await page.evaluate(() => { setTheme('cork'); setCardStyle('paper'); setRailState('icon', false); showSidebar(true); showAiTab('chat'); });
+    await page.evaluate(() => { setTheme('cork'); setCardStyle('paper'); setRailState('icon', false); showClipboard(true); showAiTab('chat'); });
     await waitPaint(page);
     const clipboard = await page.evaluate(() => {
       const tabs = [...document.querySelectorAll('#case-folder-tabs [role=tab]')];
@@ -134,7 +134,7 @@ function clipAround(rects, viewport) {
 
     // Editor placement and reset-button contrast.
     await page.setViewportSize({width: 1400, height: 900});
-    await page.evaluate(() => { showSidebar(false); setRailState('hidden', false); });
+    await page.evaluate(() => { showClipboard(false); setRailState('hidden', false); });
     await setFixture(page, [{id: 'editor-card', kind: 'card', x: 20, y: 20, title: '正在編輯的卡片', note: '不可被編輯器蓋住', links: []}]);
     await page.evaluate(() => { view = {s: 1, x: 0, y: 0}; applyView(); });
     await page.evaluate(() => openPanel('editor-card'));
@@ -157,7 +157,7 @@ function clipAround(rects, viewport) {
       await page.setViewportSize({width: 1400, height: 900});
       await page.evaluate(async ({theme}) => {
         setTheme(theme); setCardStyle('paper'); data = structuredClone(SEED); render(); fitView(true);
-        setRailState('icon', false); showSidebar(true); showActivity(null); closePanel(); showAiTab('chat');
+        setRailState('icon', false); showClipboard(true); showActivity(null); closePanel(); showAiTab('chat');
       }, {theme});
       await screenshot(page, `clipboard-chat-${theme}-1400x900.png`);
       await page.click('#ai-tab-proposals');
@@ -179,7 +179,7 @@ function clipAround(rects, viewport) {
       await screenshot(page, `editor-next-to-card-${theme}.png`);
 
       await page.setViewportSize({width: 1280, height: 720});
-      await page.evaluate(() => { closePanel(); showSidebar(true); showAiTab('chat'); setRailState('icon', false); });
+      await page.evaluate(() => { closePanel(); showClipboard(true); showAiTab('chat'); setRailState('icon', false); });
       await screenshot(page, `clipboard-chat-${theme}-1280x720.png`);
     }
   } finally {

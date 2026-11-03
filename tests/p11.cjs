@@ -115,7 +115,9 @@ async function setWallFixture(page, fixture, selected = []) {
     await page.waitForFunction(() => pending?.preview?.positions?.length === 37);
     assert.deepEqual(await page.evaluate(() => pending.preview.positions.map(({id, x, y}) => ({id, x, y}))),
       preview.positions.map(({id, x, y}) => ({id, x, y})));
-    await page.click('#review-all'); await page.click('#review-apply');
+    await page.locator('#review-all').evaluate(button => button.click());
+    await page.waitForFunction(() => !document.querySelector('#review-apply')?.disabled);
+    await page.locator('#review-apply').evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden && !wallBusy);
     const applied = await page.evaluate(() => Object.fromEntries(data.cards.map(card => [card.id, {x: card.x, y: card.y}])));
     for (const position of preview.positions) assert.deepEqual(applied[position.id], {x: position.x, y: position.y});

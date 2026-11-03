@@ -37,17 +37,17 @@ const base = process.env.WALL_TEST_URL;
     assert.equal(widened, 232);
     await reload(page);
     assert.equal(await page.evaluate(() => rail.offsetWidth), widened);
+    await openActivity(page, 'files');
     await openSidebar(page);
     assert.deepEqual(await page.locator('#case-folder-tabs [role=tab]').allTextContents(), ['對話', '提案', '紀錄', '模型']);
     assert.ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾'));
     assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
-    assert.ok(await page.isVisible('#rail-resize') && await page.isVisible('#sidebar-resize'));
+    assert.ok(await page.isVisible('#rail-resize') && !(await page.locator('#sidebar-resize').count()));
     assert.equal(await page.evaluate(() => {
-      const visible = el => getComputedStyle(el).display !== 'none';
       return vp.clientWidth + rail.offsetWidth + activityPanel.offsetWidth + railResizer.offsetWidth
-        + (visible(resizer) ? resizer.offsetWidth : 0) + (visible(sidebar) ? sidebar.offsetWidth : 0);
+        ;
     }), 1400);
-    console.log('PASS both panel handles resize independently and the viewport fills the remaining width');
+    console.log('PASS rail handle resizes independently and the floating clipboard leaves the viewport full width');
 
     const clickCard = async () => {
       const point = await page.evaluate(() => {

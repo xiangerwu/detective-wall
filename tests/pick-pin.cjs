@@ -12,7 +12,6 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const errs = [];
     page.on('pageerror', e => errs.push(e.message));
     await page.goto(PAGE); await ready(page);
-    await page.click('#toggle-sidebar');
     const pickedIds = () => page.locator('.card.picked').evaluateAll(els => els.map(el => el.dataset.id).sort());
     const pos = () => page.evaluate(() => Object.fromEntries(data.cards.map(c => [c.id, [c.x, c.y]])));
     // two cards that sit close together, and the cards a marquee around both should catch

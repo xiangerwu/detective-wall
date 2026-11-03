@@ -62,12 +62,12 @@ for (const client of ['claude', 'codex']) {
     const reloaded = await page.locator('#mascot').boundingBox();
     ok(Math.abs(reloaded.x - dragged.x) < 3 && Math.abs(reloaded.y - dragged.y) < 3, 'dragged mascot position survives reload');
 
-    await page.click('#toggle-sidebar');
+    await page.evaluate(() => showClipboard(false));
     const clickBox = await page.locator('#mascot-image').boundingBox();
     await page.mouse.click(clickBox.x + clickBox.width / 2, clickBox.y + clickBox.height / 2);
-    await page.waitForFunction(() => document.querySelector('#toggle-sidebar')?.getAttribute('aria-expanded') === 'true'
-      && document.activeElement === document.querySelector('#chat-input'));
-    console.log('PASS mascot default position, drag persistence, and click-to-open focus');
+    await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true'
+      && document.querySelector('#sidebar')?.contains(document.activeElement));
+    console.log('PASS mascot default position, drag persistence, and click-to-open board focus');
 
     // Earlier steps parked the pet top-left, where growing up-left would be clamped; resize it with room around it.
     await page.evaluate(() => setMascotPosition(600, 400));

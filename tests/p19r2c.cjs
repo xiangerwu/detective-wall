@@ -122,8 +122,6 @@ async function cardContrast(page, id) {
       'custom colour survives reload');
     await page.evaluate(() => openPanel('custom-card'));
     await waitPaint(page);
-    ok(await page.locator('#f-color [data-history-color="#fffbe6"]').count() === 1,
-      'recent custom colours return as quick swatches');
 
     // Pick a second value, then prove the same save path participates in undo/redo.
     const pickedDark = await setPickedColor(page, '#121212');

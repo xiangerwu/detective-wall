@@ -16,7 +16,6 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   await page.goto(PAGE); await ready(page); await openActivity(page, 'theme');
   await page.selectOption('#theme', 'paper');
   await page.click('#activity-theme');
-  await page.click('#toggle-sidebar');  // canvas geometry below assumes the full 1400px viewport
   await settled(page);
   const view = () => page.evaluate(() => ({ ...view }));
   const box = async id => {
@@ -124,6 +123,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   }, vp);
   ok(cover, `background and band lines fill viewport at s=${(await view()).s.toFixed(2)} after far pan`);
   // drag a card into negative wall coordinates (outside the old 1000x1500 board)
+  await page.evaluate(() => jumpToCard('shoup'));
   const bs = await box('shoup');
   await page.mouse.move(bs.x + bs.width / 4, bs.y + bs.height / 2); await page.mouse.down(); await page.mouse.move(bs.x - 400, bs.y - 300, { steps: 6 }); await page.mouse.up();
   const sh = await page.evaluate(() => ({ ...data.cards.find(c => c.id === 'shoup') }));

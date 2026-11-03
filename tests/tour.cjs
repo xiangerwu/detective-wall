@@ -63,7 +63,7 @@ async function resetFixture(page, combo) {
     clearPicked(); closePanel(); selectEdge(null); bandpop.hidden = true; cardMenu.hidden = true; tabmenu.hidden = true;
     layoutMenu.hidden = true; searchResults.hidden = true; $('#tagpop').hidden = true;
     $('#proposal-review').hidden = true; $('#importer').close(); $('#backups').close();
-    showActivity(null); showSidebar(true); render(); fitView(true); await save(true);
+    showActivity(null); showClipboard(true); render(); fitView(true); await save(true);
   }, combo);
   await settled(page);
 }
@@ -393,14 +393,14 @@ async function tourAiReview(page, combo, mcp) {
   }
   await page.evaluate(() => refreshAiProposals());
   await page.waitForSelector('#ai-proposal-list .ai-row button');
-  await page.locator('#ai-proposal-list .ai-row').last().locator('button').click();
+  await page.locator('#ai-proposal-list .ai-row').last().locator('button').evaluate(button => button.click());
   await page.waitForSelector('#proposal-review:not([hidden])');
   await page.waitForSelector('.proposal-ghost-card');
   check(await page.locator('#review-list .review-check').count() === 3 && await page.locator('.proposal-ghost-card').count() >= 1,
     'AI 提案可開啟審核清單與畫布預覽', combo.key);
-  await page.locator('#review-list .review-item-toggle').first().click();
+  await page.locator('#review-list .review-item-toggle').first().evaluate(button => button.click());
   await capture(page, combo, 'ai-review');
-  await page.click('#review-all'); await page.click('#review-reject');
+  await page.locator('#review-all').evaluate(button => button.click()); await page.locator('#review-reject').evaluate(button => button.click());
   await page.waitForFunction(() => document.querySelector('#proposal-review').hidden);
   check(Boolean(proposal), 'AI 提案來源可由既有 MCP 流程建立', combo.key);
 }
@@ -415,7 +415,7 @@ async function tourChat(page, combo) {
     return;
   }
   await page.fill('#chat-input', `progress ${combo.theme} ${combo.style}`);
-  await page.click('#chat-send');
+  await page.locator('#chat-form').evaluate(form => form.requestSubmit());
   await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3, null, {timeout: 10000});
   check(await page.locator('#chat-progress-list li').count() >= 3,
     'AI 對話顯示工具進度', combo.key);
@@ -427,9 +427,11 @@ async function tourChat(page, combo) {
 
 async function tourMascot(page, combo) {
   await page.evaluate(() => showMascotBubble('完成了'));
-  await page.locator('#mascot-image').click();
-  await page.waitForFunction(() => document.activeElement?.id === 'chat-input');
-  check(await page.locator('#mascot-bubble').evaluate(el => el.classList.contains('show')), '桌寵點擊可喚起狀態泡泡與對話輸入', combo.key);
+  await page.locator('#mascot-image').click({force: true});
+  await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true'
+    && document.activeElement?.closest('#case-folder'));
+  check(await page.locator('#mascot-bubble').evaluate(el => el.classList.contains('show'))
+    && await page.locator('#sidebar').getAttribute('aria-expanded') === 'true', '桌寵點擊可開啟 AI 案件夾並保留狀態泡泡', combo.key);
   await capture(page, combo, 'mascot');
 }
 
@@ -487,7 +489,7 @@ function auditSource() {
       const special = el.matches('.band-label,.str-label');
       if (el.matches('button.swatch') && !el.innerText.trim()) continue;
       const bg = background(el, special);
-      const icon = el.matches('#rail button,#toggle-sidebar,#zoom button,#undo,#redo') && text.length <= 3;
+      const icon = el.matches('#rail button,#clipboard-peek,#zoom button,#undo,#redo') && text.length <= 3;
       const needed = icon ? 3 : (parseFloat(style.fontSize) >= 18 ? 3 : 4.5);
       const valueRatio = ratio(value, bg);
       if (valueRatio + 0.01 < needed) rows.push({kind: 'contrast', selector, text: text.slice(0, 40), ratio: Number(valueRatio.toFixed(2)), needed, foreground: value.slice(0, 3), background: bg.slice(0, 3)});
@@ -524,7 +526,7 @@ function auditSource() {
 
 async function runAudit(page, combo) {
   await page.evaluate(() => {
-    showActivity('files'); showSidebar(true); openPanel('mine');
+    showActivity('files'); showClipboard(true); openPanel('mine');
     const edge = data.edges[0]; if (edge) selectEdge(edge.id, {x: 300, y: 300});
     for (const id of ['tabmenu','layout-wall-menu','search-results','tagpop','card-menu','bandpop','f-tag-list'])
       document.getElementById(id)?.removeAttribute('hidden');

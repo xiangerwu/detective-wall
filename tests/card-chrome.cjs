@@ -89,6 +89,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       }
     }
     // Dots follow a card while it is dragged (incremental string updates).
+    await page.evaluate(() => selectEdge(null));
     const before = await page.evaluate(() => [...document.querySelectorAll('#string-ends .string-pin')].map(c => c.getAttribute('transform')).join(' '));
     const box = await page.locator(`.card[data-id="${await page.evaluate(() => data.edges[0].from)}"] h3`).boundingBox();
     await page.mouse.move(box.x + 10, box.y + 5); await page.mouse.down();

@@ -14,7 +14,6 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(PAGE); await ready(page);
-    await page.click('#toggle-sidebar');
     await page.click('#zoom-fit');
 
     const resetFixture = async () => page.evaluate(async () => {
@@ -88,6 +87,7 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
     }), 'normalize converts legacy size once, validates w/h, and drops pin');
 
     await resetFixture();
+    await page.evaluate(() => closePanel());
     const autoSides = await page.evaluate(() => {
       const auto = autoEndpointMap();
       return data.edges.map(edge => [edgeEndpoint(edge, 'from', auto).at.side, edgeEndpoint(edge, 'to', auto).at.side]);

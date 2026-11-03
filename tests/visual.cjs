@@ -64,6 +64,7 @@ async function themeStyles(page, theme) {
       rail: color(style('#rail').backgroundColor),
       railPanel: color(style('#rail-panel').backgroundColor),
       sidebar: color(style('#sidebar').backgroundColor),
+      clipboardBoard: style('#case-folder').backgroundImage,
       panel: color(style('#panel').backgroundColor),
       input: color(style('#chat-input').backgroundColor),
       dialog: color(style('#importer').backgroundColor),
@@ -95,7 +96,7 @@ async function themeStyles(page, theme) {
   assert.ok(same(result.backgrounds.header, result.tokens['--ui-panel']), `${theme}: header is not --ui-panel`);
   assert.ok(same(result.backgrounds.rail, result.tokens['--ui-bar']), `${theme}: rail is not --ui-bar`);
   assert.ok(same(result.backgrounds.railPanel, result.tokens['--ui-panel']), `${theme}: rail panel is not --ui-panel`);
-    assert.ok(same(result.backgrounds.sidebar, result.tokens['--ui-bg']), `${theme}: sidebar is not --ui-bg`);
+    assert.ok(result.backgrounds.clipboardBoard.includes('linear-gradient'), `${theme}: clipboard keeps its hardboard surface`);
   assert.ok(same(result.backgrounds.panel, result.tokens['--ui-surface']), `${theme}: editor is not --ui-surface`);
   assert.ok(same(result.backgrounds.input, result.tokens['--ui-input']), `${theme}: input is not --ui-input`);
   assert.ok(same(result.backgrounds.dialog, result.tokens['--ui-surface']), `${theme}: dialog is not --ui-surface`);
@@ -160,7 +161,7 @@ async function themeStyles(page, theme) {
     const themeRatios = {};
     for (const theme of themes) {
       await page.evaluate(themeName => {
-        setTheme(themeName); setCardStyle('tech'); showActivity('sources'); showSidebar(true); fitView(true); openPanel('mine');
+        setTheme(themeName); setCardStyle('tech'); showActivity('sources'); showClipboard(true); fitView(true); openPanel('mine');
         $('#importer').showModal();
       }, theme);
       await page.waitForTimeout(250);

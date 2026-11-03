@@ -1,8 +1,7 @@
 const playwright = require('playwright-core');
 const {ready, openSidebar} = require('./wall-ready.cjs');
 
-// Inside the AI clipboard: the sheet tabs never cover each other, every tab name is fully readable,
-// and the metal clip never sits on visible text, at the narrowest, default and widest sidebar widths.
+// Inside the floating AI clipboard: the sheet tabs stay readable and the centred metal clip never sits on text.
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) process.exitCode = 1; };
 
 (async () => {
@@ -11,9 +10,10 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(process.env.WALL_TEST_URL); await ready(page); await openSidebar(page);
     for (const theme of ['cork', 'moon', 'paper']) {
-      for (const width of [220, 300, 480]) {
-        await page.evaluate(([t, w]) => { setTheme(t); setSidebarWidth(w); }, [theme, width]);
-        await page.waitForTimeout(250);
+      for (const [width, height] of [[1400, 900], [1280, 720]]) {
+        await page.setViewportSize({width, height});
+        await page.evaluate(t => setTheme(t), theme);
+        await page.waitForTimeout(700);
         const problems = await page.evaluate(() => {
           const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
           const shown = el => { const s = getComputedStyle(el), r = el.getBoundingClientRect(); return s.visibility !== 'hidden' && s.display !== 'none' && r.width > 2 && r.height > 2; };
@@ -27,9 +27,17 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
             const texts = [...document.querySelectorAll('#case-folder-header *, .case-folder-tab')].filter(el => shown(el) && el.textContent.trim() && !el.closest('.clipboard-clip'));
             for (const el of texts) if (hit(c, el.getBoundingClientRect())) out.push(`clip covers 「${el.textContent.trim().slice(0, 12)}」`);
           }
+          const active = document.querySelector('.case-folder-tab[aria-selected=true]'), sheet = document.querySelector('#case-folder .case-pane');
+          if (!active || !sheet) out.push('active tab or sheet is missing');
+          else {
+            const activeStyle = getComputedStyle(active), sheetStyle = getComputedStyle(sheet);
+            if (activeStyle.backgroundColor !== sheetStyle.backgroundColor) out.push('active tab and sheet use different paper colours');
+            if (activeStyle.borderBottomWidth !== '0px' || sheetStyle.borderTopColor === 'rgb(201, 173, 127)') out.push('a line remains between active tab and sheet');
+            if (Math.abs(active.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top) > 2) out.push('active tab does not touch the sheet');
+          }
           return out;
         });
-        ok(problems.length === 0, `${theme} ${width}px: clipboard tabs and clip leave every label readable ${problems.join('; ')}`);
+        ok(problems.length === 0, `${theme} ${width}x${height}: floating clipboard tabs and clip stay readable ${problems.join('; ')}`);
       }
     }
   } finally {

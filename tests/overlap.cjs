@@ -6,6 +6,7 @@ const PAGE = process.env.WALL_TEST_URL;
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1400, 900], [1280, 720]];
 const STATES = ['hidden', 'icon', 'full'];
+const CLIPBOARD_STATES = [false, true];
 
 const fixture = {
   bands: [
@@ -29,9 +30,15 @@ function intersects(a, b) {
   return a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
 }
 
-function allowedOverlap(a, b) {
+function allowedOverlap(a, b, context = {}) {
   const names = new Set([a.name, b.name]);
   if (names.has('mascot') && names.has('mascot-bubble')) return '桌寵泡泡屬於桌寵本體的附屬狀態';
+  if (names.has('mascot') && names.has('clipboard')) return '桌寵永遠在案件夾上方，允許它蓋在案件夾上';
+  if (names.has('rail') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 rail 上';
+  if (names.has('navigation') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 navigation 上';
+  if (names.has('clipboard') && names.has('panel')) return '浮動案件夾與編輯器可在右側暫時相交，編輯器保持較高互動層';
+  if (context.clipboardOpen && names.has('clipboard') && names.has('zoom-island')) return '開啟案件夾可暫時覆蓋畫布工具島';
+  if (context.clipboardOpen && names.has('clipboard') && names.has('marquee')) return '開啟案件夾可暫時覆蓋畫布選取框';
   if (names.has('rail') && names.has('navigation')) return '完整分層／錨點區是左欄 rail 內的內容';
   if (names.has('rail-panel') && names.has('navigation')) return '圖示 rail 的分層／錨點區是 rail flyout 內的內容';
   if ([...names].some(name => name.startsWith('menu:')) && !names.has('rail') && !names.has('rail-panel') && !names.has('case-folder') && !names.has('top-tabs')) {
@@ -43,11 +50,11 @@ function allowedOverlap(a, b) {
   return null;
 }
 
-async function prepare(page, theme, state, scenario) {
-  await page.evaluate(({theme, state, scenario, fixture}) => {
+async function prepare(page, theme, state, scenario, clipboardOpen) {
+  await page.evaluate(({theme, state, scenario, clipboardOpen, fixture}) => {
     setTheme(theme);
     setCardStyle('tech');
-    showSidebar(true);
+    showClipboard(clipboardOpen, false);
     closePanel();
     showActivity(null);
     for (const id of ['tabmenu', 'layout-wall-menu', 'search-results', 'card-menu']) document.getElementById(id).hidden = true;
@@ -82,7 +89,7 @@ async function prepare(page, theme, state, scenario) {
       const menu = document.getElementById('tabmenu');
       menu.hidden = false; menu.style.left = '300px'; menu.style.top = '48px';
     }
-  }, {theme, state, scenario, fixture});
+  }, {theme, state, scenario, clipboardOpen, fixture});
   await page.waitForTimeout(300);
 }
 
@@ -105,7 +112,7 @@ async function collect(page) {
     add('rail', '#rail');
     add('rail-panel', '#rail-panel');
     add('top-tabs', '#wall-tabs');
-    add('case-folder', '#case-folder');
+    add('clipboard', '#sidebar');
     add('layout-island', '#layout-wall-control');
     add('zoom-island', '#zoom');
     add('navigation', '#rail-navigation');
@@ -131,12 +138,12 @@ async function collect(page) {
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
-    for (const theme of THEMES) for (const [width, height] of SIZES) {
+    for (const theme of THEMES) for (const [width, height] of SIZES) for (const clipboardOpen of CLIPBOARD_STATES) {
       await page.setViewportSize({width, height});
       for (const state of STATES) for (const scenario of ['base', 'files', 'navigation', 'menus']) {
         if (scenario === 'files' && state === 'hidden') continue;
         if (scenario === 'navigation' && state !== 'icon') continue;
-        await prepare(page, theme, state, scenario);
+        await prepare(page, theme, state, scenario, clipboardOpen);
         const rows = await collect(page);
         if (state === 'full' && scenario === 'base' && !rows.some(row => row.name === 'navigation')) {
           failures.push({theme, width, height, state, scenario, problem: 'full rail has no visible 分層／錨點 section'});
@@ -149,7 +156,7 @@ async function collect(page) {
         }
         for (let i = 0; i < rows.length; i++) for (let j = i + 1; j < rows.length; j++) {
           if (!intersects(rows[i], rows[j])) continue;
-          const reason = allowedOverlap(rows[i], rows[j]);
+          const reason = allowedOverlap(rows[i], rows[j], {clipboardOpen, state, scenario});
           if (!reason) failures.push({theme, width, height, state, scenario, pair: [rows[i].name, rows[j].name]});
         }
       }

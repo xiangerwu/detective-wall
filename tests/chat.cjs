@@ -200,6 +200,10 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
+    const send = async () => {
+      await page.waitForFunction(() => !document.querySelector('#chat-send')?.disabled);
+      await page.locator('#chat-form').evaluate(form => form.requestSubmit());
+    };
     await page.goto(base + '/#wall=chat-wall');
     await page.waitForFunction(() => window.wallReady === true);
     await openSidebar(page);
@@ -219,11 +223,11 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
       const send = document.querySelector('#chat-send').getBoundingClientRect(), status = document.querySelector('#chat-status').getBoundingClientRect();
       return !status.height || status.top >= send.bottom;
     }), 'the status line sits below 送出 instead of covering it');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
       && [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('warmup')));
     await page.fill('#chat-input', 'UI message');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
       && document.querySelector('#mascot-image')?.getAttribute('src').endsWith('/assets/avatars/claude-body-happy.webp'));
@@ -238,14 +242,14 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.waitForFunction(() => window.wallReady === true);
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
     await page.fill('#chat-input', 'fail');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => document.querySelector('#chat-status.error')?.textContent.includes('fake CLI failure'));
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
       && document.querySelector('#mascot-image')?.getAttribute('src').endsWith('/assets/avatars/claude-body-sweat.webp'));
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sweat\.webp$/);
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-line.ai .chat-avatar')].at(-1)?.getAttribute('src').endsWith('/assets/avatars/claude-sweat.webp'));
     await page.fill('#chat-input', 'progress sleep');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     assert.equal(await page.locator('#chat-progress-track').isVisible(), false, 'progress bar stays hidden without percentage data');
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-thinking\.webp$/);
@@ -261,7 +265,7 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.click('#ai-tab-chat');
     await page.waitForFunction(() => document.querySelector('#mascot-image')?.getAttribute('src').includes('/assets/avatars/codex-body-'));
     await page.fill('#chat-input', 'progress sleep');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/codex-body-thinking\.webp$/);
     assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/codex-thinking\.webp$/);
@@ -276,7 +280,7 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.click('#ai-tab-chat');
 
     await page.fill('#chat-input', 'stop');
-    await page.click('#chat-send');
+    await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     await page.click('#chat-stop');
     await page.waitForFunction(() => document.querySelector('#chat-status')?.textContent === '已停止');

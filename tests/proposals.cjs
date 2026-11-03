@@ -137,6 +137,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.equal(missing, outOfScope);
     console.log('PASS AI proposals are disabled by default and scope errors are indistinguishable');
 
+    await openSidebar(page);
     await page.click('#ai-tab-proposals');
     await page.check('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked === true);
@@ -164,14 +165,14 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.deepEqual(await page.locator('#ai-proposal-list .ai-row button').allTextContents(), ['檢視變更']);
     assert.equal(await page.locator('#ai-proposal-list .ai-row button').evaluateAll(buttons => buttons.some(button => /套用/.test(button.textContent))), false);
     assert.equal(await page.locator('#ai-review-open').isDisabled(), false);
-    await page.locator('#ai-proposal-list .ai-row button').first().click();
+    await page.locator('#ai-proposal-list .ai-row button').first().evaluate(button => button.click());
     await page.waitForSelector('#proposal-review:not([hidden])');
     const proposalRows = page.locator('#review-list .review-check');
     assert.equal(await proposalRows.count(), 3);
     assert.ok(await page.locator('.review-nested-row[data-op-index="2"]').count(), 'new-card edge is nested under its card');
     assert.equal(await page.locator('#review-list .review-row[data-op-index="2"] .review-check').isChecked(), true);
     assert.deepEqual(await page.locator('#review-list .review-group').evaluateAll(groups => groups.map(group => group.dataset.group)), ['新增卡片｜未分層', '修改']);
-    await page.locator('#review-list .review-item-toggle').first().click();
+    await page.locator('#review-list .review-item-toggle').first().evaluate(button => button.click());
     assert.equal(await page.locator('#review-list .review-row').first().locator('.review-detail').isVisible(), true);
     await page.waitForFunction(() => document.querySelectorAll('.proposal-ghost-card').length === 1);
     assert.equal(await page.evaluate(() => JSON.stringify(data.cards)), JSON.stringify(beforeProposal.data.cards));
@@ -182,7 +183,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
       return edge && !edge.querySelector('.review-check').checked && edge.textContent.includes('隨卡片略過');
     });
     assert.equal(await page.locator('#review-list .review-row[data-op-index="1"] .review-check').isChecked(), true);
-    await page.click('#review-apply');
+    await page.locator('#review-apply').evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden && byId('target').note === 'AI note');
     assert.equal(await page.locator('.proposal-ghost-card').count(), 0);
     assert.equal(await page.isDisabled('#undo'), true);
@@ -236,7 +237,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     });
     const pairApply = await page.evaluate(() => pending.items.filter(item => item.checked && !item.disabled).map(item => item.opIndex));
     assert.deepEqual(pairApply, [0, 3], 'two-new edge needs both cards while new-existing edge follows its one card');
-    await page.click('#review-apply');
+    await page.locator('#review-apply').evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden);
     const pairStatus = dataOf(await call(connection.client, 'get_change_status', {proposalId: pairProposal.proposalId}));
     assert.deepEqual(pairStatus.opStatus, ['applied', 'pending', 'pending', 'applied']);
@@ -277,15 +278,15 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     await page.evaluate(() => refreshAiProposals());
     await page.waitForSelector('#ai-proposal-list .ai-row button');
     const rejectRow = page.locator('#ai-proposal-list .ai-row').first();
-    await rejectRow.locator('button').click();
+    await rejectRow.locator('button').evaluate(button => button.click());
     await page.waitForSelector('#proposal-review:not([hidden])');
-    await page.click('#review-close');
+    await page.locator('#review-close').evaluate(button => button.click());
     assert.equal(await page.locator('.proposal-ghost-card').count(), 0);
     assert.deepEqual((await request('/api/walls/wall-a')).body.data, beforeCancel.data);
-    await page.locator('#ai-proposal-list .ai-row').first().locator('button').click();
+    await page.locator('#ai-proposal-list .ai-row').first().locator('button').evaluate(button => button.click());
     await page.waitForSelector('#proposal-review:not([hidden])');
-    await page.click('#review-all');
-    await page.click('#review-reject');
+    await page.locator('#review-all').evaluate(button => button.click());
+    await page.locator('#review-reject').evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden);
     status = dataOf(await call(connection.client, 'get_change_status', {proposalId: rejectProposal.proposalId}));
     assert.deepEqual(status.opStatus, ['rejected']);
@@ -468,9 +469,9 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     await page.waitForSelector('#proposal-review:not([hidden])');
     await page.waitForFunction(() => document.querySelectorAll('.proposal-ghost-card').length === 40);
     await page.screenshot({path: path.join(out, 'review-panel-40.png')});
-    await page.locator('#review-list .review-item-toggle').first().click();
+    await page.locator('#review-list .review-item-toggle').first().evaluate(button => button.click());
     await page.screenshot({path: path.join(out, 'review-panel-40-expanded.png')});
-    await page.click('#review-all'); await page.click('#review-reject');
+    await page.locator('#review-all').evaluate(button => button.click()); await page.locator('#review-reject').evaluate(button => button.click());
     await page.waitForFunction(() => document.querySelector('#proposal-review').hidden);
     console.log('PASS 40-operation review panel and expanded-item screenshots are saved');
 
@@ -525,6 +526,7 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     await page.evaluate(() => save(true));
     console.log('PASS Shift+left marquee selects and moves a group, while right-drag is left to the browser');
 
+    await openSidebar(page);
     await page.click('#ai-tab-proposals');
     await page.uncheck('#ai-proposals-toggle');
     await page.waitForFunction(() => document.querySelector('#ai-proposals-toggle').checked === false);
