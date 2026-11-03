@@ -149,7 +149,7 @@ async function themeStyles(page, theme) {
           return {ratio: (light + .05) / (dark + .05), grain: getComputedStyle(card).backgroundImage};
         });
         assert.ok(contrast.ratio >= 4.5, `${theme}: paper heading contrast ${contrast.ratio.toFixed(2)} < 4.5`);
-        assert.match(contrast.grain, /paper-grain\.png/);
+        assert.equal(contrast.grain, 'none');
       }
       await page.screenshot({path: path.join(out, `theme-${theme}-${style}.png`)});
       await page.evaluate(() => openPanel('mine'));

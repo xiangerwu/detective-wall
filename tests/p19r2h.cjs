@@ -94,6 +94,23 @@ async function inspectMatrix(page, theme, style) {
       return {content, width: Number.parseFloat(computed.width) || 0, height: Number.parseFloat(computed.height) || 0,
         clipPath: computed.clipPath, zIndex: Number.parseInt(computed.zIndex, 10) || 0, filter: computed.filter};
     };
+    const lineRects = element => {
+      const range = document.createRange(), walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT), rects = [];
+      while (walker.nextNode()) {
+        if (!walker.currentNode.textContent.trim()) continue;
+        range.selectNodeContents(walker.currentNode);
+        rects.push(...[...range.getClientRects()]);
+      }
+      return rects;
+    };
+    const lineHitsFlap = (rect, box) => {
+      const left = box.left + box.width * .62, top = box.top + box.height * .62;
+      const width = box.width * .38, height = box.height * .38;
+      if (rect.bottom <= top || rect.top >= box.bottom || rect.right <= left || rect.left >= box.right) return false;
+      const y = Math.max(top, Math.min(box.bottom, (rect.top + rect.bottom) / 2));
+      const boundary = left + width * (1 - (y - top) / height);
+      return rect.left < boundary - 1 && rect.right > left + 1;
+    };
     const cards = [...document.querySelectorAll('.card')];
     const byId = id => document.querySelector(`.card[data-id="${CSS.escape(id)}"]`);
     const details = cards.map(card => {
@@ -101,21 +118,22 @@ async function inspectMatrix(page, theme, style) {
       const state = id.split('-')[2], mount = id.split('-')[3];
       const after = pseudo(card, '::after'), before = pseudo(card, '::before');
       const box = card.getBoundingClientRect();
+      const surface = card.querySelector('.card-sheet,.folded-title-zone');
       const curlPseudo = after.content !== 'none' && after.clipPath !== 'none';
-      const curlExists = curlPseudo && after.width >= 50 && after.height >= 50;
+      const curlExists = curlPseudo && after.width > 1 && after.height > 1;
       const corner = {left: box.right - after.width, top: box.bottom - after.height, right: box.right, bottom: box.bottom};
       const text = [...card.querySelectorAll('h3,.md,.md *,p,.tags,.links,.anchor-badge')]
         .filter(node => node.textContent.trim() && visible(node));
       const textOverlaps = state === 'curled' && curlPseudo
-        ? text.filter(node => hit(node.getBoundingClientRect(), corner))
+        ? text.filter(node => lineRects(node).some(line => lineHitsFlap(line, box)))
           .map(node => `${node.tagName.toLowerCase()}.${String(node.className || '').replace(/\s+/g, '.')}\u003a${node.textContent.trim().slice(0, 32)}`) : [];
       const body = card.querySelector('.md,p');
-      const background = parseColour(getComputedStyle(card).backgroundColor)
+      const background = parseColour(getComputedStyle(surface || card).backgroundColor)
         || parseColour(getComputedStyle(card).getPropertyValue('--c-bg'))
         || parseColour(getComputedStyle(card).getPropertyValue('--paper-bg'));
       const title = card.querySelector('h3');
       const titleColour = parseColour(getComputedStyle(title).color);
-      const bodyColour = body ? parseColour(getComputedStyle(body).color) : null;
+      const bodyColour = body ? parseColour(getComputedStyle(body).color) : titleColour;
       const anchor = card.querySelector('.anchor-badge');
       const fold = card.querySelector('.fold');
       const tapeBox = mount === 'tape' ? {
@@ -125,10 +143,11 @@ async function inspectMatrix(page, theme, style) {
       const pseudoCount = ['::before', '::after'].filter(name => pseudo(card, name).content !== 'none').length;
       return {
         id, state, mount, curlExists, curlClip: after.clipPath, curlWidth: after.width, curlHeight: after.height,
-        textOverlaps, titleStrip: getComputedStyle(card).backgroundImage.includes('linear-gradient'),
+        textOverlaps, noTitleBar: getComputedStyle(card).backgroundImage === 'none'
+          && (!surface || getComputedStyle(surface).backgroundImage === 'none'),
         bodyHidden: !body || !visible(body), titleVisible: visible(title),
-        // The folded flap (::after, skewed a few degrees) must start below the title text.
-        flapTop: box.bottom - parseFloat(getComputedStyle(card, '::after').bottom) - after.height - box.width * Math.tan(3 * Math.PI / 180) / 2,
+        flapTop: state === 'folded' ? card.querySelector('.folded-flap')?.getBoundingClientRect().top || 0
+          : box.bottom - parseFloat(getComputedStyle(card, '::after').bottom) - after.height - box.width * Math.tan(3 * Math.PI / 180) / 2,
         titleBottom: title.getBoundingClientRect().bottom,
         anchorCoveredByCurl: Boolean(anchor && curlPseudo && hit(anchor.getBoundingClientRect(), corner)),
         foldCoveredByCurl: Boolean(fold && curlPseudo && hit(fold.getBoundingClientRect(), corner)),
@@ -161,7 +180,7 @@ async function inspectMatrix(page, theme, style) {
   for (const card of result.cards) {
     const wanted = expected.get(card.id);
     check(wanted && ((wanted.state === 'curled' && card.curlExists) || (wanted.state !== 'curled' && !card.curlExists)),
-      `${theme}/${style}/${wanted?.kind}/${wanted?.state}/${wanted?.mount}: N5 curl corner only exists in curled state`, 'curl corner');
+      `${theme}/${style}/${wanted?.kind}/${wanted?.state}/${wanted?.mount}: V1 curl flap only exists in curled state`, 'curl corner');
     if (wanted?.state === 'curled') {
       check(card.textOverlaps.length === 0,
         `${theme}/${style}/${wanted.kind}/${wanted.mount}: curled corner leaves text visible (${card.textOverlaps.join(' | ')})`, 'curl text overlap');
@@ -169,8 +188,8 @@ async function inspectMatrix(page, theme, style) {
         `${theme}/${style}/${wanted.kind}/${wanted.mount}: anchor badge and fold control clear the curl`, 'curl chrome overlap');
     }
     if (wanted?.state === 'folded') {
-      check(card.titleStrip && card.titleVisible && card.bodyHidden && card.flapTop >= card.titleBottom - 1,
-        `${theme}/${style}/${wanted.kind}/${wanted.mount}: folded card keeps title strip and hides body, flap below title (flap ${card.flapTop.toFixed(1)}, title ${card.titleBottom.toFixed(1)})`, 'folded content');
+      check(card.noTitleBar && card.titleVisible && card.bodyHidden && card.flapTop >= card.titleBottom - 1,
+        `${theme}/${style}/${wanted.kind}/${wanted.mount}: folded card has no title bar and hides body, flap below title (flap ${card.flapTop.toFixed(1)}, title ${card.titleBottom.toFixed(1)})`, 'folded content');
     }
     if (wanted?.mount === 'tape') {
       check(card.tapeExists && !card.anchorCoveredByTape && !card.foldCoveredByTape,

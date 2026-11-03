@@ -28,10 +28,12 @@ const out = artifacts('p14b2');
 
     assert.equal(await page.locator('#add-image').getAttribute('title'), '上傳圖片並建立拍立得照片');
     assert.ok(await page.locator('.card-paper').count() >= 4);
-    assert.match(await page.locator('.card-paper').first().evaluate(el => getComputedStyle(el).backgroundImage), /paper-grain\.png/);
+    const firstPaper = page.locator('.card-paper').first();
+    assert.equal(await firstPaper.evaluate(el => getComputedStyle(el).backgroundImage), 'none');
+    assert.equal(await firstPaper.locator('.card-sheet').count(), 1);
     assert.equal(await page.locator('.anchor-badge.anchor-source').count(), 1);
     assert.equal(await page.locator('.anchor-badge.anchor-key').count(), 1);
-    console.log('PASS B2-1 paper grain, layered shadows, and anchor badges render');
+    console.log('PASS B2-1 V1 paper surface, layered shadows, and anchor badges render');
 
     await page.evaluate(() => openPanel('b2-key'));
     await page.check('#f-curl');

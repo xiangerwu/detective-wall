@@ -47,8 +47,11 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     const fold = card.locator('.fold');
     ok(await fold.isVisible() && await fold.getAttribute('aria-expanded') === 'true', 'card shows a fold button');
     await fold.click();
-    ok(await card.evaluate(el => el.classList.contains('folded')) && await height() < 70 && !(await card.locator('.md, p').first().isVisible()) && await card.locator('h3').isVisible(),
-      `fold button collapses the card to its title (${await height()}px)`);
+    ok(await card.evaluate(el => {
+      const title = el.querySelector('h3')?.getBoundingClientRect(), flap = el.querySelector('.folded-flap')?.getBoundingClientRect();
+      return el.classList.contains('folded') && !(el.querySelector('.md, p')?.offsetParent)
+        && !!title && !!flap && title.bottom <= flap.top + 1 && el.querySelector('h3').offsetParent;
+    }), `fold button keeps the title above the V1 front flap (${await height()}px)`);
     ok(await page.isChecked('#f-fold') && await page.isVisible('#panel'), 'editor checkbox follows the fold button, editor stays as it was');
     ok(await startNearTop(), 'top pin follows the folded card');
     await page.screenshot({ path: path.join(OUT, 'folded.png') });

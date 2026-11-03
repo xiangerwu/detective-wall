@@ -886,6 +886,91 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 /* Physical paper cards keep their existing data-driven mount/curl semantics. */
 [data-card-style=paper] .card-paper:not(.photo-card){border-radius:6px}
 [data-card-style=paper] .card-paper.note{border-radius:3px 3px 15px 3px}
+
+/* P19-R2j: V1 photo-faithful paper geometry for both card styles. */
+.card:not(.photo-card){
+  background:transparent;background-color:var(--paper-bg,var(--c-bg));background-image:none;border:0;border-radius:0;
+  box-shadow:0 5px 10px var(--ui-shadow-soft);overflow:visible;
+}
+.card:not(.photo-card).sel{box-shadow:0 0 0 2px var(--ui-accent),0 5px 10px var(--ui-shadow-soft)}
+.card:not(.photo-card) > .card-sheet{
+  position:absolute;z-index:0;inset:0;overflow:hidden;border:1px solid var(--c-border);
+  border-radius:0;background:var(--paper-bg,var(--c-bg));background-image:none;
+  pointer-events:none;
+}
+.card:not(.photo-card) > .card-sheet .adhesive-highlight{
+  position:absolute;z-index:1;top:37%;left:0;width:100%;height:14%;
+  background:linear-gradient(180deg,transparent,rgba(255,255,255,.22) 48%,rgba(255,255,255,.19) 52%,transparent);
+  pointer-events:none;
+}
+.card:not(.photo-card) > :is(h3,.card-body,.md,p,.tags,.links){position:relative;z-index:3}
+.card.fixed-size > .card-body{flex:1 1 auto;min-width:0;min-height:0;overflow:auto;overflow-x:hidden}
+.card.curl:not(.folded):not(.photo-card){pointer-events:none}
+.card.curl:not(.folded):not(.photo-card){background-color:transparent}
+.card.curl:not(.folded):not(.photo-card) > .card-sheet{
+  pointer-events:auto;clip-path:polygon(0 0,100% 0,100% 62%,62% 100%,0 100%);
+}
+.card.curl:not(.folded):not(.photo-card) > :is(.pin,.anchor-badge,.fold,.resize-handle,.card-body){pointer-events:auto}
+.card.curl:not(.folded):not(.photo-card) > .card-body{pointer-events:none}
+.card.curl:not(.folded):not(.photo-card) > .card-body a{pointer-events:auto}
+.card.curl:not(.folded):not(.photo-card) > h3{max-width:none !important;min-width:0}
+.card.curl:not(.folded):not(.photo-card) .curl-spacer{
+  display:block;float:right;width:38%;height:var(--curl-flap-size,65px);
+  shape-outside:polygon(0 0,100% 0,0 100%) border-box;shape-margin:1px;pointer-events:none;  /* border-box: the spacer is pushed down with margin-top */
+}
+.card.curl:not(.folded):not(.photo-card)::after{
+  content:'';position:absolute;right:0;bottom:0;z-index:6;width:38%;height:38%;
+  clip-path:polygon(0 0,100% 0,0 100%);border:1px solid var(--c-border);
+  background:linear-gradient(135deg,transparent 47.8%,color-mix(in srgb,var(--c-border) 70%,transparent) 48.5% 51.5%,transparent 52.2%),
+    linear-gradient(135deg,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 80%,white),color-mix(in srgb,var(--paper-bg,var(--c-bg)) 91%,white));
+  box-shadow:-6px -6px 9px var(--ui-shadow-soft);pointer-events:none;
+}
+.card.folded:not(.photo-card){
+  display:flex;flex-direction:column;height:auto;min-height:0;padding:0;
+  background:transparent;background-image:none;border:0;border-radius:0;
+  box-shadow:0 5px 10px var(--ui-shadow-soft);overflow:visible;
+}
+.card.folded:not(.photo-card) > .folded-title-zone{
+  display:block;position:relative;z-index:2;flex:0 0 auto;min-height:43px;padding:14px 14px 8px;
+  border:1px solid var(--c-border);border-bottom:0;border-radius:0;background:var(--paper-bg,var(--c-bg));
+}
+.card.folded:not(.photo-card) > .folded-title-zone .anchor-badge{position:relative;margin-top:0}
+.card.folded:not(.photo-card) > .folded-flap{
+  display:block;position:relative;z-index:3;flex:0 0 var(--folded-flap-height,55px);width:100%;height:var(--folded-flap-height,55px);
+  border:1px solid var(--c-border);border-top-color:color-mix(in srgb,var(--c-border) 82%,#000);
+  clip-path:polygon(0 2px,28% 0,55% 2px,78% 0,100% 2px,100% 100%,0 100%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 80%,white),color-mix(in srgb,var(--paper-bg,var(--c-bg)) 88%,white) 82%,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 78%,#000) 100%);
+  box-shadow:0 -2px 3px var(--ui-shadow-soft);pointer-events:none;
+}
+.card.folded:not(.photo-card)::after{content:none}
+.card.folded:not(.photo-card) > .card-sheet{display:none}
+.card.folded:not(.photo-card) > .folded-title-zone h3{position:relative;z-index:4;margin:0;padding:0}
+.card.folded:not(.photo-card) > .pin{z-index:9}
+.card.folded:not(.photo-card) > .fold{z-index:5}
+.card.folded:not(.photo-card) > .resize-handle{z-index:6}
+[data-card-style=paper] .card-paper:not(.photo-card){
+  background:transparent;background-image:none;border:0;border-radius:0;box-shadow:0 5px 10px var(--ui-shadow-soft);
+}
+[data-card-style=paper] .card-paper.note:not(.folded){padding:22px 16px 16px;border:0;border-radius:0;box-shadow:0 5px 9px var(--ui-shadow-soft);}
+[data-card-style=paper] .card-paper.note.folded{padding:0;min-height:0 !important;border:0;border-radius:0;box-shadow:0 5px 9px var(--ui-shadow-soft);}
+[data-card-style=paper] .card-paper.note.folded:not(.fixed-size){padding:0 !important;min-height:0 !important;height:auto;}
+.card.note.folded:not(.photo-card){padding:0;min-height:0;}
+[data-card-style=paper] .card-paper.c-amber{--paper-bg:#ffe985;--paper-ink:#2a2722;--paper-body:#514a42;--c-border:#bc8c20;--paper-top:#bc8c20}
+[data-card-style=paper] .card-paper.c-red{--paper-bg:#ffe1e3;--paper-ink:#2a2722;--paper-body:#514a42;--c-border:#b45d66;--paper-top:#b45d66}
+[data-card-style=paper] .card-paper.c-green{--paper-bg:#dff3e5;--paper-ink:#2a2722;--paper-body:#514a42;--c-border:#5d9c70;--paper-top:#5d9c70}
+[data-card-style=paper] .card-paper.c-purple{--paper-bg:#ede3ff;--paper-ink:#2a2722;--paper-body:#514a42;--c-border:#8966b1;--paper-top:#8966b1}
+[data-card-style=paper] .card-paper.c-cream{--paper-bg:#dbeeff;--paper-ink:#223245;--paper-body:#42566b;--c-border:#4d88b7;--paper-top:#4d88b7}
+.card:not(.photo-card):not(.folded){padding-top:20px}
+[data-card-style=paper] .card-paper.note:not(.folded){padding-top:22px}
+.card:not(.photo-card) > .fold{z-index:5;pointer-events:auto}
+.card:not(.photo-card) > .resize-handle{z-index:6;pointer-events:auto}
+.card:not(.photo-card) > .pin{z-index:9}
+.card:not(.photo-card).sel{box-shadow:0 0 0 2px var(--ui-accent),0 5px 10px var(--ui-shadow-soft)}
+[data-card-style=paper] .card-paper:not(.photo-card).sel{box-shadow:0 0 0 2px var(--ui-accent),0 5px 10px var(--ui-shadow-soft)}
+.card:not(.photo-card){background-color:var(--paper-bg,var(--c-bg))}
+.card.curl:not(.folded):not(.photo-card){background-color:transparent}
+[data-card-style=paper] .card-paper:not(.photo-card){background-color:var(--paper-bg,var(--c-bg))}
+[data-card-style=paper] .card-paper.curl:not(.folded):not(.photo-card){background-color:transparent}
 </style>
 </head>
 <body inert>
@@ -2462,6 +2547,12 @@ function renderCards() {
     el.style.width = cardW(c) + 'px';
     if (Number.isFinite(c.h)) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
     el.style.setProperty('--tilt', (photo ? photoTilt(c.id) : tilt(c.id)) + 'deg');
+    if (!photo && !c.fold) {
+      const sheet = mk('div', 'card-sheet');
+      sheet.append(mk('span', 'adhesive-highlight'));
+      el.append(sheet);
+      if (c.curl) el.style.setProperty('--curl-flap-size', Math.round(cardW(c) * .38) + 'px');
+    }
     const pin = document.createElement('span');
     pin.className = 'pin';
     pin.title = '拖到另一張卡片拉線';
@@ -2478,34 +2569,48 @@ function renderCards() {
       render();
       save(true);
     };
-    const contents = photo ? [pin, anchor, resize] : [pin, anchor, h, resize];
-    if (typeof c.image === 'string') contents.push(renderImage(c));
-    if (photo) contents.push(h);
-    el.append(...contents.filter(Boolean));
-    if (c.note) el.append(renderNote(c.note));
-    const tags = mk('div', 'tags');
-    for (const id of c.tags || []) {
-      const t = data.tags.find(t => t.id === id);
-      if (t) tags.append(mk('span', 'tag-chip c-' + t.color, t.name));
-    }
-    if (tags.childNodes.length) el.append(tags);
-    if (c.links?.length) {
-      const box = document.createElement('div');
-      box.className = 'links';
-      for (const l of c.links) {
-        const link = normalizeLink(l);
-        if (!link) continue;
-        const a = document.createElement('a');
-        const missing = sourceStatuses.get(link.href) === 'missing';
-        a.href = link.href; a.target = '_blank'; a.rel = 'noopener';
-        a.textContent = `${link.label}${link.locator ? ' · ' + link.locator : ''}`;
-        if (missing) { a.className = 'source-missing'; a.title = '找不到來源檔案'; }
-        else if (link.quote) a.title = link.quote;
-        box.append(a);
+    const hasBody = typeof c.image === 'string' || !!c.note || !!c.tags?.length || !!c.links?.length;
+    if (c.fold && !photo) {
+      const titleZone = mk('div', 'folded-title-zone');
+      titleZone.append(...[anchor, h].filter(Boolean));
+      el.append(pin, titleZone, mk('div', 'folded-flap'), resize);
+    } else {
+      const contents = photo ? [pin, anchor, resize] : [pin, anchor, h, resize];
+      el.append(...contents.filter(Boolean));
+      const contentParent = c.curl && !photo ? mk('div', 'card-body') : el;
+      if (c.curl && !photo) {
+        const spacer = mk('span', 'curl-spacer');
+        spacer.setAttribute('aria-hidden', 'true');
+        contentParent.append(spacer);
+        el.append(contentParent);
       }
-      el.append(box);
+      if (typeof c.image === 'string') contentParent.append(renderImage(c));
+      if (photo) contentParent.append(h);
+      if (c.note) contentParent.append(renderNote(c.note));
+      const tags = mk('div', 'tags');
+      for (const id of c.tags || []) {
+        const t = data.tags.find(t => t.id === id);
+        if (t) tags.append(mk('span', 'tag-chip c-' + t.color, t.name));
+      }
+      if (tags.childNodes.length) contentParent.append(tags);
+      if (c.links?.length) {
+        const box = document.createElement('div');
+        box.className = 'links';
+        for (const l of c.links) {
+          const link = normalizeLink(l);
+          if (!link) continue;
+          const a = document.createElement('a');
+          const missing = sourceStatuses.get(link.href) === 'missing';
+          a.href = link.href; a.target = '_blank'; a.rel = 'noopener';
+          a.textContent = `${link.label}${link.locator ? ' · ' + link.locator : ''}`;
+          if (missing) { a.className = 'source-missing'; a.title = '找不到來源檔案'; }
+          else if (link.quote) a.title = link.quote;
+          box.append(a);
+        }
+        contentParent.append(box);
+      }
     }
-    if (el.querySelector('.card-image, .image-missing, .md, p, .tags, .links')) {  // something besides the pin and title to hide
+    if (hasBody) {
       const fold = mk('button', 'fold', c.fold ? '▸' : '▾');
       fold.title = fold.ariaLabel = c.fold ? '展開' : '收起';
       fold.setAttribute('aria-expanded', !c.fold);
@@ -2518,6 +2623,12 @@ function renderCards() {
     }
     wall.append(el);
     cardElements.set(c.id, el);
+  }
+  for (const card of wall.querySelectorAll('.card.curl:not(.folded):not(.photo-card)')) {
+    const body = card.querySelector('.card-body'), spacer = card.querySelector('.curl-spacer');
+    if (!body || !spacer) continue;
+    // Layout units, not getBoundingClientRect: the wall is scaled by the zoom transform.
+    spacer.style.marginTop = Math.max(0, Math.ceil(card.offsetHeight * .62 - body.offsetTop)) + 'px';
   }
   for (const c of data.cards) {
     const el = cardElements.get(c.id);
