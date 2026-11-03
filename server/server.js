@@ -13,7 +13,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 // @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const {fileURLToPath} = require('node:url');
-const { createDatabase, VersionConflict, safeSourceHref } = require('./db.js');
+const { createDatabase, VersionConflict, safeSourceHref, normalizeTabsMeta } = require('./db.js');
 // @ts-ignore CommonJS provides __dirname at runtime.
 const projectDir = /** @type {string} */ (__dirname);
 const packageVersion = JSON.parse(fs.readFileSync(path.join(projectDir, '..', 'package.json'), 'utf8')).version;
@@ -448,6 +448,7 @@ function project(value) {
   if (typeof input.exportedAt !== 'string' || !input.exportedAt) throw new RequestError(400, 'invalid project export time');
   if (!Array.isArray(input.walls) || !Array.isArray(input.images)) throw new RequestError(400, 'invalid project collections');
   const meta = object(input.meta);
+  if (meta.tabs !== undefined) meta.tabs = normalizeTabsMeta(meta.tabs);
   const wallIds = new Set();
   for (const wall of input.walls) {
     object(wall);

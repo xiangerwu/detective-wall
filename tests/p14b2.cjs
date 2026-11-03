@@ -98,8 +98,7 @@ const out = artifacts('p14b2');
     assert.equal(dimmed.source, 'source');
     assert.equal(dimmed.key, true);
     assert.equal(dimmed.candidate, true);
-    assert.equal(await page.locator('.rail-anchor-suggestion-list [data-anchor-card="b2-candidate"]').count(), 1);
-    assert.equal(await page.locator('.rail-anchor-suggestion-list [data-anchor-card="b2-source"]').count(), 0);
+    assert.equal(await page.locator('#rail-anchor-list h3').filter({hasText: '可能是源頭'}).count(), 0);
     await page.locator('#rail-anchor-list [data-anchor-card="b2-key"]').click();
     assert.equal(await page.evaluate(() => selCard), 'b2-key');
     await page.evaluate(() => { anchorFilter = ''; selCard = 'b2-source'; render(); });
@@ -109,7 +108,7 @@ const out = artifacts('p14b2');
     assert.equal(await page.evaluate(() => selCard), 'b2-source');
     await page.evaluate(() => fitView(true));
     await page.screenshot({path: path.join(out, 'anchor-nav.png')});
-    console.log('PASS B2-3 level filter, suggestion list, anchor jump, and keyboard navigation');
+    console.log('PASS B2-3 level filter, marked-anchor jump, and keyboard navigation');
 
     await page.evaluate(() => { closePanel(); setCardStyle('paper'); fitView(true); });
     for (const theme of ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber']) {

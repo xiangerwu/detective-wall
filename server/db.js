@@ -50,6 +50,7 @@ const PROPOSAL_LIMITS = {
   rationale: 10000,
   idempotencyKey: 200,
 };
+const PRESET_COLORS = new Set(['slate', 'amber', 'red', 'green', 'purple', 'cream']);
 
 const proposalJson = value => JSON.stringify(value);
 const clone = value => structuredClone(value);
@@ -79,10 +80,26 @@ function proposalString(value, label, limit) {
 }
 
 function proposalColor(value) {
-  const presets = new Set(['slate', 'amber', 'red', 'green', 'purple', 'cream']);
-  if (typeof value !== 'string' || !(presets.has(value) || /^#[\da-f]{6}$/i.test(value)))
+  if (typeof value !== 'string' || !(PRESET_COLORS.has(value) || /^#[\da-f]{6}$/i.test(value)))
     throw new ProposalError(400, 'invalid proposal color');
-  return presets.has(value) ? value : value.toLowerCase();
+  return PRESET_COLORS.has(value) ? value : value.toLowerCase();
+}
+
+function normalizeTabsMeta(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) || !Array.isArray(value.order)
+    || !value.colors || typeof value.colors !== 'object' || Array.isArray(value.colors)) {
+    throw new ProposalError(400, 'invalid tabs meta');
+  }
+  const order = value.order.filter(id => typeof id === 'string');
+  if (order.length !== value.order.length) throw new ProposalError(400, 'invalid tabs order');
+  const colors = {};
+  for (const [id, color] of Object.entries(value.colors)) {
+    if (!id || typeof color !== 'string' || !(PRESET_COLORS.has(color) || /^#[\da-f]{6}$/i.test(color))) {
+      throw new ProposalError(400, 'invalid tabs color');
+    }
+    colors[id] = PRESET_COLORS.has(color) ? color : color.toLowerCase();
+  }
+  return {order: [...new Set(order)], colors};
 }
 
 function proposalId(value, label) {
@@ -832,6 +849,7 @@ function createDatabase(filename, {readOnly = false} = {}) {
       });
     },
     setMeta(key, value) {
+      if (key === 'tabs') value = normalizeTabsMeta(value);
       const encoded = JSON.stringify(value);
       db.prepare('INSERT INTO meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
         .run(key, encoded);
@@ -1031,4 +1049,4 @@ function createProposalWriter(filename) {
   };
 }
 
-module.exports = { createDatabase, createProposalWriter, ProposalError, VersionConflict, normalizeProposalOps, proposalPayload, validateProposal, safeSourceHref };
+module.exports = { createDatabase, createProposalWriter, ProposalError, VersionConflict, normalizeProposalOps, proposalPayload, validateProposal, safeSourceHref, normalizeTabsMeta };

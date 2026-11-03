@@ -45,7 +45,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(JSON.stringify(await ids()) === JSON.stringify([b, c, a]), 'tab order survives reload');
 
     await openTabMenu(page, c);
-    ok(await page.isVisible('#tabmenu') && await page.locator('#tab-colors .swatch').count() === 7, 'right-click opens the menu with no-color plus six colors');
+    ok(await page.isVisible('#tabmenu') && await page.locator('#tab-colors .swatch').count() === 8, 'right-click opens the menu with no-color, six presets, and 自訂');
     ok(await page.evaluate(() => [...document.querySelectorAll('#tab-colors .swatch:not(.no-color):not(.on)')].every(el => {
       const style = getComputedStyle(el);
       return style.borderTopColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'rgba(0, 0, 0, 0)';

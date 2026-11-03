@@ -17,12 +17,12 @@ const fixture = {
   cards: [
     {id: 'overlap-source', kind: 'card', x: 320, y: 80, title: '源頭卡片', note: '來源', links: [], level: 'source'},
     {id: 'overlap-key', kind: 'card', x: 600, y: 180, title: '重點卡片', note: '重點', links: [], level: 'key'},
-    {id: 'overlap-suggestion', kind: 'card', x: 220, y: 450, title: '可能是源頭', note: '候選', links: []},
+    {id: 'overlap-unmarked', kind: 'card', x: 220, y: 450, title: '候選卡片', note: '未標記', links: []},
     {id: 'overlap-target', kind: 'card', x: 760, y: 470, title: '待驗證', note: '目標', links: []},
   ],
   edges: [
     {id: 'overlap-edge-1', from: 'overlap-source', to: 'overlap-key', type: 'builds'},
-    {id: 'overlap-edge-2', from: 'overlap-suggestion', to: 'overlap-target', type: 'uses'},
+    {id: 'overlap-edge-2', from: 'overlap-unmarked', to: 'overlap-target', type: 'uses'},
   ],
 };
 

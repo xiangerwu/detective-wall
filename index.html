@@ -93,12 +93,14 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
 /* Wall tabs are rounded pills in the hybrid shell. */
 #tabrow{display:flex;align-items:center;gap:8px;min-width:0;min-height:38px;flex-wrap:nowrap;white-space:nowrap}
-#wall-tabs{display:flex;flex:1 1 auto;gap:6px;min-width:0;overflow-x:auto;touch-action:none}
+#wall-tabs{display:flex;flex:0 1 auto;width:max-content;max-width:100%;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;touch-action:none}
+#wall-tabs::-webkit-scrollbar{display:none}
 .wall-tab{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 14px;color:var(--ui-muted);background:var(--ui-surface);border-radius:var(--pill-radius);border-top:2px solid var(--c-top,var(--ui-border));box-shadow:0 2px 5px var(--shell-shadow)}
 .wall-tab[aria-selected=true]{color:var(--ui-text);background:var(--ui-active);border-color:var(--c-top,var(--ui-accent));box-shadow:0 4px 10px var(--shell-shadow)}
+.wall-tab.custom-color,.wall-tab.custom-color[aria-selected=true]{color:var(--c-title);background:var(--c-bg);border-color:var(--c-top)}
 .wall-tab.dragging{opacity:.6;cursor:grabbing}
 .wall-tab input{width:140px;font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-accent);border-radius:3px;padding:0 4px}
-#add-wall{padding:3px 10px;border-radius:var(--pill-radius)}
+#add-wall{flex:none;padding:3px 10px;border-radius:var(--pill-radius)}
 #storage-warning{align-self:center;margin-left:auto;color:var(--ui-warning)}
 #save-state{flex:none;align-self:center;color:var(--ui-muted);font-size:12px}
 #wall-notice{flex:0 1 240px;align-self:center;min-width:0;color:var(--ui-warning);font-size:12px;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -108,6 +110,7 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #tab-colors{display:flex;gap:6px}
 #tab-colors .swatch,#tab-colors .swatch.on{width:22px;height:22px}
 #tab-colors .no-color{--c-bg:transparent;--c-top:var(--ui-muted)}
+#tab-custom-color{position:absolute;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none}
 .hint{margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px}
 #zoom{display:flex;align-items:center;gap:0;padding:2px;border:1px solid var(--ui-border);border-radius:5px}
 #zoom button{border:0;border-radius:3px;padding:4px 6px}
@@ -182,7 +185,9 @@ body.rail-hidden #rail-panel{display:none}
 #rail-anchor-filters button{flex:1;font-size:11px}
 .rail-anchor-group{display:flex;flex-direction:column;gap:3px}
 .rail-anchor-group h3{margin:2px 0 0;color:var(--ui-muted);font-size:11px;font-weight:600}
-.rail-anchor-suggestion-list button{color:var(--ui-muted)}
+#rail-anchor-list [data-anchor-card].dragging{opacity:.55;cursor:grabbing}
+#rail-anchor-list [data-anchor-card].drop-before{box-shadow:0 -3px 0 var(--ui-accent),0 0 0 2px color-mix(in srgb,var(--ui-accent) 22%,transparent)}
+#rail-anchor-list [data-anchor-card].drop-after{box-shadow:0 3px 0 var(--ui-accent),0 0 0 2px color-mix(in srgb,var(--ui-accent) 22%,transparent)}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
 #sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(440px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 78px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
 #sidebar.is-open{transform:none}
@@ -243,7 +248,7 @@ body.rail-hidden #rail-panel{display:none}
 .card.review-mark-deleted{outline:3px solid var(--ui-danger-strong);outline-offset:4px;opacity:.72}
 .card.review-focus{outline-width:5px;outline-style:solid;outline-color:var(--ui-accent);outline-offset:6px}
 .card.dragging{z-index:5;cursor:grabbing;transform:rotate(var(--tilt));will-change:transform}
-.card h3{margin:0 0 6px;padding-right:16px;font-size:15px;color:var(--c-title)}
+.card h3{min-width:0;margin:0 0 6px;padding-right:16px;font-size:15px;color:var(--c-title);overflow-wrap:anywhere}
 .card .fold{position:absolute;top:6px;right:5px;width:22px;height:22px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--c-title);font-size:12px;cursor:pointer;opacity:.75}
 .card .fold:hover{opacity:1;background:color-mix(in srgb,var(--c-top) 20%,transparent)}
 /* N5: the title strip is a background layer, leaving ::before for the real tape mount. */
@@ -254,6 +259,7 @@ body.rail-hidden #rail-panel{display:none}
 /* folded: only the title stays while a lower paper panel is pushed up behind it */
 .card.folded > :not(h3, .pin, .fold, .resize-handle, .anchor-badge){display:none}
 .card.folded h3{position:relative;z-index:2;margin:0}
+.card.folded .fold{z-index:3}
 .card.folded:not(.fixed-size){height:auto;min-height:62px;padding-top:17px;padding-bottom:22px}
 .card.note.folded:not(.fixed-size){min-height:70px;padding-top:19px}
 /* the folded-up lower half sits under the title, never over it */
@@ -264,7 +270,7 @@ body.rail-hidden #rail-panel{display:none}
 .card-image{display:block;width:100%;max-height:220px;object-fit:contain;margin-bottom:6px}
 .image-missing{display:block;color:var(--ui-muted);font-size:12px;margin-bottom:6px}
 .card p{margin:0 0 6px;color:var(--c-text);font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere}
-.card .md{margin:0 0 6px;color:var(--c-text);font-size:12.5px;line-height:1.5;overflow-wrap:anywhere}
+.card .md{min-width:0;margin:0 0 6px;color:var(--c-text);font-size:12.5px;line-height:1.5;overflow-wrap:anywhere}
 .card .md p{display:block;white-space:normal;overflow:visible;-webkit-line-clamp:unset}
 .card .md p,.card .md ul,.card .md ol,.card .md pre,.card .md blockquote{margin:0 0 4px}
 .card .md ul,.card .md ol{padding-left:1.4em}
@@ -282,8 +288,8 @@ body.rail-hidden #rail-panel{display:none}
 .resize-handle::after{content:'';position:absolute;right:1px;bottom:1px;width:8px;height:8px;border-right:2px solid var(--ui-muted);border-bottom:2px solid var(--ui-muted)}
 .card:hover .resize-handle,.resize-handle:focus-visible{opacity:1}
 .resize-handle:hover,.resize-handle:focus-visible{border-color:var(--ui-accent);background:color-mix(in srgb,var(--ui-accent) 18%,transparent)}
-.links{display:flex;flex-wrap:wrap;gap:4px}
-.links a{font-size:11.5px;color:var(--c-link,var(--c-top));text-decoration:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;padding:1px 6px}
+.links{display:flex;min-width:0;flex-wrap:wrap;gap:4px}
+.links a{min-width:0;max-width:100%;font-size:11.5px;color:var(--c-link,var(--c-top));text-decoration:none;border:1px solid color-mix(in srgb,currentColor 35%,transparent);border-radius:3px;padding:1px 6px;overflow-wrap:anywhere;word-break:break-word}
 .links a:hover{background:color-mix(in srgb,currentColor 12%,transparent)}
 .links a.source-missing{color:var(--ui-danger);border-color:var(--ui-danger-strong);background:color-mix(in srgb,var(--ui-danger-strong) 12%,transparent)}.search-area{position:relative;flex:1 1 160px;max-width:260px}  /* starts narrow and grows into spare room, so the toolbar fits one row at 1400px */
 #wall-search{width:100%;box-sizing:border-box;font:inherit;font-size:13px;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px;padding:5px 8px}
@@ -293,9 +299,9 @@ body.rail-hidden #rail-panel{display:none}
 .search-result strong,.search-result small{display:block;overflow-wrap:anywhere}
 .search-result small{color:var(--ui-muted);font-size:12px}
 .search-empty{margin:6px 8px;color:var(--ui-muted);font-size:12px}
-.tags,#tag-filter{display:flex;flex-wrap:wrap;gap:4px}
+.tags,#tag-filter{display:flex;min-width:0;flex-wrap:wrap;gap:4px}
 .card .tags{margin:0 0 6px}
-.tag-chip{display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border:1px solid var(--c-top);border-radius:10px;background:var(--c-bg);color:var(--c-top);font-size:11.5px;overflow-wrap:anywhere}
+.tag-chip{display:inline-flex;min-width:0;max-width:100%;align-items:center;gap:4px;padding:1px 6px;border:1px solid var(--c-top);border-radius:10px;background:var(--c-bg);color:var(--c-top);font-size:11.5px;overflow-wrap:anywhere;word-break:break-word}
 .tag-chip button{padding:0 3px;border:0;background:transparent;color:inherit;font-size:inherit}
 .tag-chip.on{outline:2px solid var(--c-top);outline-offset:1px}
 #tag-filter{align-items:center}
@@ -930,6 +936,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <input id="project-file" type="file" accept="application/json,.json" hidden>
   <div id="tabmenu" role="menu" hidden>
     <div id="tab-colors" role="radiogroup" aria-label="分頁顏色"></div>
+    <input id="tab-custom-color" type="color" value="#8fb8de" aria-label="自訂分頁顏色">
     <button id="rename-wall" role="menuitem">改名</button>
     <button id="delete-wall" role="menuitem" class="danger" disabled>刪除牆</button>
   </div>
@@ -1931,6 +1938,22 @@ const $ = s => document.querySelector(s);
 const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), canvasIslands = $('#canvas-islands'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), railNavigation = $('#rail-navigation'), railNavigationSlot = $('#rail-navigation-slot'), railNavigationFlyoutSlot = $('#rail-navigation-flyout-slot'), railNavigationTitle = $('#rail-navigation-title'), railNavigationContent = $('#rail-navigation-content'), railBandList = $('#rail-band-list'), railAnchorList = $('#rail-anchor-list'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
+function normalizeAnchorOrder(value) {
+  const cards = Array.isArray(value?.cards) ? value.cards : [];
+  const anchors = new Set(cards.filter(card => card?.level === 'source' || card?.level === 'key').map(card => card.id));
+  const order = [], seen = new Set();
+  for (const id of Array.isArray(value?.anchorOrder) ? value.anchorOrder : []) {
+    if (typeof id === 'string' && anchors.has(id) && !seen.has(id)) { seen.add(id); order.push(id); }
+  }
+  for (const card of cards) if (anchors.has(card?.id) && !seen.has(card.id)) { seen.add(card.id); order.push(card.id); }
+  return order;
+}
+function ensureAnchorOrder(value) {
+  if (!value || !Array.isArray(value.cards)) return [];
+  const order = normalizeAnchorOrder(value);
+  if (order.length) value.anchorOrder = order; else delete value.anchorOrder;
+  return order;
+}
 let data = {bands: [], tags: [], cards: [], edges: []}, currentWall, walls = [], wallBusy = false;
 let chatClient = 'claude', chatClients = new Map(), chatBusy = false, chatSeq = 0, chatProgressTimer = 0, chatProgressStarted = 0, chatProgressLines = [], chatProgressPercent = null, chatStopRequested = false, chatMessages = [];
 let savedType = 'builds';
@@ -1976,7 +1999,7 @@ function load(d) {
       return migrateWall(d);
     }
   } catch {}
-  return structuredClone(SEED);
+  return migrateWall(structuredClone(SEED));
 }
 // Every change ends here and becomes an undo step; changes within 500 ms (typing) merge into one.
 // separate = an import, replace or reset that must stay its own step.
@@ -2069,10 +2092,8 @@ function placeRailNavigation() {
 
 function renderRailNavigation() {
   const bands = [...data.bands].sort((a, b) => a.y - b.y);
-  const anchors = data.cards.filter(c => c.level === 'source' || c.level === 'key');
-  const incoming = new Set(data.edges.map(edge => edge.to)), outgoing = new Set(data.edges.map(edge => edge.from));
-  const suggestions = data.cards.filter(c => c.level !== 'source' && !incoming.has(c.id) && outgoing.has(c.id));
-  railNavigation.dataset.empty = String(!bands.length && !anchors.length && !suggestions.length);
+  const anchors = ensureAnchorOrder(data).map(id => byId(id)).filter(Boolean);
+  railNavigation.dataset.empty = String(!bands.length && !anchors.length);
   railBandList.replaceChildren(...bands.map(b => {
     const button = mk('button', '', b.title || '（未命名）');
     button.type = 'button'; button.dataset.bandId = b.id; button.title = b.title || '（未命名）';
@@ -2080,8 +2101,8 @@ function renderRailNavigation() {
     return button;
   }));
   railAnchorList.replaceChildren();
-  railAnchorList.hidden = !anchors.length && !suggestions.length;
-  if (anchors.length || suggestions.length) {
+  railAnchorList.hidden = !anchors.length;
+  if (anchors.length) {
     const title = mk('button', '', `錨點（${anchors.length}）` + (anchorFilter ? '・篩選中' : ''));
     title.type = 'button'; title.id = 'rail-anchor-list-title';
     title.setAttribute('aria-expanded', anchorNavOpen);
@@ -2103,28 +2124,93 @@ function renderRailNavigation() {
         filters.append(button);
       }
       content.append(filters);
-      const list = (heading, cards, className) => {
-        if (!cards.length) return;
-        const group = mk('div', 'rail-anchor-group');
-        group.classList.add(className);
-        group.append(mk('h3', '', heading));
-        for (const card of cards) {
-          const button = mk('button', '', `${card.level === 'source' ? '◆ 源頭' : card.level === 'key' ? '★ 重點' : '？'}  ${card.title || '（未命名）'}`);
-          button.type = 'button'; button.dataset.anchorCard = card.id; button.dataset.level = card.level || 'suggestion';
-          button.title = card.title || '（未命名）';
-          button.onclick = () => jumpToCard(card.id);
-          group.append(button);
-        }
-        content.append(group);
-      };
-      list('已標記', anchors, 'rail-anchor-list');
-      list('可能是源頭', suggestions, 'rail-anchor-suggestion-list');
+      const group = mk('div', 'rail-anchor-group');
+      group.append(mk('h3', '', '已標記'));
+      for (const card of anchors) {
+        const button = mk('button', '', `${card.level === 'source' ? '◆ 源頭' : '★ 重點'}  ${card.title || '（未命名）'}`);
+        button.type = 'button'; button.dataset.anchorCard = card.id; button.dataset.level = card.level;
+        button.title = `${card.title || '（未命名）'}；Alt+↑／↓重新排序`;
+        button.setAttribute('aria-pressed', String(card.id === selCard));
+        button.setAttribute('aria-keyshortcuts', 'Alt+ArrowUp Alt+ArrowDown');
+        button.onclick = () => {
+          if (anchorClickSuppress) { anchorClickSuppress = false; return; }
+          jumpToCard(card.id);
+        };
+        button.onkeydown = ev => {
+          if (!ev.altKey || !['ArrowUp', 'ArrowDown'].includes(ev.key)) return;
+          ev.preventDefault();
+          moveAnchor(card.id, ev.key === 'ArrowUp' ? -1 : 1);
+        };
+        group.append(button);
+      }
+      content.append(group);
     }
     railAnchorList.append(title, content);
   }
   placeRailNavigation();
   updateRailNavigation();
 }
+let anchorDrag = null, anchorClickSuppress = false;
+function clearAnchorDrop() {
+  railAnchorList.querySelectorAll('[data-anchor-card]').forEach(button => button.classList.remove('drop-before', 'drop-after', 'dragging'));
+}
+function anchorDropAt(clientY, sourceId) {
+  const buttons = [...railAnchorList.querySelectorAll('[data-anchor-card]')].filter(button => button.dataset.anchorCard !== sourceId);
+  const target = buttons.find(button => {
+    const rect = button.getBoundingClientRect();
+    return clientY >= rect.top && clientY <= rect.bottom;
+  });
+  clearAnchorDrop();
+  if (!target) return null;
+  const rect = target.getBoundingClientRect(), before = clientY < rect.top + rect.height / 2;
+  target.classList.add(before ? 'drop-before' : 'drop-after');
+  return {targetId: target.dataset.anchorCard, before};
+}
+function commitAnchorOrder(next, focusId = null) {
+  if (JSON.stringify(next) === JSON.stringify(data.anchorOrder)) return false;
+  data.anchorOrder = next;
+  render();
+  save();
+  if (focusId) requestAnimationFrame(() => railAnchorList.querySelector(`[data-anchor-card="${CSS.escape(focusId)}"]`)?.focus());
+  return true;
+}
+function moveAnchor(id, delta) {
+  const order = ensureAnchorOrder(data), index = order.indexOf(id), nextIndex = index + delta;
+  if (index < 0 || nextIndex < 0 || nextIndex >= order.length) return false;
+  const next = [...order], [item] = next.splice(index, 1);
+  next.splice(nextIndex, 0, item);
+  return commitAnchorOrder(next, id);
+}
+function reorderAnchor(id, drop) {
+  if (!drop) return false;
+  const next = ensureAnchorOrder(data).filter(value => value !== id);
+  let index = next.indexOf(drop.targetId);
+  if (index < 0) index = next.length;
+  else if (!drop.before) index++;
+  next.splice(index, 0, id);
+  return commitAnchorOrder(next, id);
+}
+railAnchorList.addEventListener('pointerdown', ev => {
+  const button = ev.target.closest('[data-anchor-card]');
+  if (!button || ev.button !== 0) return;
+  anchorDrag = {button, id: button.dataset.anchorCard, pointerId: ev.pointerId, startY: ev.clientY, active: false, drop: null};
+  button.setPointerCapture(ev.pointerId);
+});
+railAnchorList.addEventListener('pointermove', ev => {
+  if (!anchorDrag || ev.pointerId !== anchorDrag.pointerId) return;
+  if (!anchorDrag.active && Math.abs(ev.clientY - anchorDrag.startY) < 4) return;
+  anchorDrag.active = true;
+  anchorDrag.button.classList.add('dragging');
+  anchorDrag.drop = anchorDropAt(ev.clientY, anchorDrag.id);
+});
+railAnchorList.addEventListener('pointerup', ev => {
+  if (!anchorDrag || ev.pointerId !== anchorDrag.pointerId) return;
+  const current = anchorDrag;
+  anchorDrag = null;
+  clearAnchorDrop();
+  if (current.active) { ev.preventDefault(); anchorClickSuppress = true; reorderAnchor(current.id, current.drop); }
+});
+railAnchorList.addEventListener('pointercancel', () => { anchorDrag = null; clearAnchorDrop(); });
 function updateRailNavigation() {
   if (railNavigation.hidden) return;
   const current = currentBandIndex();
@@ -2155,7 +2241,7 @@ function jumpToCard(id) {
   vp.focus({preventScroll: true});
 }
 function jumpAnchor(step) {
-  const anchors = data.cards.filter(card => card.level === 'source' || card.level === 'key');
+  const anchors = ensureAnchorOrder(data).map(id => byId(id)).filter(Boolean);
   if (!anchors.length) return;
   const current = anchors.findIndex(card => card.id === selCard);
   const index = (current + step + anchors.length) % anchors.length;
@@ -2226,6 +2312,7 @@ function migrateWall(value) {
     const field = end + 'At', at = normalizeAt(edge?.[field]);
     if (at) edge[field] = at; else if (edge) delete edge[field];
   }
+  ensureAnchorOrder(value);
   return value;
 }
 const cardW = c => Number.isFinite(c.w) ? clamp(Math.round(c.w), CARD_MIN_W, CARD_MAX_W) : cardBaseW(c);
@@ -3546,6 +3633,7 @@ f.level.addEventListener('click', ev => {
   const b = ev.target.closest('button'), c = byId(selCard);
   if (!b || !c) return;
   if (b.dataset.level) c.level = b.dataset.level; else delete c.level;
+  ensureAnchorOrder(data);
   markLevel(c);
   render();
   save();
@@ -4138,7 +4226,7 @@ function toCanvas(snapshot) {
       fromSide: CANVAS_SIDES[from?.at.side] || 'top', toSide: CANVAS_SIDES[to?.at.side] || 'top', toEnd: 'arrow', color: CANVAS_EDGES[e.type],
       ...(e.label ? {label: e.label} : {}), detective: {type: e.type, ...(e.weight ? {weight: e.weight} : {})}};
   });
-  return {nodes: [...bands, ...cards], edges, detective: {version: 1, tags: snapshot.tags}};
+  return {nodes: [...bands, ...cards], edges, detective: {version: 1, tags: snapshot.tags, anchorOrder: normalizeAnchorOrder(snapshot)}};
 }
 function fromCanvas(canvas) {
   const cards = [], bands = [], skippedLinks = [], seen = new Set();
@@ -4198,7 +4286,7 @@ function fromCanvas(canvas) {
       label: typeof e.label === 'string' ? e.label : '', weight: e.detective?.weight,
       ...(edgeSideFromCanvas(e.fromSide) ? {fromAt: {side: edgeSideFromCanvas(e.fromSide), t: .5}} : {}),
       ...(edgeSideFromCanvas(e.toSide) ? {toAt: {side: edgeSideFromCanvas(e.toSide), t: .5}} : {})}));
-  return cards.length || bands.some(validBand) ? {cards, bands, edges, tags: canvas.detective?.tags, images: canvas.detective?.images, skippedLinks} : null;
+  return cards.length || bands.some(validBand) ? {cards, bands, edges, tags: canvas.detective?.tags, anchorOrder: normalizeAnchorOrder({cards, anchorOrder: canvas.detective?.anchorOrder}), images: canvas.detective?.images, skippedLinks} : null;
 }
 async function exportWall(format) {
   const snapshot = structuredClone(data), name = currentWall.name, images = Object.create(null);
@@ -4326,7 +4414,7 @@ function normalize(d) {
   const images = Object.fromEntries(Object.entries(d.images && typeof d.images === 'object' ? d.images : {})
     .filter(([, url]) => typeof url === 'string' && url.length <= 15 * 1024 * 1024
       && /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(url)));
-  return {cards, edges, bands, tags, images, skippedLinks};
+  return {cards, edges, bands, tags, anchorOrder: normalizeAnchorOrder({cards, anchorOrder: d.anchorOrder}), images, skippedLinks};
 }
 function cardDiff(a, b, tags = data.tags) {
   const kind = c => c.kind === 'note' ? '疑問便利貼' : '線索卡', pos = c => `(${Math.round(c.x)}, ${Math.round(c.y)})`;
@@ -4941,6 +5029,8 @@ $('#im-apply').onclick = () => changeWall(async () => {
     const old = data.bands.find(b => b.id === it.band.id);
     old ? Object.assign(old, it.band) : data.bands.push(it.band);
   }
+  if (Array.isArray(pending.anchorOrder)) data.anchorOrder = pending.anchorOrder;
+  ensureAnchorOrder(data);
   let skipped = 0;
   for (const it of picked) if (it.edge) {
     const e = it.edge;
@@ -4958,7 +5048,8 @@ $('#im-apply').onclick = () => changeWall(async () => {
 twoClick($('#im-replace'), '再按一次整份取代', () => changeWall(async () => {
   await backupWall(pending.restore ? '還原前' : '整份取代前');
   await importImages(pending.cards);
-  data = {cards: pending.cards, edges: pending.edges, bands: pending.bands ?? data.bands, tags: pending.tags ?? data.tags};
+  data = {cards: pending.cards, edges: pending.edges, bands: pending.bands ?? data.bands, tags: pending.tags ?? data.tags, anchorOrder: pending.anchorOrder};
+  ensureAnchorOrder(data);
   finishImport('已整份取代');
 }));
 $('#import').onclick = () => $('#import-file').click();
@@ -5141,9 +5232,18 @@ showClipboard(savedClipboard === '1', false);
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
+function normalizeTabMeta(value) {
+  const order = Array.isArray(value?.order) ? value.order.filter(id => typeof id === 'string') : [];
+  const colors = {};
+  for (const [id, color] of Object.entries(value?.colors || {})) {
+    const normalized = normalizeColorValue(color);
+    if (typeof id === 'string' && normalized) colors[id] = normalized;
+  }
+  return {order, colors};
+}
 async function refreshWalls() {
   walls = await store.listWalls();
-  tabMeta = (await store.getMeta('tabs')) || tabMeta;
+  tabMeta = normalizeTabMeta(await store.getMeta('tabs'));
   const rank = id => { const i = tabMeta.order.indexOf(id); return i < 0 ? Infinity : i; };
   walls.sort((a, b) => rank(a.id) - rank(b.id));  // new walls go last
   renderTabs();
@@ -5675,12 +5775,17 @@ function renderTabs() {
   // Update in place when the order holds, so a double-click survives the switch its first click caused.
   const tabs = walls.map((w, i) => old[i]?.dataset.id === w.id ? old[i] : mk('button'));
   walls.forEach((w, i) => {
-    const tab = tabs[i], color = tabMeta.colors[w.id];
-    tab.className = 'wall-tab' + (color ? ' c-' + color : '');
+    const tab = tabs[i], color = normalizeColorValue(tabMeta.colors[w.id]);
+    tab.className = 'wall-tab' + (isHexColor(color) ? ' custom-color' : color ? ' c-' + color : '');
     tab.dataset.id = w.id;
     tab.setAttribute('role', 'tab');
     tab.title = w.name;
     tab.setAttribute('aria-selected', w.id === currentWall.id);
+    tab.style.removeProperty('--c-bg'); tab.style.removeProperty('--c-border'); tab.style.removeProperty('--c-top'); tab.style.removeProperty('--c-title'); tab.style.removeProperty('--c-text');
+    if (isHexColor(color)) {
+      const palette = customColorPalette(color);
+      for (const [name, value] of Object.entries({'--c-bg': palette.bg, '--c-border': palette.border, '--c-top': palette.top, '--c-title': palette.title, '--c-text': palette.text})) tab.style.setProperty(name, value);
+    }
     if (!tab.querySelector('input')) tab.textContent = w.name;
   });
   if (tabs.some((t, i) => t !== old[i]) || old.length !== tabs.length) bar.replaceChildren(...tabs);
@@ -5688,6 +5793,7 @@ function renderTabs() {
 }
 function saveTabs() {
   tabMeta.order = [...$('#wall-tabs').children].map(t => t.dataset.id);
+  tabMeta = normalizeTabMeta(tabMeta);
   return write(() => store.setMeta('tabs', tabMeta));
 }
 async function switchWall(id, backup = true) {
@@ -5863,6 +5969,24 @@ function renameTab(tab) {
   input.onblur = () => finish(true);
 }
 
+const tabCustomColor = $('#tab-custom-color');
+function setTabColor(value) {
+  const id = tabMenu.dataset.id, color = normalizeColorValue(value);
+  if (!id || !isHexColor(color)) return;
+  tabMeta.colors[id] = color;
+  tabMenu.hidden = false;
+  renderTabs();
+  saveTabs();
+  tabCustomColor.value = color;
+  const button = $('#tab-colors button[data-color="custom"]');
+  if (button) {
+    button.classList.add('has-color', 'on');
+    button.setAttribute('aria-pressed', 'true');
+    swatchStyle(button, color);
+  }
+}
+tabCustomColor.oninput = () => setTabColor(tabCustomColor.value);
+tabCustomColor.onchange = () => setTabColor(tabCustomColor.value);
 tabBar.oncontextmenu = ev => {
   const tab = ev.target.closest('.wall-tab');
   if (!tab || ev.target.matches('input')) return;
@@ -5870,18 +5994,26 @@ tabBar.oncontextmenu = ev => {
   const id = tab.dataset.id, colors = $('#tab-colors');
   disarmDeleteWall();
   tabMenu.dataset.id = id;
-  colors.replaceChildren(...[['', '無顏色'], ...Object.entries(COLORS)].map(([color, label]) => {
-    const b = mk('button', 'swatch ' + (color ? 'c-' + color : 'no-color') + ((tabMeta.colors[id] || '') === color ? ' on' : ''));
+  const current = normalizeColorValue(tabMeta.colors[id]) || '';
+  const presetButtons = [['', '無顏色'], ...Object.entries(COLORS)].map(([color, label]) => {
+    const b = mk('button', 'swatch ' + (color ? 'c-' + color : 'no-color') + (current === color ? ' on' : ''));
     b.dataset.color = color;
     b.title = b.ariaLabel = label;
-    b.setAttribute('aria-pressed', (tabMeta.colors[id] || '') === color);
+    b.setAttribute('aria-pressed', String(current === color));
     b.onclick = () => {
       if (color) tabMeta.colors[id] = color; else delete tabMeta.colors[id];
       tabMenu.hidden = true;
       renderTabs(); saveTabs();
     };
     return b;
-  }));
+  });
+  const custom = mk('button', 'swatch custom-swatch' + (isHexColor(current) ? ' has-color on' : ''));
+  custom.type = 'button'; custom.dataset.color = 'custom';
+  custom.title = custom.ariaLabel = '自訂顏色（開啟色彩選擇器）';
+  custom.setAttribute('aria-pressed', String(isHexColor(current)));
+  if (isHexColor(current)) { tabCustomColor.value = current; swatchStyle(custom, current); }
+  custom.onclick = () => { tabCustomColor.value = isHexColor(tabMeta.colors[id]) ? tabMeta.colors[id] : '#8fb8de'; tabCustomColor.click(); };
+  colors.replaceChildren(...presetButtons, custom);
   tabMenu.hidden = false;
   tabMenu.style.left = Math.min(ev.clientX, innerWidth - tabMenu.offsetWidth - 8) + 'px';
   tabMenu.style.top = ev.clientY + 'px';
