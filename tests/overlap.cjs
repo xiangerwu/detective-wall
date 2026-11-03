@@ -37,7 +37,6 @@ function allowedOverlap(a, b, context = {}) {
   if (names.has('rail') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 rail 上';
   if (names.has('navigation') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 navigation 上';
   if (names.has('clipboard') && names.has('panel')) return '浮動案件夾與編輯器可在右側暫時相交，編輯器保持較高互動層';
-  if (context.clipboardOpen && names.has('clipboard') && names.has('zoom-island')) return '開啟案件夾可暫時覆蓋畫布工具島';
   if (context.clipboardOpen && names.has('clipboard') && names.has('marquee')) return '開啟案件夾可暫時覆蓋畫布選取框';
   if (names.has('rail') && names.has('navigation')) return '完整分層／錨點區是左欄 rail 內的內容';
   if (names.has('rail-panel') && names.has('navigation')) return '圖示 rail 的分層／錨點區是 rail flyout 內的內容';
@@ -95,6 +94,7 @@ async function prepare(page, theme, state, scenario, clipboardOpen) {
 
 async function collect(page) {
   return page.evaluate(() => {
+    const overlaps = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
     const visible = el => {
       if (!el) return false;
       const style = getComputedStyle(el), rect = el.getBoundingClientRect();
@@ -113,8 +113,13 @@ async function collect(page) {
     add('rail-panel', '#rail-panel');
     add('top-tabs', '#wall-tabs');
     add('clipboard', '#sidebar');
-    add('layout-island', '#layout-wall-control');
-    add('zoom-island', '#zoom');
+    add('topbar-islands', '#topbar #canvas-islands');
+    for (const [name, selector] of [
+      ['top-search', '#topbar #wall-search'],
+      ['top-undo', '#topbar #undo'],
+      ['top-redo', '#topbar #redo'],
+      ['top-save', '#topbar #save-state'],
+    ]) add(name, selector);
     add('navigation', '#rail-navigation');
     add('navigation-overlay', '#band-nav');
     for (const [index, el] of [...document.querySelectorAll('.band-label')].entries()) {
@@ -128,7 +133,20 @@ async function collect(page) {
     add('pick-toolbar', '#pick-toolbar');
     add('panel', '#panel');
     for (const id of ['tabmenu', 'layout-wall-menu', 'search-results', 'card-menu', 'edgepop', 'bandpop', 'tagpop', 'f-tag-list']) add(`menu:${id}`, `#${id}`);
-    return rows;
+    const topbar = document.querySelector('#topbar')?.getBoundingClientRect();
+    const topbarItems = rows.filter(row => row.name === 'top-tabs' || row.name.startsWith('top-'));
+    const topbarProblems = [];
+    if (!rows.some(row => row.name === 'topbar-islands')) topbarProblems.push('layout/zoom islands are not inside #topbar');
+    if (topbar && topbarItems.some(row => row.left < topbar.left - 1 || row.right > topbar.right + 1 || row.top < topbar.top - 1 || row.bottom > topbar.bottom + 1)) {
+      topbarProblems.push('topbar item escapes the topbar');
+    }
+    if (topbarItems.length && Math.max(...topbarItems.map(row => row.top)) - Math.min(...topbarItems.map(row => row.top)) >= 12) {
+      topbarProblems.push('topbar items wrap onto more than one row');
+    }
+    for (let i = 0; i < topbarItems.length; i++) for (let j = i + 1; j < topbarItems.length; j++) {
+      if (overlaps(topbarItems[i], topbarItems[j])) topbarProblems.push(`${topbarItems[i].name}/${topbarItems[j].name} overlap`);
+    }
+    return {rows, topbarProblems};
   });
 }
 
@@ -144,7 +162,9 @@ async function collect(page) {
         if (scenario === 'files' && state === 'hidden') continue;
         if (scenario === 'navigation' && state !== 'icon') continue;
         await prepare(page, theme, state, scenario, clipboardOpen);
-        const rows = await collect(page);
+        const result = await collect(page);
+        for (const problem of result.topbarProblems) failures.push({theme, width, height, state, scenario, problem});
+        const rows = result.rows;
         if (state === 'full' && scenario === 'base' && !rows.some(row => row.name === 'navigation')) {
           failures.push({theme, width, height, state, scenario, problem: 'full rail has no visible 分層／錨點 section'});
         }

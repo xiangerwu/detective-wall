@@ -112,7 +112,11 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       const group = getComputedStyle(document.querySelector('#layout-wall-control'));
       return group.borderTopStyle === 'solid' && getComputedStyle(document.querySelector('#layout-wall-control'), '::before').content.includes('整理');
     }), 'layout control is a labelled, bordered button group');
-    ok(await page.evaluate(() => { const tops = [...document.querySelector('#topbar #tabrow').children].filter(k => k.offsetParent).map(k => Math.round(k.getBoundingClientRect().top)); return Math.max(...tops) - Math.min(...tops) < 12; }), 'top strip stays on one row at 1400px');
+    const stripSpread = await page.evaluate(() => {
+      const tops = [...document.querySelector('#topbar #tabrow').children].filter(k => k.offsetParent).map(k => k.getBoundingClientRect().top);
+      return tops.length ? Math.max(...tops) - Math.min(...tops) : Infinity;
+    });
+    ok(stripSpread < 12, `top strip stays on one row at 1400px (${stripSpread.toFixed(1)}px spread)`);
     await page.locator('#topbar').screenshot({path: path.join(OUT, 'header.png')});
   } finally {
     await browser.close();

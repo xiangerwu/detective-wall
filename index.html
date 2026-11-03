@@ -92,16 +92,16 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #layout-wall-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
 #layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
 /* Wall tabs are rounded pills in the hybrid shell. */
-#tabrow{display:flex;align-items:center;gap:8px;min-width:0;min-height:38px}
-#wall-tabs{display:flex;gap:6px;min-width:0;overflow-x:auto;touch-action:none}
+#tabrow{display:flex;align-items:center;gap:8px;min-width:0;min-height:38px;flex-wrap:nowrap;white-space:nowrap}
+#wall-tabs{display:flex;flex:1 1 auto;gap:6px;min-width:0;overflow-x:auto;touch-action:none}
 .wall-tab{flex:none;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:5px 14px;color:var(--ui-muted);background:var(--ui-surface);border-radius:var(--pill-radius);border-top:2px solid var(--c-top,var(--ui-border));box-shadow:0 2px 5px var(--shell-shadow)}
 .wall-tab[aria-selected=true]{color:var(--ui-text);background:var(--ui-active);border-color:var(--c-top,var(--ui-accent));box-shadow:0 4px 10px var(--shell-shadow)}
 .wall-tab.dragging{opacity:.6;cursor:grabbing}
 .wall-tab input{width:140px;font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-accent);border-radius:3px;padding:0 4px}
 #add-wall{padding:3px 10px;border-radius:var(--pill-radius)}
 #storage-warning{align-self:center;margin-left:auto;color:var(--ui-warning)}
-#save-state{align-self:center;color:var(--ui-muted);font-size:12px}
-#wall-notice{align-self:center;color:var(--ui-warning);font-size:12px;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#save-state{flex:none;align-self:center;color:var(--ui-muted);font-size:12px}
+#wall-notice{flex:0 1 240px;align-self:center;min-width:0;color:var(--ui-warning);font-size:12px;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #wall-notice:empty{display:none}
 #storage-actions{display:flex;gap:4px;align-items:center}
 #tabmenu{position:fixed;z-index:40;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:10px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
@@ -693,25 +693,22 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 [data-card-style=paper] .card-paper.sel{border-color:var(--ui-accent);box-shadow:0 0 0 2px var(--ui-accent),0 10px 18px var(--paper-shadow-bottom)}
 [data-card-style=paper] .card-paper.photo-card.sel{box-shadow:0 0 0 2px var(--ui-accent),0 12px 20px var(--paper-shadow-bottom)}
 
-/* P19-R2b: the canvas tools float as rounded islands, independent of the rail. */
+/* P19-R2e: the canvas tools live in the spare space of the top bar. */
 [data-theme=wood]{--wall-bg:repeating-linear-gradient(90deg,rgba(55,27,12,.18) 0 2px,transparent 2px 17px),repeating-linear-gradient(0deg,rgba(255,220,168,.08) 0 1px,transparent 1px 7px),linear-gradient(105deg,#805b38,#5b3d27 48%,#744d2d)}
 [data-theme=moon]{--wall-bg:radial-gradient(circle at 76% 22%,rgba(196,218,236,.16) 0 1px,transparent 2px),radial-gradient(circle at 18% 68%,rgba(196,218,236,.12) 0 1px,transparent 2px),linear-gradient(#121a23 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#121a23 1px,transparent 1px) 0 0/18px 18px,#0b1016}
-#canvas-islands{position:absolute;z-index:12;top:12px;left:50%;display:flex;align-items:flex-start;gap:8px;max-width:calc(100% - 24px);transform:translateX(-50%);pointer-events:none}
-#canvas-islands > *{pointer-events:auto}
+#canvas-islands{position:relative;z-index:41;display:flex;flex:none;align-items:center;gap:8px;max-width:none;transform:none;pointer-events:auto}
+#canvas-islands > *{flex:none;pointer-events:auto}
 #canvas-islands #layout-wall-control{display:flex;align-items:center;padding:3px;border:1px solid var(--ui-border);border-radius:999px;background:color-mix(in srgb,var(--ui-surface) 92%,transparent);box-shadow:0 10px 24px var(--ui-shadow-soft)}
 #canvas-islands #layout-wall-control::before{content:'整理版面';padding:0 7px;color:var(--ui-muted);font-size:12px;white-space:nowrap}
 #canvas-islands #layout-wall-control > button{padding:6px 8px;border:0;border-radius:999px;background:var(--ui-active);font-size:12px;white-space:nowrap}
 #canvas-islands #layout-wall-control > button:hover{background:var(--ui-hover)}
 #canvas-islands #layout-wall-control > #layout-wall-arrow{min-width:26px;padding:6px 5px;border-left:1px solid var(--ui-border);border-radius:999px}
-#canvas-islands #layout-wall-menu{top:calc(100% + 6px);left:0;border-radius:14px;box-shadow:0 14px 34px var(--ui-shadow-soft)}
+#canvas-islands #layout-wall-menu{top:calc(100% + 10px);left:0;border-radius:14px;box-shadow:0 14px 34px var(--ui-shadow-soft)}
 #canvas-islands #zoom{display:flex;align-items:center;gap:0;padding:3px;border:1px solid var(--ui-border);border-radius:999px;background:color-mix(in srgb,var(--ui-surface) 92%,transparent);box-shadow:0 10px 24px var(--ui-shadow-soft)}
 #canvas-islands #zoom button{border:0;border-radius:999px;padding:6px 8px}
 #canvas-islands #zoom button:hover{background:var(--ui-hover)}
 #canvas-islands .rail-icon{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;font-size:16px;line-height:1}
 #canvas-islands #zoom-pct{min-width:58px}
-#canvas-islands.compact #zoom .rail-label{display:none}
-#canvas-islands.compact #zoom button:not(#zoom-pct){min-width:28px;padding-left:5px;padding-right:5px}
-#canvas-islands.compact #zoom-pct{min-width:48px;padding-left:5px;padding-right:5px}
 #edgepop [data-type] svg{background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px}
 #edgepop [data-type] line{stroke:var(--ui-text)!important}
 #edgepop [data-type].on svg{background:var(--ui-active)}
@@ -783,6 +780,23 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <button id="redo" title="重做（Ctrl+Y）" aria-label="重做" disabled>↷</button>
     <span id="wall-notice" role="status" aria-live="polite"></span>
     <span id="save-state" role="status">未保存的變更</span>
+    <div id="canvas-islands" aria-label="畫布工具">
+      <div id="layout-wall-control">
+        <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">✣</span><span class="rail-label">推開重疊</span></button>
+        <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">▾</span></button>
+        <div id="layout-wall-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
+          <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
+          <button type="button" role="menuitem" data-mode="full">全部重排</button>
+        </div>
+      </div>
+      <span id="zoom" aria-label="畫布縮放">
+        <button id="zoom-out" title="縮小" aria-label="縮小"><span class="rail-icon" aria-hidden="true">−</span><span class="rail-label">縮小</span></button>
+        <button id="zoom-pct" title="回到 100%" aria-label="目前縮放比例">100%</button>
+        <button id="zoom-in" title="放大" aria-label="放大"><span class="rail-icon" aria-hidden="true">＋</span><span class="rail-label">放大</span></button>
+        <button id="zoom-fit" title="整面牆放進畫面" aria-label="全覽"><span class="rail-icon" aria-hidden="true">⊙</span><span class="rail-label">全覽</span></button>
+      </span>
+    </div>
     <div id="storage-warning" role="status" hidden></div>
     <div id="storage-actions" hidden>
       <button id="storage-retry">重試</button>
@@ -953,23 +967,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 <div id="rail-resize" role="separator" aria-orientation="vertical" aria-controls="rail" aria-label="調整側邊欄寬度（左右鍵切換圖示欄與完整欄）" aria-valuemin="78" aria-valuemax="232" aria-valuenow="78" tabindex="0"></div>
 
 <div id="viewport" tabindex="0" aria-label="案件圖譜畫布">
-  <div id="canvas-islands" aria-label="畫布浮動工具">
-    <div id="layout-wall-control">
-      <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">✣</span><span class="rail-label">推開重疊</span></button>
-      <button id="layout-wall-arrow" type="button" title="選擇整理版面模式" aria-label="選擇整理版面模式" aria-haspopup="menu" aria-expanded="false" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">▾</span></button>
-      <div id="layout-wall-menu" role="menu" hidden>
-        <button type="button" role="menuitem" data-mode="overlap">推開重疊</button>
-        <button type="button" role="menuitem" data-mode="grid">對齊格線</button>
-        <button type="button" role="menuitem" data-mode="full">全部重排</button>
-      </div>
-    </div>
-    <span id="zoom" aria-label="畫布縮放">
-      <button id="zoom-out" title="縮小" aria-label="縮小"><span class="rail-icon" aria-hidden="true">−</span><span class="rail-label">縮小</span></button>
-      <button id="zoom-pct" title="回到 100%" aria-label="目前縮放比例">100%</button>
-      <button id="zoom-in" title="放大" aria-label="放大"><span class="rail-icon" aria-hidden="true">＋</span><span class="rail-label">放大</span></button>
-      <button id="zoom-fit" title="整面牆放進畫面" aria-label="全覽"><span class="rail-icon" aria-hidden="true">⊙</span><span class="rail-label">全覽</span></button>
-    </span>
-  </div>
   <div id="wall">
     <div id="bg"></div>
     <svg id="strings"></svg>
@@ -1909,80 +1906,7 @@ function applyView() {
   $('#zoom-pct').textContent = Math.round(view.s * 100) + '%';
   updateRailNavigation();
   updatePickToolbar();
-  positionCanvasIslands();
 }
-
-function positionCanvasIslands() {
-  if (!canvasIslands) return;
-  const children = [$('#layout-wall-control'), $('#zoom')].filter(Boolean);
-  const viewport = vp.getBoundingClientRect();
-  const gap = 8;
-  let rowTop = viewport.top + 12;
-  const blockElements = [...document.querySelectorAll('.band-label, #panel, #mascot, #sidebar')];
-  const blocks = blockElements.filter(el => {
-    const style = getComputedStyle(el), rect = el.getBoundingClientRect();
-    return style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0
-      && rect.width > 0 && rect.height > 0 && !el.closest('[hidden]');
-  }).map(el => { const rect = el.getBoundingClientRect(); return {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height, source: el}; });
-  let widths = children.map(child => child.getBoundingClientRect().width);
-  const groupWidth = widths.reduce((sum, width) => sum + width, 0) + gap * Math.max(0, children.length - 1);
-  const clear = (left, width, occupied = blocks) => {
-    const rect = {left, right: left + width, top: rowTop, bottom: rowTop + Math.max(...children.map(child => child.getBoundingClientRect().height), 0)};
-    return rect.left >= viewport.left + 8 && rect.right <= viewport.right - 8
-      && occupied.every(block => !((rect.left < block.right - 1 && block.left < rect.right - 1) && (rect.top < block.bottom - 1 && block.top < rect.bottom - 1)));
-  };
-  const starts = [
-    viewport.left + (viewport.width - groupWidth) / 2,
-    viewport.left + 16,
-    viewport.right - groupWidth - 16,
-  ];
-  const grouped = starts.find(left => clear(left, groupWidth));
-  canvasIslands.style.transform = 'none';
-  canvasIslands.style.top = '12px';
-  canvasIslands.style.maxWidth = 'none';
-  if (grouped !== undefined) {
-    canvasIslands.classList.remove('compact');
-    canvasIslands.style.left = grouped - viewport.left + 'px';
-    canvasIslands.style.width = groupWidth + 'px';
-    canvasIslands.style.height = '';
-    canvasIslands.style.display = 'flex';
-    children.forEach(child => { child.style.position = ''; child.style.left = ''; child.style.top = ''; });
-    return;
-  }
-  // When chrome splits the top row, keep each island in the first free rectangle.
-  canvasIslands.classList.add('compact');
-  widths = children.map(child => child.getBoundingClientRect().width);
-  const heights = children.map(child => child.getBoundingClientRect().height);
-  canvasIslands.style.left = '0px';
-  canvasIslands.style.top = '0px';
-  canvasIslands.style.width = viewport.width + 'px';
-  canvasIslands.style.height = viewport.height + 'px';
-  canvasIslands.style.display = 'block';
-  const occupied = [...blocks];
-  const clearAt = (left, width, height, y) => left >= viewport.left + 8 && left + width <= viewport.right - 8 && y >= viewport.top + 8 && y + height <= viewport.bottom - 8
-    && occupied.every(block => !((left < block.right - 1 && block.left < left + width - 1) && (y < block.bottom - 1 && block.top < y + height - 1)));
-  children.forEach((child, index) => {
-    const width = widths[index], height = heights[index];
-    const rows = [viewport.top + 12, ...blocks.flatMap(block => [block.bottom + gap, block.top - height - gap]), viewport.bottom - height - 8]
-      .filter((value, at, all) => value >= viewport.top + 8 && value + height <= viewport.bottom - 8 && all.indexOf(value) === at);
-    const candidates = [viewport.left + 8,
-      ...blocks.flatMap(block => [block.right + gap, block.left - width - gap]),
-      ...occupied.flatMap(block => [block.right + gap, block.left - width - gap]),
-      viewport.left + (viewport.width - width) / 2, viewport.right - width - 8]
-      .filter((value, at, all) => all.indexOf(value) === at);
-    let chosen;
-    for (const y of rows) {
-      const left = candidates.find(value => clearAt(value, width, height, y));
-      if (left !== undefined) { chosen = {left, y}; break; }
-    }
-    chosen ||= {left: viewport.left + 8, y: viewport.top + 12};
-    child.style.position = 'absolute';
-    child.style.left = chosen.left - viewport.left + 'px';
-    child.style.top = chosen.y - viewport.top + 'px';
-    occupied.push({left: chosen.left, top: chosen.y, right: chosen.left + width, bottom: chosen.y + height});
-  });
-}
-new MutationObserver(() => positionCanvasIslands()).observe(panel, {attributes: true, attributeFilter: ['hidden', 'style']});
 
 function currentBandIndex() {
   const bands = [...data.bands].sort((a, b) => a.y - b.y);

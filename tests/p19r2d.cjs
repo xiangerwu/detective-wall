@@ -101,7 +101,7 @@ function hit(a, b) {
           };
           const shell = [
             ['rail', '#rail'], ['rail-panel', '#rail-panel'], ['rail-resize', '#rail-resize'],
-            ['wall-tabs', '#wall-tabs'], ['islands', '#canvas-islands'], ['clipboard', '#sidebar'],
+            ['wall-tabs', '#wall-tabs'], ['islands', '#topbar #canvas-islands'], ['clipboard', '#sidebar'],
           ].map(([name, selector]) => ({name, rect: visible(selector)})).filter(row => row.rect);
           const vpRect = visible('#viewport');
           const board = document.querySelector('#sidebar');

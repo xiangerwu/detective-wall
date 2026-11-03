@@ -120,8 +120,10 @@ async function snapNavigation(page, theme, width, height, state) {
     assert.equal(await page.locator('#rail #types').count(), 0, 'rail has no new-string type controls');
     assert.equal(await page.locator('#rail #layout-wall-control').count(), 0, 'layout island is outside the rail');
     assert.equal(await page.locator('#rail #zoom').count(), 0, 'zoom island is outside the rail');
-    assert.equal(await page.locator('#viewport #layout-wall-control').count(), 1, 'layout island is on the canvas');
-    assert.equal(await page.locator('#viewport #zoom').count(), 1, 'zoom island is on the canvas');
+    assert.equal(await page.locator('#topbar #canvas-islands').count(), 1, 'layout and zoom islands are in the topbar');
+    assert.equal(await page.locator('#viewport #canvas-islands').count(), 0, 'canvas has no floating tool island');
+    assert.equal(await page.locator('#topbar #layout-wall-control').count(), 1, 'layout control stays in the topbar island');
+    assert.equal(await page.locator('#topbar #zoom').count(), 1, 'zoom controls stay in the topbar island');
     await page.evaluate(() => selectEdge(data.edges[0].id, {x: 300, y: 300}));
     for (const type of ['builds', 'uses', 'question']) {
       await page.click(`#edgepop [data-type="${type}"]`); await page.waitForTimeout(300);
