@@ -37,10 +37,12 @@ function allowedOverlap(a, b, context = {}) {
   if (names.has('rail') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 rail 上';
   if (names.has('navigation') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 navigation 上';
   if (names.has('clipboard') && names.has('panel')) return '浮動案件夾與編輯器可在右側暫時相交，編輯器保持較高互動層';
+  if (names.has('clipboard-tabs') && names.has('panel')) return '案件夾分頁與編輯器可在右側暫時相交，編輯器保持較高互動層';
   if (context.clipboardOpen && names.has('clipboard') && names.has('marquee')) return '開啟案件夾可暫時覆蓋畫布選取框';
+  if (names.has('clipboard-tabs') && names.has('marquee')) return '案件夾分頁可暫時覆蓋畫布選取框，分頁仍保持可點擊';
   if (names.has('rail') && names.has('navigation')) return '完整分層／錨點區是左欄 rail 內的內容';
   if (names.has('rail-panel') && names.has('navigation')) return '圖示 rail 的分層／錨點區是 rail flyout 內的內容';
-  if ([...names].some(name => name.startsWith('menu:')) && !names.has('rail') && !names.has('rail-panel') && !names.has('case-folder') && !names.has('top-tabs')) {
+  if ([...names].some(name => name.startsWith('menu:')) && !names.has('rail') && !names.has('rail-panel') && !names.has('case-folder') && !names.has('top-tabs') && !names.has('clipboard-tabs')) {
     return '選單是暫時浮在畫布 chrome 上的互動層';
   }
   if (names.has('panel') && ([...names].some(name => name.startsWith('band-label')) || names.has('marquee') || names.has('mascot'))) {
@@ -95,6 +97,7 @@ async function prepare(page, theme, state, scenario, clipboardOpen) {
 async function collect(page) {
   return page.evaluate(() => {
     const overlaps = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
+    const intersects = overlaps;
     const visible = el => {
       if (!el) return false;
       const style = getComputedStyle(el), rect = el.getBoundingClientRect();
@@ -113,6 +116,7 @@ async function collect(page) {
     add('rail-panel', '#rail-panel');
     add('top-tabs', '#wall-tabs');
     add('clipboard', '#sidebar');
+    add('clipboard-tabs', '#case-folder-tabs');
     add('topbar-islands', '#topbar #canvas-islands');
     for (const [name, selector] of [
       ['top-search', '#topbar #wall-search'],
@@ -133,6 +137,21 @@ async function collect(page) {
     add('pick-toolbar', '#pick-toolbar');
     add('panel', '#panel');
     for (const id of ['tabmenu', 'layout-wall-menu', 'search-results', 'card-menu', 'edgepop', 'bandpop', 'tagpop', 'f-tag-list']) add(`menu:${id}`, `#${id}`);
+    const tabProblems = [];
+    const tabs = [...document.querySelectorAll('.case-folder-tab')].filter(visible);
+    const tabBlockers = ['#case-folder-header', '#clipboard-close', '.clipboard-clip', '.clipboard-peek-clip', '#rail', '#rail-panel', '#topbar', '#tabmenu', '#layout-wall-menu', '#search-results', '#card-menu', '#edgepop', '#bandpop', '#tagpop', '#f-tag-list'];
+    for (const tab of tabs) {
+      const rect = tab.getBoundingClientRect();
+      if (rect.left < -1 || rect.right > innerWidth + 1 || rect.top < -1 || rect.bottom > innerHeight + 1) tabProblems.push(`${tab.textContent.trim()} escapes viewport`);
+      const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      const panel = document.querySelector('#panel');
+      const panelOwnsCentre = visible(panel) && intersects(rect, panel.getBoundingClientRect());
+      if ((!target || !tab.contains(target)) && !panelOwnsCentre) tabProblems.push(`${tab.textContent.trim()} centre is covered`);
+      for (const selector of tabBlockers) {
+        const blocker = document.querySelector(selector);
+        if (visible(blocker) && intersects(rect, blocker.getBoundingClientRect())) tabProblems.push(`${tab.textContent.trim()} intersects ${selector}`);
+      }
+    }
     const topbar = document.querySelector('#topbar')?.getBoundingClientRect();
     const topbarItems = rows.filter(row => row.name === 'top-tabs' || row.name.startsWith('top-'));
     const topbarProblems = [];
@@ -146,7 +165,7 @@ async function collect(page) {
     for (let i = 0; i < topbarItems.length; i++) for (let j = i + 1; j < topbarItems.length; j++) {
       if (overlaps(topbarItems[i], topbarItems[j])) topbarProblems.push(`${topbarItems[i].name}/${topbarItems[j].name} overlap`);
     }
-    return {rows, topbarProblems};
+    return {rows, topbarProblems, tabProblems};
   });
 }
 
@@ -164,6 +183,7 @@ async function collect(page) {
         await prepare(page, theme, state, scenario, clipboardOpen);
         const result = await collect(page);
         for (const problem of result.topbarProblems) failures.push({theme, width, height, state, scenario, problem});
+        for (const problem of result.tabProblems) failures.push({theme, width, height, state, scenario, problem});
         const rows = result.rows;
         if (state === 'full' && scenario === 'base' && !rows.some(row => row.name === 'navigation')) {
           failures.push({theme, width, height, state, scenario, problem: 'full rail has no visible 分層／錨點 section'});
