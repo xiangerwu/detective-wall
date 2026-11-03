@@ -280,22 +280,17 @@ const meanDifference = async (page, restUrl) => {
       assert.equal(await page.locator('#mascot-image .rig').evaluate(rig => [...rig.getAnimations({subtree: true})].some(animation => String(animation.animationName || '').includes('breathe'))), false);
     });
 
-    await check('reduced motion shows only rest.webp with no animations', async () => {
+    await check('animations play even when the OS asks for reduced motion (user decision)', async () => {
       await page.emulateMedia({reducedMotion: 'reduce'});
       for (const client of Object.keys(rigs)) {
-        for (const mood of statusMoods) {
-          await setState(page, client, mood); await expectRig(page, client, mood);
-          const reduced = await page.evaluate(() => {
-            const rig = document.querySelector('#mascot-image .rig');
-            const image = rig?.querySelector(':scope > img');
-            return {count: rig?.querySelectorAll(':scope > img').length, layer: image?.dataset.layer, src: image?.src, animations: [...rig.getAnimations({subtree: true})].map(animation => animation.animationName)};
-          });
-          assert.equal(reduced.count, 1, `${client}/${mood} reduced-motion has one image`);
-          assert.equal(reduced.layer, 'rest', `${client}/${mood} reduced-motion layer is rest`);
-          assert.ok(reduced.src.endsWith(`/assets/avatars/layers/${client}/${mood}/rest.webp`), `${client}/${mood} reduced-motion source`);
-          assert.deepEqual(reduced.animations, [], `${client}/${mood} reduced-motion animations`);
-        }
+        await setState(page, client, 'idle'); await expectRig(page, client, 'idle');
+        const layered = await page.evaluate(() => {
+          const rig = document.querySelector('#mascot-image .rig');
+          return {count: rig?.querySelectorAll(':scope > img').length, animations: [...rig.getAnimations({subtree: true})].length};
+        });
+        assert.ok(layered.count > 1 && layered.animations > 0, `${client}/idle keeps its animated layers under reduced motion`);
       }
+      assert.ok(!(await page.locator('#sidebar').evaluate(el => getComputedStyle(el).transitionDuration.split(',').every(d => parseFloat(d) === 0))), 'clipboard slide keeps its transition');
       await page.emulateMedia({reducedMotion: 'no-preference'});
     });
 

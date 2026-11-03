@@ -117,12 +117,13 @@ for (const client of ['claude', 'codex']) {
       assert.equal(await page.locator('#mascot-bubble').textContent(), state === 'thinking' ? '思考中…' : state === 'happy' ? '完成了' : state === 'sweat' ? '出錯了…' : 'zzz');
       await page.screenshot({path: path.join(out, `mascot-${state}.png`)});
     }
+    // The user wants the pet animated regardless of the OS reduced-motion setting.
     await page.emulateMedia({reducedMotion: 'reduce'});
     await setState('thinking');
-    assert.equal(await page.locator('#mascot-image .rig > img').count(), 1);
-    assert.ok((await page.locator('#mascot-image .rig > img').getAttribute('src')).endsWith('/assets/avatars/layers/claude/thinking/rest.webp'));
-    assert.deepEqual(await page.locator('#mascot-image .rig').evaluate(rig => [...rig.getAnimations({subtree: true})].map(animation => animation.animationName)), []);
-    console.log('PASS mascot state images, status bubbles, reduced-motion, and generated asset limits');
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'thinking');
+    assert.ok(await page.locator('#mascot-image .rig > img').count() > 1);
+    assert.ok((await page.locator('#mascot-image .rig').evaluate(rig => rig.getAnimations({subtree: true}).length)) > 0);
+    console.log('PASS mascot state images, status bubbles, animation under reduced motion, and generated asset limits');
 
     await page.click('#zoom-fit');
     await page.evaluate(() => { const r = vp.getBoundingClientRect(); setMascotPosition(r.right - mascot.offsetWidth - 16, r.bottom - mascot.offsetHeight - 16); });

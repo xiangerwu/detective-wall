@@ -540,12 +540,6 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 .magnify-tail{transform-origin:20.51% 77.47%;animation:magnify-tail 4.8s ease-in-out infinite}
 @keyframes magnify-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
 .magnify-ahoge{transform-origin:50.39% 13.02%;animation:magnify-ahoge 2.4s ease-in-out infinite}
-@media(prefers-reduced-motion:reduce){
-  #sidebar{transition:none!important}
-  #mascot-image .rig,#mascot-image .rig > img,#mascot-blink,#mascot-transition{animation:none!important;transition:none!important}
-  #mascot-image .rig{transform:translateX(-50%)!important;translate:0 0!important}
-  #mascot-bubble{transition:none!important}
-}
 #template-list,#template-custom-list{display:flex;flex-direction:column;gap:4px}
 .template-row{display:flex;align-items:center;gap:4px}
 .template-row button:first-child{flex:1;text-align:left}
@@ -4133,9 +4127,6 @@ function canvasGridSize() {
   }
   return WallLayout.constants.grid;
 }
-function layoutMotionAllowed() {
-  return !matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 async function animateLayout(cards, positions, moving) {
   const elements = new Map([...wall.querySelectorAll('.card')].map(el => [el.dataset.id, el]));
   const changes = cards.filter(card => (!moving || moving.has(card.id)) && positions[card.id]
@@ -4153,10 +4144,6 @@ async function animateLayout(cards, positions, moving) {
     renderStrings();
     updatePickToolbar();
   };
-  if (!layoutMotionAllowed()) {
-    apply(1);
-    return changes.length;
-  }
   await new Promise(resolve => {
     const started = performance.now();
     const frame = now => {
@@ -5402,7 +5389,6 @@ mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
 if (Number.isFinite(savedMascotPosition?.x) && Number.isFinite(savedMascotPosition?.y)) {
   mascot.style.left = savedMascotPosition.x + 'px'; mascot.style.top = savedMascotPosition.y + 'px';
 }
-function mascotMotionAllowed() { return !matchMedia('(prefers-reduced-motion: reduce)').matches; }
 function mascotViewportBounds() {
   const rect = vp.getBoundingClientRect();
   return {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
@@ -5470,11 +5456,6 @@ function makeMascotLayer(client, mood, layer, assets) {
   if (pivot) image.style.transformOrigin = `${pivot[0]}% ${pivot[1]}%`;
   return image;
 }
-function makeMascotRest(assets) {
-  const image = document.createElement('img');
-  image.className = 'mascot-layer'; image.dataset.layer = 'rest'; image.alt = ''; image.setAttribute('aria-hidden', 'true'); image.decoding = 'async'; image.src = assets.rest.src;
-  return image;
-}
 function resetMascotAnimations() {
   for (const animation of mascotImage.getAnimations({subtree: true})) if (!animation.animationName?.includes('blink')) animation.currentTime = 0;
 }
@@ -5484,7 +5465,7 @@ async function mountMascotMood(client, mood, variant, sequence) {
   const rig = mascotImage.querySelector('.rig');
   rig.className = `rig${variant ? ' ' + variant : ''}`; rig.style.aspectRatio = `${assets.spec.size[0]} / ${assets.spec.size[1]}`;
   rig.dataset.client = client; rig.dataset.mood = mood; rig.dataset.variant = variant || ''; rig.dataset.ready = 'false';
-  const children = mascotMotionAllowed() ? assets.spec.layers.map(layer => makeMascotLayer(client, mood, layer, assets)) : [makeMascotRest(assets)];
+  const children = assets.spec.layers.map(layer => makeMascotLayer(client, mood, layer, assets));
   rig.replaceChildren(...children); rig.dataset.ready = 'true';
   mascotDisplayMood = mood; mascotCurrentRest = assets.rest.src; mascotCurrentSize = assets.spec.size;
   setMascotOverlaySize(mascotBlink, assets.spec.size); setMascotOverlaySize(mascotTransition, assets.spec.size);
@@ -5498,7 +5479,7 @@ function applyMascotVariant(variant) {
 function clearMascotIdle() { clearInterval(mascotIdleTimer); mascotIdleTimer = 0; }
 function scheduleMascotBlink() {
   clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
-  if (!mascotMotionAllowed() || mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
+  if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
   mascotBlinkTimer = setTimeout(() => {
     if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
     mascot.classList.add('blinking');
@@ -5508,7 +5489,7 @@ function scheduleMascotBlink() {
 function playMascotTransition(client, from, to) {
   clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning', 'crossfading');
   const frames = mascotTransitions[`${from}-${to}`];
-  if (!mascotMotionAllowed() || !frames) return;
+  if (!frames) return;
   const source = frame => `/assets/avatars/${client}-tr-${frame}.webp`;
   let index = 0;
   if (mascotCurrentSize) setMascotOverlaySize(mascotTransition, mascotCurrentSize);
@@ -5520,17 +5501,17 @@ function playMascotTransition(client, from, to) {
   }, 80);
 }
 function crossfadeMascot(source, size = mascotCurrentSize) {
-  if (!mascotMotionAllowed() || !source) return;
+  if (!source) return;
   if (size) setMascotOverlaySize(mascotBlink, size);
   mascotBlink.src = source; mascotBlink.decoding = 'async'; mascot.classList.add('crossfading');
   requestAnimationFrame(() => mascot.classList.remove('crossfading'));
 }
 function startMascotIdle(client) {
   clearMascotIdle();
-  if (!mascotMotionAllowed() || mascotMood !== 'idle') return;
+  if (mascotMood !== 'idle') return;
   void Promise.all(MASCOT_IDLE_DRAWINGS.map(mood => preloadMascotMood(client, mood)));
   mascotIdleTimer = setInterval(async () => {
-    if (!mascotMotionAllowed() || mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
+    if (mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
     mascotIdleStep++;
     mascotIdleVariantIndex = (mascotIdleVariantIndex + 1) % MASCOT_IDLE_VARIANTS.length;
     const variant = MASCOT_IDLE_VARIANTS[mascotIdleVariantIndex];

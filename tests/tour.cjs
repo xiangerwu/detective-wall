@@ -613,7 +613,6 @@ async function connectMcp() {
   try {
     browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
-    await page.emulateMedia({reducedMotion: 'reduce'});
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
     await page.goto(PAGE); await ready(page); await openSidebar(page);
