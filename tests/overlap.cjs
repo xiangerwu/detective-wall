@@ -85,8 +85,6 @@ async function prepare(page, theme, state, scenario, clipboardOpen) {
     const pick = document.getElementById('pick-toolbar');
     const viewportBox = document.getElementById('viewport').getBoundingClientRect();
     pick.hidden = scenario !== 'menus'; pick.style.left = (viewportBox.left + 300) + 'px'; pick.style.top = Math.round(viewportBox.height * .7) + 'px';
-    const mascotBox = document.getElementById('mascot').getBoundingClientRect();
-    setMascotPosition(viewport.left + 16, viewport.bottom - mascotBox.height - 16);
     if (scenario === 'menus') {
       const menu = document.getElementById('tabmenu');
       menu.hidden = false; menu.style.left = '300px'; menu.style.top = '48px';

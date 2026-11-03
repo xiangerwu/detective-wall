@@ -148,7 +148,10 @@ function hit(a, b) {
     await setClipboard(page, false);
     const peek = page.locator('#clipboard-peek');
     check(await peek.count() === 1 && await peek.getAttribute('aria-label') === '開啟 AI 案件夾', 'docked clipboard exposes a focusable peek');
-    const beforeOpenMascot = await page.locator('#mascot').boundingBox();
+    const beforeOpenMascot = await page.evaluate(() => ({
+      mascot: document.querySelector('#mascot')?.getBoundingClientRect(),
+      board: document.querySelector('#sidebar')?.getBoundingClientRect(),
+    }));
     if (await peek.count()) {
       await peek.focus(); await page.keyboard.press('Enter'); await waitPaint(page);
       const openedFocus = await page.evaluate(() => ({
@@ -156,9 +159,15 @@ function hit(a, b) {
         inside: document.querySelector('#sidebar')?.contains(document.activeElement),
       }));
       check(openedFocus.open && openedFocus.inside, 'Enter on the peek opens the board and moves focus inside it');
-      const afterOpenMascot = await page.locator('#mascot').boundingBox();
-      check(beforeOpenMascot && afterOpenMascot && Math.abs(beforeOpenMascot.x - afterOpenMascot.x) < 1 && Math.abs(beforeOpenMascot.y - afterOpenMascot.y) < 1,
-        'opening the board never moves the mascot');
+      const afterOpenMascot = await page.evaluate(() => ({
+        mascot: document.querySelector('#mascot')?.getBoundingClientRect(),
+        board: document.querySelector('#sidebar')?.getBoundingClientRect(),
+      }));
+      const mascotMove = afterOpenMascot.mascot.left - beforeOpenMascot.mascot.left;
+      const boardMove = afterOpenMascot.board.left - beforeOpenMascot.board.left;
+      check(Math.abs(mascotMove - boardMove) <= 2
+        && Math.abs(afterOpenMascot.mascot.bottom - beforeOpenMascot.mascot.bottom) <= 2,
+        'opening the board moves the mascot with the board and keeps its feet aligned');
       await page.mouse.click(420, 470); await waitPaint(page);
       check(await page.getAttribute('#sidebar', 'aria-expanded') === 'false' && await page.evaluate(() => document.activeElement?.id === 'clipboard-peek'),
         'clicking outside docks the board and returns focus to the peek');
@@ -174,7 +183,7 @@ function hit(a, b) {
       await reload(page);
       check(await page.getAttribute('#sidebar', 'aria-expanded') === 'false', 'docked clipboard state survives reload');
     } else {
-      for (const message of ['Enter on the peek opens the board and moves focus inside it', 'opening the board never moves the mascot', 'clicking outside docks the board and returns focus to the peek', 'Alt+Shift+A opens the board and focuses its active sheet', 'the close control docks the board', 'open clipboard state survives reload', 'docked clipboard state survives reload']) check(false, message);
+      for (const message of ['Enter on the peek opens the board and moves focus inside it', 'opening the board moves the mascot with the board and keeps its feet aligned', 'clicking outside docks the board and returns focus to the peek', 'Alt+Shift+A opens the board and focuses its active sheet', 'the close control docks the board', 'open clipboard state survives reload', 'docked clipboard state survives reload']) check(false, message);
     }
 
     await setClipboard(page, true);

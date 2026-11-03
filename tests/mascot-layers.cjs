@@ -294,18 +294,17 @@ const meanDifference = async (page, restUrl) => {
       await page.emulateMedia({reducedMotion: 'no-preference'});
     });
 
-    await check('drag, resize, click-to-open, and top z-layer remain intact', async () => {
+    await check('fixed position, resize, click-to-open, and top z-layer remain intact', async () => {
       await setState(page, 'claude', 'idle'); await expectRig(page, 'claude', 'idle');
       const z = await page.locator('#mascot').evaluate(element => Number.parseInt(getComputedStyle(element).zIndex, 10));
       assert.ok(z >= 1000, `mascot z-index ${z}`);
-      await page.evaluate(() => setMascotPosition(600, 400));
+      const beforeDrag = await page.locator('#mascot').boundingBox();
       const start = await page.locator('#mascot-image').boundingBox();
       const target = await page.evaluate(() => { const r = vp.getBoundingClientRect(); return {x: r.left + 40, y: r.top + 40}; });
       await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2); await page.mouse.down();
       await page.mouse.move(target.x + start.width / 2, target.y + start.height / 2, {steps: 5}); await page.mouse.up();
-      const dragged = await page.locator('#mascot').boundingBox();
-      assert.ok(Math.abs(dragged.x - target.x) < 4 && Math.abs(dragged.y - target.y) < 4, 'layer rig remains draggable');
-      await page.evaluate(() => setMascotPosition(600, 400));
+      const afterDrag = await page.locator('#mascot').boundingBox();
+      assert.ok(beforeDrag && afterDrag && Math.abs(afterDrag.x - beforeDrag.x) <= 1 && Math.abs(afterDrag.y - beforeDrag.y) <= 1, 'layer rig stays fixed when dragged');
       const before = await page.locator('#mascot').boundingBox();
       const resize = await page.locator('#mascot-resize').boundingBox();
       await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2); await page.mouse.down();

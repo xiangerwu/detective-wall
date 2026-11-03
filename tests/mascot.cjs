@@ -37,7 +37,7 @@ for (const client of ['claude', 'codex']) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto(base); await ready(page); await openSidebar(page);
+    await page.goto(base); await ready(page); await openSidebar(page); await page.waitForTimeout(650);
     await page.waitForFunction(() => {
       const rig = document.querySelector('#mascot-image .rig');
       return rig?.dataset.ready === 'true' && [...rig.querySelectorAll(':scope > img')].every(image => image.complete && image.naturalWidth > 0);
@@ -45,35 +45,39 @@ for (const client of ['claude', 'codex']) {
     assert.equal(await page.locator('#chat-mascot-panel').count(), 0);
 
     const rightBottom = await page.evaluate(() => {
-      const mascot = $('#mascot').getBoundingClientRect(), view = vp.getBoundingClientRect();
-      return {rightGap: view.right - mascot.right, bottomGap: view.bottom - mascot.bottom, viewRight: view.right, mascotRight: mascot.right};
+      const mascot = $('#mascot').getBoundingClientRect(), board = $('#sidebar').getBoundingClientRect();
+      return {rightGap: board.left - mascot.right, bottomGap: board.bottom - mascot.bottom};
     });
-    ok(Math.abs(rightBottom.rightGap - 16) <= 2 && Math.abs(rightBottom.bottomGap - 16) <= 2, 'mascot starts 16px from the canvas bottom-right');
-    await page.screenshot({path: path.join(out, 'mascot-right-bottom.png')});
+    ok(rightBottom.rightGap >= 6 && rightBottom.rightGap <= 12 && Math.abs(rightBottom.bottomGap) <= 2,
+      'mascot starts immediately left of the open clipboard with aligned feet');
+    await page.screenshot({path: path.join(out, 'mascot-left-of-clipboard.png')});
 
+    const beforeDrag = await page.locator('#mascot').boundingBox();
     const start = await page.locator('#mascot-image').boundingBox();
     const target = await page.evaluate(() => { const r = vp.getBoundingClientRect(); return {x: r.left + 40, y: r.top + 40}; });
     await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
     await page.mouse.down(); await page.mouse.move(target.x + start.width / 2, target.y + start.height / 2, {steps: 6}); await page.mouse.up();
-    const dragged = await page.locator('#mascot').boundingBox();
-    ok(Math.abs(dragged.x - target.x) < 4 && Math.abs(dragged.y - target.y) < 4, 'dragging moves mascot to the upper-left of the canvas');
-    const savedPosition = await page.evaluate(() => JSON.parse(localStorage.getItem(MASCOT_POS_KEY)));
-    ok(Math.abs(savedPosition.x - dragged.x) < 2 && Math.abs(savedPosition.y - dragged.y) < 2, 'dragged mascot position is saved');
-    await page.screenshot({path: path.join(out, 'mascot-dragged-left-top.png')});
+    const afterDrag = await page.locator('#mascot').boundingBox();
+    ok(beforeDrag && afterDrag && Math.abs(afterDrag.x - beforeDrag.x) <= 1 && Math.abs(afterDrag.y - beforeDrag.y) <= 1,
+      'dragging does not move the fixed mascot');
 
-    await page.reload(); await ready(page); await openSidebar(page);
-    const reloaded = await page.locator('#mascot').boundingBox();
-    ok(Math.abs(reloaded.x - dragged.x) < 3 && Math.abs(reloaded.y - dragged.y) < 3, 'dragged mascot position survives reload');
+    await page.reload(); await ready(page); await openSidebar(page); await page.waitForTimeout(650);
+    const reloaded = await page.evaluate(() => {
+      const mascot = $('#mascot').getBoundingClientRect(), board = $('#sidebar').getBoundingClientRect();
+      return {rightGap: board.left - mascot.right, bottomGap: board.bottom - mascot.bottom};
+    });
+    ok(reloaded.rightGap >= 6 && reloaded.rightGap <= 12 && Math.abs(reloaded.bottomGap) <= 2,
+      'fixed mascot position follows the clipboard after reload');
 
     await page.evaluate(() => showClipboard(false));
     const clickBox = await page.locator('#mascot-image').boundingBox();
     await page.mouse.click(clickBox.x + clickBox.width / 2, clickBox.y + clickBox.height / 2);
     await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true'
       && document.querySelector('#sidebar')?.contains(document.activeElement));
-    console.log('PASS mascot default position, drag persistence, and click-to-open board focus');
+    await page.waitForTimeout(650);
+    console.log('PASS mascot fixed position, non-dragging, resize, and click-to-open board focus');
 
     // Earlier steps parked the pet top-left, where growing up-left would be clamped; resize it with room around it.
-    await page.evaluate(() => setMascotPosition(600, 400));
     const beforeSize = await page.locator('#mascot').boundingBox();
     const resize = await page.locator('#mascot-resize').boundingBox();
     await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2);
@@ -126,7 +130,7 @@ for (const client of ['claude', 'codex']) {
     console.log('PASS mascot state images, status bubbles, animation under reduced motion, and generated asset limits');
 
     await page.click('#zoom-fit');
-    await page.evaluate(() => { const r = vp.getBoundingClientRect(); setMascotPosition(r.right - mascot.offsetWidth - 16, r.bottom - mascot.offsetHeight - 16); });
+    await page.evaluate(() => showMascotBubble(''));
     const cardPoint = await page.evaluate(() => {
       const m = $('#mascot').getBoundingClientRect();
       return [...document.querySelectorAll('.card')].map(card => {

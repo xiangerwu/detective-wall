@@ -270,7 +270,8 @@ async function themeStyles(page, theme) {
     await page.mouse.move(handle.x + 80, handle.y + 70, {steps: 5});
     await page.mouse.up();
     const after = await page.locator('#panel').boundingBox();
-    assert.ok(after.width > before.width && after.height > before.height && after.width >= 300 && after.height >= 240);
+    assert.ok(after.width > before.width && after.height > before.height && after.width >= 300 && after.height >= 240,
+      `editor resize did not grow (${JSON.stringify({before, after, handle})})`);
     const savedSize = await page.evaluate(() => JSON.parse(localStorage.getItem(PANEL_SIZE_KEY)));
     assert.ok(savedSize.width >= 300 && savedSize.height >= 240);
     const titlebar = await page.locator('#panel-titlebar').boundingBox();

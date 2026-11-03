@@ -334,7 +334,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #edgepop,#bandpop{position:absolute;z-index:6;display:flex;gap:4px;padding:6px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;white-space:nowrap;
   transform-origin:0 0;transform:scale(var(--inv,1)) translate(-50%,-130%)}
 #bandpop{transform:scale(var(--inv,1));margin-top:48px}
-#panel{position:fixed;z-index:42;width:360px;height:560px;min-width:0;min-height:0;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 16px 42px var(--ui-shadow)}
+#panel{position:fixed;z-index:1001;width:360px;height:560px;min-width:0;min-height:0;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);display:flex;flex-direction:column;overflow:hidden;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 16px 42px var(--ui-shadow)}
 #panel-titlebar{flex:none;display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--ui-border);color:var(--ui-text);font-weight:600;cursor:move;user-select:none}
 #panel-titlebar button{width:26px;height:26px;padding:0;line-height:1;border:0;background:transparent;color:var(--ui-muted);font-size:20px}
 #panel-titlebar button:hover,#panel-titlebar button:focus-visible{color:var(--ui-text);background:var(--ui-hover)}
@@ -413,13 +413,14 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #chat-progress-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-stop{padding:3px 8px}
 #chat-section{height:260px}
-#mascot{position:fixed;z-index:1000;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
+#mascot{position:fixed;z-index:1000;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none;will-change:left,top;transition:left .56s cubic-bezier(.22,.85,.25,1),top .56s cubic-bezier(.22,.85,.25,1)}
+#mascot[hidden]{display:none}
 #mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-position:center bottom}
-#mascot-image{overflow:visible;cursor:grab;pointer-events:auto}
+#mascot-image{overflow:visible;cursor:pointer;pointer-events:auto}
 #mascot-image .rig{position:absolute;bottom:0;left:50%;height:100%;aspect-ratio:512/768;transform:translateX(-50%);transform-origin:50% 100%;pointer-events:auto;overflow:visible}
 #mascot-image .rig > img{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}
 body.wall-pointer #mascot *{pointer-events:none!important}
-#mascot.dragging #mascot-image{cursor:grabbing}
+#mascot.resizing{transition:none}
 #mascot-blink,#mascot-transition{object-fit:contain;pointer-events:none;opacity:0;transition:opacity .4s ease}
 #mascot-transition{transition:opacity .2s ease}
 #mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-blink{opacity:1}
@@ -705,6 +706,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar .action-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 #sidebar .check{display:flex;align-items:center;gap:6px;color:var(--ui-text);font-size:12px}
 #sidebar .check input{accent-color:var(--ui-accent)}
+#chat-client-panel .mascot-visible-option{grid-column:1/-1;justify-content:flex-start}
 #sidebar #ai-review-open{flex:none}
 #sidebar .proposal-stack,#sidebar .audit-stack{display:flex;flex-direction:column;gap:7px;min-height:0}
 #sidebar .ai-empty{margin:0;color:var(--ui-muted);font-size:12px}
@@ -1295,16 +1297,17 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
                <option value="codex">codex</option>
              </select>
            </label>
-           <button id="chat-new" type="button">開新對話</button>
-           <p id="chat-client-state" class="status-line" role="status"></p>
-         </div>
+            <button id="chat-new" type="button">開新對話</button>
+            <p id="chat-client-state" class="status-line" role="status"></p>
+            <label class="check mascot-visible-option"><input id="mascot-visible" type="checkbox" checked>顯示 AI 人物</label>
+          </div>
        </section>
      </div>
    </div>
  </aside>
 <div id="mascot" role="button" tabindex="0" aria-label="AI 桌寵；點擊開啟 AI 案件夾" aria-expanded="false">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
-  <div id="mascot-image" role="img" aria-label="AI 桌寵（可拖曳）"><div class="rig"></div></div>
+   <div id="mascot-image" role="img" aria-label="AI 桌寵"><div class="rig"></div></div>
   <img id="mascot-blink" src="/assets/avatars/layers/claude/sleep/rest.webp" alt="" aria-hidden="true" decoding="async">
   <img id="mascot-transition" src="/assets/avatars/layers/claude/sleep/rest.webp" alt="" aria-hidden="true" decoding="async">
   <button id="mascot-resize" type="button" aria-label="調整桌寵大小" title="調整桌寵大小"></button>
@@ -1808,7 +1811,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', RAIL_KEY = 'thesis-detective-wall-rail', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_POS_KEY = 'thesis-detective-wall-mascot-position', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', RAIL_KEY = 'thesis-detective-wall-rail', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size', MASCOT_VISIBLE_KEY = 'thesis-detective-wall-mascot-visible';
 const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
 let layoutMode = 'overlap';
 try {
@@ -5294,6 +5297,18 @@ showAiTab('chat');
 const sidebar = $('#sidebar');
 const clipboardPeek = $('#clipboard-peek'), clipboardClose = $('#clipboard-close');
 let clipboardOpen = false, clipboardOpener = null;
+const MASCOT_BOARD_GAP = 8;
+function positionMascot() {
+  const pet = document.querySelector('#mascot');
+  if (!pet || pet.hidden) return;
+  const style = getComputedStyle(sidebar), right = Number.parseFloat(style.right) || 0;
+  const width = sidebar.offsetWidth, peekWidth = clipboardPeek.offsetWidth || 78;
+  const openLeft = innerWidth - right - width;
+  const boardLeft = clipboardOpen ? openLeft : innerWidth - right - peekWidth;
+  const board = sidebar.getBoundingClientRect();
+  pet.style.left = Math.max(0, boardLeft - pet.offsetWidth - MASCOT_BOARD_GAP) + 'px';
+  pet.style.top = Math.max(0, board.bottom - pet.offsetHeight) + 'px';
+}
 function focusClipboardSheet() {
   const selected = document.querySelector('#case-folder-tabs [aria-selected=true]');
   (selected || $('#case-folder')).focus({preventScroll: true});
@@ -5307,6 +5322,7 @@ function showClipboard(open, focus = true) {
   sidebar.setAttribute('aria-expanded', String(open));
   clipboardPeek.tabIndex = open ? -1 : 0;
   clipboardPeek.setAttribute('aria-hidden', String(open));
+  positionMascot();
   try { localStorage.setItem(CLIPBOARD_KEY, open ? '1' : '0'); } catch {}
   if (!focus) return;
   requestAnimationFrame(() => {
@@ -5332,6 +5348,7 @@ document.addEventListener('pointerdown', ev => {
 let savedClipboard = null;
 try { savedClipboard = localStorage.getItem(CLIPBOARD_KEY); } catch {}
 showClipboard(savedClipboard === '1', false);
+addEventListener('resize', positionMascot);
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
@@ -5484,6 +5501,7 @@ globalThis.MASCOT_RIGS = MASCOT_RIGS;
 const MASCOT_LAYER_ROOT = '/assets/avatars/layers';
 const MASCOT_IDLE_DRAWINGS = ['idle', 'sit', 'read', 'magnify'];
 const MASCOT_IDLE_VARIANTS = ['v-breeze', 'v-sway', 'v-boing', 'v-gust'];
+const MASCOT_HAPPY_RETURN_MS = 5000;
 const mascotTestTiming = globalThis.__MASCOT_TEST_TIMING || {};
 const mascotIdleSwitchMs = Number.isFinite(Number(mascotTestTiming.idleSwitchMs)) ? Number(mascotTestTiming.idleSwitchMs) : 9600;
 const mascotBlinkDelay = Number.isFinite(Number(mascotTestTiming.blinkDelayMs)) ? Number(mascotTestTiming.blinkDelayMs) : null;
@@ -5495,40 +5513,22 @@ const mascotTransitions = {
   'idle-sleep': ['idle-sleep-1', 'idle-sleep-2'],
 };
 let mascotMood = '', mascotClient = '', mascotDisplayMood = '', mascotCurrentRest = '', mascotCurrentSize = null;
-let mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotIdleTimer = 0, mascotRenderSequence = 0;
-let mascotIdleVariantIndex = 0, mascotIdleDrawingIndex = 0, mascotIdleStep = 0, mascotDrag = null, mascotResizeDrag = null;
-let savedMascotPosition = null, savedMascotSize = 180;
+let mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotIdleTimer = 0, mascotHappyReturnTimer = 0, mascotRenderSequence = 0;
+let mascotIdleVariantIndex = 0, mascotIdleDrawingIndex = 0, mascotIdleStep = 0, mascotResizeDrag = null, mascotReturnToIdle = false;
+let savedMascotSize = 180, mascotVisible = true;
 const mascotAssetCache = new Map();
-try { savedMascotPosition = JSON.parse(localStorage.getItem(MASCOT_POS_KEY)); } catch {}
 try { savedMascotSize = clamp(Number(localStorage.getItem(MASCOT_SIZE_KEY)) || 180, 96, 360); } catch {}
+try { mascotVisible = localStorage.getItem(MASCOT_VISIBLE_KEY) !== '0'; } catch {}
 mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
-if (Number.isFinite(savedMascotPosition?.x) && Number.isFinite(savedMascotPosition?.y)) {
-  mascot.style.left = savedMascotPosition.x + 'px'; mascot.style.top = savedMascotPosition.y + 'px';
-}
-function mascotViewportBounds() {
-  const rect = vp.getBoundingClientRect();
-  return {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
-}
-function saveMascotPosition() {
-  try { localStorage.setItem(MASCOT_POS_KEY, JSON.stringify({x: parseFloat(mascot.style.left), y: parseFloat(mascot.style.top)})); } catch {}
-}
-function clampMascot(persist = false) {
-  const bounds = mascotViewportBounds(), width = mascot.offsetWidth, height = mascot.offsetHeight;
-  const minX = bounds.left + 8, minY = bounds.top + 8;
-  const maxX = Math.max(minX, bounds.right - width - 16), maxY = Math.max(minY, bounds.bottom - height - 16);
-  const currentX = parseFloat(mascot.style.left), currentY = parseFloat(mascot.style.top);
-  const x = clamp(Number.isFinite(currentX) ? currentX : maxX, minX, maxX), y = clamp(Number.isFinite(currentY) ? currentY : maxY, minY, maxY);
-  mascot.style.left = x + 'px'; mascot.style.top = y + 'px';
-  if (persist) saveMascotPosition();
-}
-function setMascotPosition(x, y, persist = false) {
-  mascot.style.left = x + 'px'; mascot.style.top = y + 'px';
-  clampMascot(persist);
-}
+mascot.hidden = !mascotVisible;
+mascot.tabIndex = mascotVisible ? 0 : -1;
+mascot.setAttribute('aria-hidden', String(!mascotVisible));
+const mascotVisibleToggle = $('#mascot-visible');
+mascotVisibleToggle.checked = mascotVisible;
 function setMascotSize(height, persist = true) {
   savedMascotSize = clamp(Math.round(height), 96, 360);
   mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
-  clampMascot(false);
+  positionMascot();
   if (persist) try { localStorage.setItem(MASCOT_SIZE_KEY, savedMascotSize); } catch {}
 }
 function showMascotBubble(text) {
@@ -5593,9 +5593,21 @@ function applyMascotVariant(variant) {
   rig.classList.remove(...MASCOT_IDLE_VARIANTS); rig.classList.add(variant); rig.dataset.variant = variant; resetMascotAnimations();
 }
 function clearMascotIdle() { clearInterval(mascotIdleTimer); mascotIdleTimer = 0; }
+function cancelMascotHappyReturn() {
+  clearTimeout(mascotHappyReturnTimer); mascotHappyReturnTimer = 0; mascotReturnToIdle = false;
+}
+function scheduleMascotHappyReturn() {
+  if (!mascotVisible || mascotReturnToIdle || mascotHappyReturnTimer) return;
+  mascotHappyReturnTimer = setTimeout(() => {
+    mascotHappyReturnTimer = 0;
+    if (!mascotVisible || mascotMood !== 'happy' || chatBusy) return;
+    mascotReturnToIdle = true;
+    updateChatMascot();
+  }, MASCOT_HAPPY_RETURN_MS);
+}
 function scheduleMascotBlink() {
   clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
-  if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
+  if (!mascotVisible || mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
   mascotBlinkTimer = setTimeout(() => {
     if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
     mascot.classList.add('blinking');
@@ -5624,10 +5636,10 @@ function crossfadeMascot(source, size = mascotCurrentSize) {
 }
 function startMascotIdle(client) {
   clearMascotIdle();
-  if (mascotMood !== 'idle') return;
+  if (!mascotVisible || mascotMood !== 'idle') return;
   void Promise.all(MASCOT_IDLE_DRAWINGS.map(mood => preloadMascotMood(client, mood)));
   mascotIdleTimer = setInterval(async () => {
-    if (mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
+    if (!mascotVisible || mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
     mascotIdleStep++;
     mascotIdleVariantIndex = (mascotIdleVariantIndex + 1) % MASCOT_IDLE_VARIANTS.length;
     const variant = MASCOT_IDLE_VARIANTS[mascotIdleVariantIndex];
@@ -5642,13 +5654,16 @@ function startMascotIdle(client) {
   }, mascotIdleSwitchMs);
 }
 function updateChatMascot() {
+  if (!mascotVisible) return;
   const last = chatMessages[chatMessages.length - 1];
   const running = chatBusy && !$('#chat-progress').hidden;
-  const mood = mascotForcedSleep ? 'sleep' : running ? 'thinking'
+  const rawMood = mascotForcedSleep ? 'sleep' : running ? 'thinking'
     : !chatMessages.length ? 'sleep'
     : last.status === 'stopped' || last.error ? 'sweat'
     : last.role === 'assistant' ? 'happy'
     : 'idle';
+  if (rawMood !== 'happy') cancelMascotHappyReturn();
+  const mood = rawMood === 'happy' && mascotReturnToIdle ? 'idle' : rawMood;
   const previousMood = mascotMood, previousClient = mascotClient, previousRest = mascotCurrentRest, previousSize = mascotCurrentSize;
   mascotMood = mood; mascotClient = chatClient; clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0; mascot.classList.remove('blinking');
   if (mood === 'idle') { mascotIdleVariantIndex = 0; mascotIdleDrawingIndex = 0; mascotIdleStep = 0; }
@@ -5659,11 +5674,29 @@ function updateChatMascot() {
     if (previousRest && previousClient === chatClient && previousMood !== mood && mascotTransitions[`${previousMood}-${mood}`]) playMascotTransition(chatClient, previousMood, mood);
     else if (previousRest && previousRest !== mascotCurrentRest) crossfadeMascot(previousRest, previousSize);
     if (mood === 'idle') { startMascotIdle(chatClient); scheduleMascotBlink(); }
+    if (mood === 'happy') scheduleMascotHappyReturn();
   }).catch(error => console.error(error));
   const bubble = mood === 'thinking' ? '思考中…' : mood === 'happy' ? '完成了' : mood === 'sweat' ? '出錯了…' : mood === 'sleep' ? 'zzz' : '';
   if (previousMood !== mood || previousClient !== chatClient) showMascotBubble(bubble);
 }
+function setMascotVisible(visible, persist = true) {
+  mascotVisible = !!visible;
+  if (!mascotVisible) {
+    clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
+    clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0;
+    cancelMascotHappyReturn(); clearTimeout(wakeMascot.sleepTimer); wakeMascot.sleepTimer = 0;
+    mascot.classList.remove('blinking', 'transitioning', 'crossfading');
+    showMascotBubble('');
+  }
+  mascot.hidden = !mascotVisible;
+  mascot.tabIndex = mascotVisible ? 0 : -1;
+  mascot.setAttribute('aria-hidden', String(!mascotVisible));
+  if (persist) try { localStorage.setItem(MASCOT_VISIBLE_KEY, mascotVisible ? '1' : '0'); } catch {}
+  if (mascotVisible) { positionMascot(); updateChatMascot(); }
+}
+mascotVisibleToggle.onchange = () => setMascotVisible(mascotVisibleToggle.checked);
 function wakeMascot() {
+  if (!mascotVisible) return;
   mascotForcedSleep = false;
   clearTimeout(wakeMascot.sleepTimer);
   wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
@@ -5672,50 +5705,30 @@ function wakeMascot() {
 // While a wall drag is in progress the mascot lets the pointer through, so releasing over it still ends the drag on the wall.
 vp.addEventListener('pointerdown', () => document.body.classList.add('wall-pointer'), true);
 for (const type of ['pointerup', 'pointercancel']) addEventListener(type, () => document.body.classList.remove('wall-pointer'), true);
-mascotImage.onpointerdown = ev => {
-  if (ev.button !== 0) return;
-  ev.preventDefault(); wakeMascot(); mascotImage.setPointerCapture(ev.pointerId); mascot.classList.add('dragging');
-  mascotDrag = {id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, x: parseFloat(mascot.style.left), y: parseFloat(mascot.style.top), moved: false};
-};
-mascotImage.onpointermove = ev => {
-  if (!mascotDrag || mascotDrag.id !== ev.pointerId) return;
-  const dx = ev.clientX - mascotDrag.sx, dy = ev.clientY - mascotDrag.sy;
-  if (Math.hypot(dx, dy) >= 4) mascotDrag.moved = true;
-  if (mascotDrag.moved) setMascotPosition(mascotDrag.x + dx, mascotDrag.y + dy);
-};
-mascotImage.onpointerup = mascotImage.onpointercancel = ev => {
-  if (!mascotDrag || mascotDrag.id !== ev.pointerId) return;
-  const moved = mascotDrag.moved; mascotDrag = null; mascot.classList.remove('dragging');
-  if (moved) saveMascotPosition();
-  else showClipboard(true);
-};
+mascotImage.onclick = () => { wakeMascot(); showClipboard(true); };
 mascot.onkeydown = ev => {
   if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); showClipboard(true); }
 };
 mascotResize.onpointerdown = ev => {
   if (ev.button !== 0) return;
-  ev.preventDefault(); ev.stopPropagation(); wakeMascot(); mascotResize.setPointerCapture(ev.pointerId);
+  ev.preventDefault(); ev.stopPropagation(); wakeMascot(); mascot.classList.add('resizing'); mascotResize.setPointerCapture(ev.pointerId);
   // The pet sits in the bottom-right corner, so the grip is top-left and the bottom-right edge stays put.
-  const box = mascot.getBoundingClientRect();
-  mascotResizeDrag = {id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, height: mascot.offsetHeight, right: box.right, bottom: box.bottom};
+  mascotResizeDrag = {id: ev.pointerId, sx: ev.clientX, sy: ev.clientY, height: mascot.offsetHeight};
 };
 mascotResize.onpointermove = ev => {
   if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
   const d = mascotResizeDrag, grow = Math.max(d.sy - ev.clientY, (d.sx - ev.clientX) / .72);
   setMascotSize(d.height + grow, false);
-  setMascotPosition(d.right - mascot.offsetWidth, d.bottom - mascot.offsetHeight);
 };
 mascotResize.onpointerup = mascotResize.onpointercancel = ev => {
   if (!mascotResizeDrag || mascotResizeDrag.id !== ev.pointerId) return;
   mascotResizeDrag = null; try { mascotResize.releasePointerCapture(ev.pointerId); } catch {}
-  setMascotSize(savedMascotSize); clampMascot(true);
+  setMascotSize(savedMascotSize); mascot.classList.remove('resizing'); positionMascot();
 };
 $('#chat-input').addEventListener('input', wakeMascot);
 requestAnimationFrame(() => {
-  if (!savedMascotPosition || !Number.isFinite(savedMascotPosition.x) || !Number.isFinite(savedMascotPosition.y)) {
-    const bounds = mascotViewportBounds(); setMascotPosition(bounds.right - mascot.offsetWidth - 16, bounds.bottom - mascot.offsetHeight - 16);
-  } else clampMascot();
-  wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
+  positionMascot();
+  if (mascotVisible) wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
 });
 function updateChatControls() {
   const info = chatClients.get(chatClient), enabled = !!currentWall && !!info?.available && !chatBusy;
@@ -5802,14 +5815,15 @@ $('#chat-client').onchange = () => {
 };
 $('#chat-form').onsubmit = async ev => {
   ev.preventDefault();
-  wakeMascot();
   if (chatBusy || !currentWall) return;
   const message = $('#chat-input').value;
   if (!message.trim()) return;
   if (!chatClients.get(chatClient)?.available) return chatStatus('錯誤：此客戶端無法使用', true);
+  cancelMascotHappyReturn();
   chatBusy = true;
   chatStopRequested = false;
   startChatProgress();
+  wakeMascot();
   chatStatus('');  // the progress box already says it is running
   updateChatControls();
   try {
@@ -5820,6 +5834,7 @@ $('#chat-form').onsubmit = async ev => {
     stopChatProgress();
     chatStatus('');
   } catch (error) {
+    cancelMascotHappyReturn();
     await loadChatHistory();
     if (chatStopRequested || error?.status === 499) { chatStopRequested = true; chatStatus('已停止'); }
     else { stopChatProgress(); chatStatus('錯誤：' + chatError(error), true); }
@@ -6155,7 +6170,7 @@ async function start() {
   setInterval(() => { if (!wallBusy) backupWall('自動').catch(error => storageState(error?.status === 409 ? 'conflict' : error?.unreachable ? 'unreachable' : 'failure', error)); }, 60000);
 }
 start().catch(error => { storageState(error?.status === 409 ? 'conflict' : error?.unreachable ? 'unreachable' : 'failure', error); document.body.inert = false; window.wallReady = true; });
-new ResizeObserver(() => { applyView(); clampPanel(); }).observe(vp);  // window resize, sidebar toggle and sidebar drag
+new ResizeObserver(() => { applyView(); clampPanel(); positionMascot(); }).observe(vp);  // window resize, sidebar toggle and sidebar drag
 // overflow:hidden still lets focus, find-in-page or automation scroll the viewport, which shifts the board off its background.
 vp.addEventListener('scroll', () => { vp.scrollLeft = vp.scrollTop = 0; });
 </script>
