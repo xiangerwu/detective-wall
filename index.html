@@ -246,11 +246,20 @@ body.rail-hidden #rail-panel{display:none}
 .card h3{margin:0 0 6px;padding-right:16px;font-size:15px;color:var(--c-title)}
 .card .fold{position:absolute;top:6px;right:5px;width:22px;height:22px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--c-title);font-size:12px;cursor:pointer;opacity:.75}
 .card .fold:hover{opacity:1;background:color-mix(in srgb,var(--c-top) 20%,transparent)}
-/* folded: only the title stays, and a dog-ear corner hints at the hidden body */
+/* N5: the title strip is a background layer, leaving ::before for the real tape mount. */
+.card:not(.photo-card){
+  background-image:linear-gradient(color-mix(in srgb,var(--c-title) 24%,transparent),color-mix(in srgb,var(--c-title) 24%,transparent));
+  background-position:14px 8px;background-size:calc(100% - 28px) 11px;background-repeat:no-repeat;
+}
+/* folded: only the title stays while a lower paper panel is pushed up behind it */
 .card.folded > :not(h3, .pin, .fold, .resize-handle, .anchor-badge){display:none}
-.card.folded h3{margin:0}
-.card.folded::after{content:'';position:absolute;right:-1px;bottom:-1px;width:16px;height:16px;border-radius:0 0 6px 0;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--c-top) 45%,var(--c-bg)) 50%,var(--wall-color) 50%)}
+.card.folded h3{position:relative;z-index:2;margin:0}
+.card.folded:not(.fixed-size){height:auto;min-height:62px;padding-top:17px;padding-bottom:22px}
+.card.note.folded:not(.fixed-size){min-height:70px;padding-top:19px}
+/* the folded-up lower half sits under the title, never over it */
+.card.folded::after{content:'';position:absolute;z-index:1;left:9px;right:9px;bottom:3px;height:15px;
+  border-top:1px solid var(--c-border);background:linear-gradient(180deg,color-mix(in srgb,var(--paper-bg, var(--c-bg)) 78%,white),var(--paper-bg, var(--c-bg)));
+  transform:skewY(-3deg);box-shadow:0 -5px 8px color-mix(in srgb,var(--c-title) 22%,transparent);pointer-events:none}
 #panel label.check{flex-direction:row;align-items:center;gap:6px;color:var(--ui-text)}
 .card-image{display:block;width:100%;max-height:220px;object-fit:contain;margin-bottom:6px}
 .image-missing{display:block;color:var(--ui-muted);font-size:12px;margin-bottom:6px}
@@ -674,7 +683,16 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 [data-card-style=paper] .card-paper.note{box-shadow:0 -1px 2px var(--paper-shadow-top),0 5px 9px var(--paper-shadow-near),0 13px 20px var(--paper-shadow-bottom)}
 [data-card-style=paper] .card-paper.dragging{box-shadow:0 -2px 3px var(--paper-shadow-top),0 10px 14px var(--paper-shadow-near),0 22px 30px var(--paper-shadow-drag);transform:none}
 [data-card-style=paper] .card-paper.note.dragging{transform:rotate(-1.5deg)}
-[data-card-style=paper] .card-paper.curl:not(.folded)::after{content:'';position:absolute;right:-1px;bottom:-1px;z-index:2;width:36px;height:36px;clip-path:polygon(100% 0,100% 100%,0 100%);background:linear-gradient(135deg,transparent 47%,var(--paper-curl-shadow) 48% 53%,color-mix(in srgb,var(--paper-bg) 72%,white) 54%);filter:drop-shadow(-2px -2px 2px var(--paper-shadow-near));pointer-events:none}
+/* N5: the lifted corner is shared by tech and paper cards; the body reserves its rectangle. */
+.card.curl:not(.folded):not(.photo-card)::after{content:'';position:absolute;right:-1px;bottom:-1px;z-index:2;width:58px;height:58px;clip-path:polygon(100% 0,100% 100%,0 100%);
+  background:linear-gradient(140deg,transparent 42%,color-mix(in srgb,var(--c-border) 62%,transparent) 43% 49%,#fff8e4 50% 72%,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 72%,white) 73%);
+  box-shadow:-7px -7px 11px color-mix(in srgb,var(--c-title) 28%,transparent);pointer-events:none}
+.card.curl:not(.folded):not(.photo-card) > :is(.md,p,.tags,.links),.card.curl:not(.folded):not(.photo-card):is(.fixed-size,:not(:has(> :is(.md,p)))) > h3{max-width:calc(100% - 58px);min-width:0}
+[data-card-style=paper] .card-paper:not(.photo-card){
+  background-image:linear-gradient(color-mix(in srgb,#fff9e8 43%,transparent),color-mix(in srgb,#fff9e8 43%,transparent)),url('/assets/paper-grain.png');
+  background-position:14px 8px,0 0;background-size:calc(100% - 28px) 11px,auto;background-repeat:no-repeat,repeat;background-blend-mode:normal,multiply;
+}
+[data-card-style=paper] .card-paper.note.folded:not(.fixed-size){height:auto;min-height:70px;padding-top:19px;padding-bottom:22px}
 .anchor-badge{position:relative;z-index:4;display:inline-flex;width:max-content;margin:0 28px 6px 0;align-items:center;gap:3px;max-width:90px;padding:2px 5px;border:1px solid currentColor;border-radius:4px;font-size:10px;font-weight:800;line-height:1.2;letter-spacing:.03em;white-space:nowrap;pointer-events:none}
 .anchor-badge::first-letter{font-size:12px}
 .anchor-badge.anchor-source{color:#7a1e2a;background:color-mix(in srgb,#ffd9dc 88%,transparent);border-radius:3px 9px 3px 9px}

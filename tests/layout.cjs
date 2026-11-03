@@ -52,9 +52,13 @@ const base = process.env.WALL_TEST_URL;
     const clickCard = async () => {
       const point = await page.evaluate(() => {
         const mascot = document.querySelector('#mascot').getBoundingClientRect();
+        const blockers = [...document.querySelectorAll('#clipboard-peek, #case-folder')]
+          .filter(el => !el.hidden && getComputedStyle(el).display !== 'none')
+          .map(el => el.getBoundingClientRect());
+        const blocked = point => blockers.some(box => point.x < box.right && point.x > box.left && point.y < box.bottom && point.y > box.top);
         return [...document.querySelectorAll('.card')].map(card => {
           const r = card.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2, right: r.right, bottom: r.bottom};
-        }).find(point => point.right < mascot.left || point.bottom < mascot.top);
+        }).find(point => (point.right < mascot.left || point.bottom < mascot.top) && !blocked(point));
       });
       assert.ok(point, 'a card remains reachable outside the mascot');
       await page.mouse.click(point.x, point.y);
