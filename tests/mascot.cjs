@@ -38,7 +38,10 @@ for (const client of ['claude', 'codex']) {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto(base); await ready(page); await openSidebar(page);
-    await page.waitForFunction(() => document.querySelector('#mascot-image')?.complete && document.querySelector('#mascot-image')?.naturalWidth > 0);
+    await page.waitForFunction(() => {
+      const rig = document.querySelector('#mascot-image .rig');
+      return rig?.dataset.ready === 'true' && [...rig.querySelectorAll(':scope > img')].every(image => image.complete && image.naturalWidth > 0);
+    });
     assert.equal(await page.locator('#chat-mascot-panel').count(), 0);
 
     const rightBottom = await page.evaluate(() => {
@@ -95,9 +98,16 @@ for (const client of ['claude', 'codex']) {
     }, state);
     for (const state of ['thinking', 'happy', 'sweat', 'sleep']) {
       await setState(state);
+      // Transition frames must point at real files, or the pet flashes a broken-image icon.
+      if (state === 'happy') { // the empty chat starts asleep, so thinking -> happy is the first state change with transition frames
+        await page.waitForFunction(() => /-tr-/.test(document.querySelector('#mascot-transition').getAttribute('src')));
+        const frame = await page.locator('#mascot-transition').getAttribute('src');
+        assert.equal((await page.request.get(new URL(frame, base).href)).status(), 200, `transition frame ${frame} exists`);
+      }
       await page.waitForFunction(stateName => {
-        const image = document.querySelector('#mascot-image');
-        return image?.complete && image.naturalWidth > 0 && image.getAttribute('src').endsWith(`/assets/avatars/claude-body-${stateName}.webp`);
+        const rig = document.querySelector('#mascot-image .rig');
+        return rig?.dataset.client === 'claude' && rig.dataset.mood === stateName && rig.dataset.ready === 'true'
+          && [...rig.querySelectorAll(':scope > img')].every(image => image.complete && image.naturalWidth > 0);
       }, state);
       await page.waitForFunction(() => {
         const transition = document.querySelector('#mascot-transition');
@@ -109,7 +119,9 @@ for (const client of ['claude', 'codex']) {
     }
     await page.emulateMedia({reducedMotion: 'reduce'});
     await setState('thinking');
-    assert.equal(await page.locator('#mascot-image').evaluate(el => getComputedStyle(el).animationName), 'none');
+    assert.equal(await page.locator('#mascot-image .rig > img').count(), 1);
+    assert.ok((await page.locator('#mascot-image .rig > img').getAttribute('src')).endsWith('/assets/avatars/layers/claude/thinking/rest.webp'));
+    assert.deepEqual(await page.locator('#mascot-image .rig').evaluate(rig => [...rig.getAnimations({subtree: true})].map(animation => animation.animationName)), []);
     console.log('PASS mascot state images, status bubbles, reduced-motion, and generated asset limits');
 
     await page.click('#zoom-fit');

@@ -408,29 +408,136 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #chat-stop{padding:3px 8px}
 #chat-section{height:260px}
 #mascot{position:fixed;z-index:1000;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none}
-#mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;pointer-events:auto}
-#mascot-image{cursor:grab}
+#mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-position:center bottom}
+#mascot-image{overflow:visible;cursor:grab;pointer-events:auto}
+#mascot-image .rig{position:absolute;bottom:0;left:50%;height:100%;aspect-ratio:512/768;transform:translateX(-50%);transform-origin:50% 100%;pointer-events:auto;overflow:visible}
+#mascot-image .rig > img{position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none}
 body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.dragging #mascot-image{cursor:grabbing}
-#mascot-blink,#mascot-transition{pointer-events:none;opacity:0;transition:opacity .12s ease}
+#mascot-blink,#mascot-transition{object-fit:contain;pointer-events:none;opacity:0;transition:opacity .4s ease}
 #mascot-transition{transition:opacity .2s ease}
-#mascot.blinking #mascot-blink,#mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-transition{opacity:1}
+#mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-blink{opacity:1}
+#mascot-image .rig > img[data-layer=blink]{opacity:0;transition:opacity .12s ease}
+#mascot.blinking #mascot-image .rig > img[data-layer=blink]{opacity:1}
 #mascot-bubble{position:absolute;z-index:1;left:50%;bottom:calc(100% + 8px);max-width:220px;padding:4px 8px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;box-shadow:0 4px 12px var(--ui-shadow-soft);font-size:12px;line-height:1.3;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
 #mascot-bubble.show{opacity:1;transform:translate(-50%,0)}
 #mascot-resize{position:absolute;left:0;top:0;width:16px;height:16px;padding:0;border:0;border-left:2px solid var(--ui-muted);border-top:2px solid var(--ui-muted);border-radius:0;background:transparent;opacity:0;cursor:nwse-resize;pointer-events:auto}
 #mascot:hover #mascot-resize,#mascot-resize:focus-visible{opacity:.9}
-@keyframes mascot-breathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.015)}}
-@keyframes mascot-think{0%,100%{transform:rotate(-1deg) translateX(0)}50%{transform:rotate(1deg) translateX(3px)}}
 @keyframes mascot-hop{0%{transform:translateY(0)}42%{transform:translateY(-10px)}100%{transform:translateY(0)}}
 @keyframes mascot-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px) rotate(-1deg)}75%{transform:translateX(3px) rotate(1deg)}}
-#mascot-image{animation:mascot-breathe 4.8s ease-in-out infinite;transform-origin:center bottom}
-#mascot.mood-thinking #mascot-image{animation:mascot-think 1.7s ease-in-out infinite}
-#mascot.mood-happy #mascot-image{animation:mascot-hop .55s ease-out 1,mascot-breathe 4.8s ease-in-out .55s infinite}
-#mascot.mood-sweat #mascot-image{animation:mascot-shake .48s ease-out 1,mascot-breathe 4.8s ease-in-out .48s infinite}
-#mascot.mood-sleep #mascot-image{animation:mascot-breathe 7.5s ease-in-out infinite}
+#mascot.mood-happy #mascot-image .rig,#mascot.mood-sweat #mascot-image .rig{translate:-50% 0}
+#mascot.mood-happy #mascot-image .rig{animation:mascot-hop .55s ease-out 1}
+#mascot.mood-sweat #mascot-image .rig{animation:mascot-shake .48s ease-out 1}
+@keyframes fx-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes fx-pop{0%{transform:scale(1);opacity:1}40%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes fx-drip{0%{transform:translateY(-4px);opacity:0}20%{opacity:1}100%{transform:translateY(10px);opacity:0}}
+@keyframes fx-float{0%{transform:translate(0,4px);opacity:.3}50%{opacity:1}100%{transform:translate(-4px,-10px);opacity:0}}
+@keyframes v-breeze-hairL{0%{transform:rotate(0deg)}25%{transform:rotate(1.6deg)}75%{transform:rotate(-1.6deg)}100%{transform:rotate(0deg)}}
+@keyframes v-breeze-hairR{0%{transform:rotate(0deg)}25%{transform:rotate(-1.6deg)}75%{transform:rotate(1.6deg)}100%{transform:rotate(0deg)}}
+@keyframes v-breeze-tail{0%{transform:rotate(0deg)}25%{transform:rotate(2.5deg)}75%{transform:rotate(-2.5deg)}100%{transform:rotate(0deg)}}
+@keyframes v-breeze-ahoge{0%{transform:rotate(0deg)}25%{transform:rotate(4deg)}75%{transform:rotate(-4deg)}100%{transform:rotate(0deg)}}
+#mascot-image .rig.v-breeze .idle-hairL{animation:v-breeze-hairL 4.8s ease-in-out infinite}
+#mascot-image .rig.v-breeze .idle-hairR{animation:v-breeze-hairR 4.8s ease-in-out infinite}
+#mascot-image .rig.v-breeze .idle-tail{animation:v-breeze-tail 4.8s ease-in-out infinite}
+#mascot-image .rig.v-breeze .idle-ahoge{animation:v-breeze-ahoge 2.4s ease-in-out infinite}
+@keyframes v-sway-rig{0%{transform:rotate(0deg)}25%{transform:rotate(0.8deg)}75%{transform:rotate(-0.8deg)}100%{transform:rotate(0deg)}}
+@keyframes v-sway-hairL{0%{transform:rotate(0deg)}35%{transform:rotate(-1.4deg)}85%{transform:rotate(1.4deg)}100%{transform:rotate(0deg)}}
+@keyframes v-sway-hairR{0%{transform:rotate(0deg)}35%{transform:rotate(-1.4deg)}85%{transform:rotate(1.4deg)}100%{transform:rotate(0deg)}}
+@keyframes v-sway-tail{0%{transform:rotate(0deg)}35%{transform:rotate(-2deg)}85%{transform:rotate(2deg)}100%{transform:rotate(0deg)}}
+@keyframes v-sway-ahoge{0%{transform:rotate(0deg)}35%{transform:rotate(-5deg)}85%{transform:rotate(5deg)}100%{transform:rotate(0deg)}}
+#mascot-image .rig.v-sway{translate:-50% 0;animation:v-sway-rig 4.8s ease-in-out infinite}
+#mascot-image .rig.v-sway .idle-hairL{animation:v-sway-hairL 4.8s ease-in-out infinite}
+#mascot-image .rig.v-sway .idle-hairR{animation:v-sway-hairR 4.8s ease-in-out infinite}
+#mascot-image .rig.v-sway .idle-tail{animation:v-sway-tail 4.8s ease-in-out infinite}
+#mascot-image .rig.v-sway .idle-ahoge{animation:v-sway-ahoge 4.8s ease-in-out infinite}
+@keyframes v-boing-hairL{0%{transform:rotate(0deg)}25%{transform:rotate(1.6deg)}75%{transform:rotate(-1.6deg)}100%{transform:rotate(0deg)}}
+@keyframes v-boing-hairR{0%{transform:rotate(0deg)}25%{transform:rotate(-1.6deg)}75%{transform:rotate(1.6deg)}100%{transform:rotate(0deg)}}
+@keyframes v-boing-tail{0%{transform:rotate(0deg)}25%{transform:rotate(2.5deg)}75%{transform:rotate(-2.5deg)}100%{transform:rotate(0deg)}}
+@keyframes v-boing-ahoge{0%,55%{transform:rotate(0deg)}60%{transform:rotate(14deg)}66%{transform:rotate(-10deg)}72%{transform:rotate(7deg)}78%{transform:rotate(-4deg)}84%{transform:rotate(2deg)}90%,100%{transform:rotate(0deg)}}
+#mascot-image .rig.v-boing .idle-hairL{animation:v-boing-hairL 4.8s ease-in-out infinite}
+#mascot-image .rig.v-boing .idle-hairR{animation:v-boing-hairR 4.8s ease-in-out infinite}
+#mascot-image .rig.v-boing .idle-tail{animation:v-boing-tail 4.8s ease-in-out infinite}
+#mascot-image .rig.v-boing .idle-ahoge{animation:v-boing-ahoge 4.8s ease-in-out infinite}
+@keyframes v-gust-hairL{0%{transform:rotate(0deg)}30%{transform:rotate(0.4deg)}45%{transform:rotate(-3deg)}58%{transform:rotate(0.8deg)}70%{transform:rotate(-0.5deg)}82%,100%{transform:rotate(0deg)}}
+@keyframes v-gust-hairR{0%{transform:rotate(0deg)}30%{transform:rotate(0.4deg)}45%{transform:rotate(-3deg)}58%{transform:rotate(0.8deg)}70%{transform:rotate(-0.5deg)}82%,100%{transform:rotate(0deg)}}
+@keyframes v-gust-tail{0%{transform:rotate(0deg)}30%{transform:rotate(1deg)}45%{transform:rotate(-3deg)}58%{transform:rotate(2deg)}70%{transform:rotate(-1deg)}82%,100%{transform:rotate(0deg)}}
+@keyframes v-gust-ahoge{0%{transform:rotate(0deg)}30%{transform:rotate(2deg)}45%{transform:rotate(-12deg)}58%{transform:rotate(5deg)}70%{transform:rotate(-2deg)}82%,100%{transform:rotate(0deg)}}
+#mascot-image .rig.v-gust .idle-hairL{animation:v-gust-hairL 4.8s ease-in-out infinite}
+#mascot-image .rig.v-gust .idle-hairR{animation:v-gust-hairR 4.8s ease-in-out infinite}
+#mascot-image .rig.v-gust .idle-tail{animation:v-gust-tail 4.8s ease-in-out infinite}
+#mascot-image .rig.v-gust .idle-ahoge{animation:v-gust-ahoge 4.8s ease-in-out infinite}
+@keyframes idle-hairL{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.idle-hairL{transform-origin:21.48% 32.55%;animation:idle-hairL 4.8s ease-in-out infinite}
+@keyframes idle-hairR{0%,100%{transform:rotate(1.6deg)}50%{transform:rotate(-1.6deg)}}
+.idle-hairR{transform-origin:80.08% 32.55%;animation:idle-hairR 4.8s ease-in-out infinite}
+@keyframes idle-tail{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.idle-tail{transform-origin:23.06% 80.08%;animation:idle-tail 4.8s ease-in-out infinite}
+@keyframes idle-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.idle-ahoge{transform-origin:50.39% 8.07%;animation:idle-ahoge 2.4s ease-in-out infinite}
+@keyframes thinking-hairL{0%,100%{transform:rotate(-1.0deg)}50%{transform:rotate(1.0deg)}}
+.thinking-hairL{transform-origin:20.37% 31.25%;animation:thinking-hairL 4.2s ease-in-out infinite}
+@keyframes thinking-hairR{0%,100%{transform:rotate(1.0deg)}50%{transform:rotate(-1.0deg)}}
+.thinking-hairR{transform-origin:81.47% 30.60%;animation:thinking-hairR 4.2s ease-in-out infinite}
+@keyframes thinking-tail{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.thinking-tail{transform-origin:23.05% 78.12%;animation:thinking-tail 4.2s ease-in-out infinite}
+@keyframes thinking-ahoge{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+.thinking-ahoge{transform-origin:45.82% 8.07%;animation:thinking-ahoge 1.6s ease-in-out infinite}
+.thinking-fx{animation:fx-bob 1.4s ease-in-out infinite}
+@keyframes happy-hairL{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.happy-hairL{transform-origin:16.13% 31.25%;animation:happy-hairL 1.1s ease-in-out infinite}
+@keyframes happy-hairR{0%,100%{transform:rotate(1.6deg)}50%{transform:rotate(-1.6deg)}}
+.happy-hairR{transform-origin:80.65% 30.60%;animation:happy-hairR 1.1s ease-in-out infinite}
+@keyframes happy-tail{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.happy-tail{transform-origin:22.18% 72.92%;animation:happy-tail 0.55s ease-in-out infinite}
+@keyframes happy-ahoge{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+.happy-ahoge{transform-origin:41.33% 8.07%;animation:happy-ahoge 0.55s ease-in-out infinite}
+.happy-fx{animation:fx-pop .55s ease-out infinite}
+@keyframes sweat-hairL{0%,100%{transform:rotate(-0.8deg)}50%{transform:rotate(0.8deg)}}
+.sweat-hairL{transform-origin:17.05% 31.25%;animation:sweat-hairL 0.9s ease-in-out infinite}
+@keyframes sweat-hairR{0%,100%{transform:rotate(0.8deg)}50%{transform:rotate(-0.8deg)}}
+.sweat-hairR{transform-origin:81.44% 30.60%;animation:sweat-hairR 0.9s ease-in-out infinite}
+@keyframes sweat-tail{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
+.sweat-tail{transform-origin:21.08% 78.12%;animation:sweat-tail 0.9s ease-in-out infinite}
+@keyframes sweat-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.sweat-ahoge{transform-origin:38.83% 8.07%;animation:sweat-ahoge 0.45s ease-in-out infinite}
+.sweat-fx{animation:fx-drip 1.6s ease-in infinite}
+@keyframes sleep-hairL{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+.sleep-hairL{transform-origin:17.05% 31.25%;animation:sleep-hairL 5.5s ease-in-out infinite}
+@keyframes sleep-hairR{0%,100%{transform:rotate(1.2deg)}50%{transform:rotate(-1.2deg)}}
+.sleep-hairR{transform-origin:83.33% 30.60%;animation:sleep-hairR 5.5s ease-in-out infinite}
+@keyframes sleep-tail{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.sleep-tail{transform-origin:20.31% 76.82%;animation:sleep-tail 5.5s ease-in-out infinite}
+@keyframes sleep-ahoge{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.sleep-ahoge{transform-origin:51.14% 6.77%;animation:sleep-ahoge 5.5s ease-in-out infinite}
+.sleep-fx{animation:fx-float 3.2s ease-in-out infinite}
+@keyframes sit-hairL{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.sit-hairL{transform-origin:22.46% 37.76%;animation:sit-hairL 4.8s ease-in-out infinite}
+@keyframes sit-hairR{0%,100%{transform:rotate(1.6deg)}50%{transform:rotate(-1.6deg)}}
+.sit-hairR{transform-origin:79.10% 37.76%;animation:sit-hairR 4.8s ease-in-out infinite}
+@keyframes sit-tail{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.sit-tail{transform-origin:19.53% 83.33%;animation:sit-tail 4.8s ease-in-out infinite}
+@keyframes sit-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.sit-ahoge{transform-origin:50.78% 17.19%;animation:sit-ahoge 2.4s ease-in-out infinite}
+@keyframes read-hairL{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.read-hairL{transform-origin:21.48% 33.85%;animation:read-hairL 4.8s ease-in-out infinite}
+@keyframes read-hairR{0%,100%{transform:rotate(1.6deg)}50%{transform:rotate(-1.6deg)}}
+.read-hairR{transform-origin:80.08% 33.85%;animation:read-hairR 4.8s ease-in-out infinite}
+@keyframes read-tail{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.read-tail{transform-origin:19.53% 76.17%;animation:read-tail 4.8s ease-in-out infinite}
+@keyframes read-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.read-ahoge{transform-origin:50.39% 13.02%;animation:read-ahoge 2.4s ease-in-out infinite}
+@keyframes magnify-hairL{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
+.magnify-hairL{transform-origin:21.48% 32.55%;animation:magnify-hairL 4.8s ease-in-out infinite}
+@keyframes magnify-hairR{0%,100%{transform:rotate(1.6deg)}50%{transform:rotate(-1.6deg)}}
+.magnify-hairR{transform-origin:80.08% 32.55%;animation:magnify-hairR 4.8s ease-in-out infinite}
+@keyframes magnify-tail{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+.magnify-tail{transform-origin:20.51% 77.47%;animation:magnify-tail 4.8s ease-in-out infinite}
+@keyframes magnify-ahoge{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.magnify-ahoge{transform-origin:50.39% 13.02%;animation:magnify-ahoge 2.4s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){
   #sidebar{transition:none!important}
-  #mascot-image,#mascot-blink,#mascot-transition{animation:none!important;transition:none!important}
+  #mascot-image .rig,#mascot-image .rig > img,#mascot-blink,#mascot-transition{animation:none!important;transition:none!important}
+  #mascot-image .rig{transform:translateX(-50%)!important;translate:0 0!important}
   #mascot-bubble{transition:none!important}
 }
 #template-list,#template-custom-list{display:flex;flex-direction:column;gap:4px}
@@ -1117,9 +1224,9 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
  </aside>
 <div id="mascot" role="button" tabindex="0" aria-label="AI 桌寵；點擊開啟 AI 案件夾" aria-expanded="false">
   <div id="mascot-bubble" role="status" aria-live="polite"></div>
-  <img id="mascot-image" src="/assets/avatars/claude-body-sleep.webp" alt="AI 桌寵（可拖曳）" decoding="async">
-  <img id="mascot-blink" src="/assets/avatars/claude-body-blink.webp" alt="" aria-hidden="true" decoding="async">
-  <img id="mascot-transition" src="/assets/avatars/claude-body-sleep.webp" alt="" aria-hidden="true" decoding="async">
+  <div id="mascot-image" role="img" aria-label="AI 桌寵（可拖曳）"><div class="rig"></div></div>
+  <img id="mascot-blink" src="/assets/avatars/layers/claude/sleep/rest.webp" alt="" aria-hidden="true" decoding="async">
+  <img id="mascot-transition" src="/assets/avatars/layers/claude/sleep/rest.webp" alt="" aria-hidden="true" decoding="async">
   <button id="mascot-resize" type="button" aria-label="調整桌寵大小" title="調整桌寵大小"></button>
 </div>
 </div>
@@ -5147,6 +5254,35 @@ function chatProgressEvent(type, value) {
   if (type === 'stopped') { chatStopRequested = true; $('#progress-state').textContent = '已停止'; $('#chat-progress-summary').textContent = '執行已暫停'; chatStatus('已停止'); }
   if (type === 'failed' && value?.error) { $('#progress-state').textContent = '錯誤'; $('#chat-progress-summary').textContent = '執行失敗'; chatStatus('錯誤：' + value.error, true); }
 }
+const MASCOT_RIGS = {
+  claude: {
+    idle: {size:[512,768],layers:['base','blink','hairL','hairR','ahoge'],pivots:{hairL:{pct:[21.48,32.55]},hairR:{pct:[80.08,32.55]},ahoge:{pct:[50.39,8.07]}}},
+    thinking: {size:[491,768],layers:['base','hairL','hairR','ahoge','fx'],pivots:{hairL:{pct:[20.37,31.25]},hairR:{pct:[81.47,30.6]},ahoge:{pct:[45.82,8.07]}}},
+    happy: {size:[496,768],layers:['base','hairL','hairR','ahoge','fx'],pivots:{hairL:{pct:[16.13,31.25]},hairR:{pct:[80.65,30.6]},ahoge:{pct:[41.33,8.07]}}},
+    sweat: {size:[528,768],layers:['base','hairL','hairR','ahoge','fx'],pivots:{hairL:{pct:[17.05,31.25]},hairR:{pct:[81.44,30.6]},ahoge:{pct:[38.83,8.07]}}},
+    sleep: {size:[528,768],layers:['base','hairL','hairR','ahoge','fx'],pivots:{hairL:{pct:[17.05,31.25]},hairR:{pct:[83.33,30.6]},ahoge:{pct:[51.14,6.77]}}},
+    sit: {size:[512,768],layers:['base','hairL','hairR','ahoge'],pivots:{hairL:{pct:[22.46,37.76]},hairR:{pct:[79.1,37.76]},ahoge:{pct:[50.78,17.19]}}},
+    read: {size:[512,768],layers:['base','hairL','hairR','ahoge'],pivots:{hairL:{pct:[21.48,33.85]},hairR:{pct:[80.08,33.85]},ahoge:{pct:[50.39,13.02]}}},
+    magnify: {size:[512,768],layers:['base','hairL','hairR','ahoge'],pivots:{hairL:{pct:[21.48,32.55]},hairR:{pct:[80.08,32.55]},ahoge:{pct:[50.39,13.02]}}},
+  },
+  codex: {
+    idle: {size:[542,768],layers:['tail','base','blink','ahoge'],pivots:{tail:{pct:[23.06,80.08]},ahoge:{pct:[47.6,8.46]}}},
+    thinking: {size:[499,768],layers:['tail','base','ahoge','fx'],pivots:{tail:{pct:[23.05,78.12]},ahoge:{pct:[39.08,7.55]}}},
+    happy: {size:[505,768],layers:['tail','base','ahoge','fx'],pivots:{tail:{pct:[22.18,72.92]},ahoge:{pct:[43.56,7.55]}}},
+    sweat: {size:[498,768],layers:['tail','base','ahoge','fx'],pivots:{tail:{pct:[21.08,78.12]},ahoge:{pct:[47.79,7.55]}}},
+    sleep: {size:[517,768],layers:['tail','base','ahoge','fx'],pivots:{tail:{pct:[20.31,76.82]},ahoge:{pct:[46.03,7.29]}}},
+    sit: {size:[512,768],layers:['tail','base','ahoge'],pivots:{tail:{pct:[19.53,83.33]},ahoge:{pct:[47.85,19.53]}}},
+    read: {size:[512,768],layers:['tail','base','ahoge'],pivots:{tail:{pct:[19.53,76.17]},ahoge:{pct:[46.88,8.07]}}},
+    magnify: {size:[512,768],layers:['tail','base','ahoge'],pivots:{tail:{pct:[20.51,77.47]},ahoge:{pct:[46.88,8.85]}}},
+  },
+};
+globalThis.MASCOT_RIGS = MASCOT_RIGS;
+const MASCOT_LAYER_ROOT = '/assets/avatars/layers';
+const MASCOT_IDLE_DRAWINGS = ['idle', 'sit', 'read', 'magnify'];
+const MASCOT_IDLE_VARIANTS = ['v-breeze', 'v-sway', 'v-boing', 'v-gust'];
+const mascotTestTiming = globalThis.__MASCOT_TEST_TIMING || {};
+const mascotIdleSwitchMs = Number.isFinite(Number(mascotTestTiming.idleSwitchMs)) ? Number(mascotTestTiming.idleSwitchMs) : 9600;
+const mascotBlinkDelay = Number.isFinite(Number(mascotTestTiming.blinkDelayMs)) ? Number(mascotTestTiming.blinkDelayMs) : null;
 const mascot = $('#mascot'), mascotImage = $('#mascot-image'), mascotBlink = $('#mascot-blink'), mascotTransition = $('#mascot-transition'), mascotBubble = $('#mascot-bubble'), mascotResize = $('#mascot-resize');
 const mascotTransitions = {
   'idle-thinking': ['idle-thinking-1', 'idle-thinking-2'],
@@ -5154,8 +5290,11 @@ const mascotTransitions = {
   'thinking-sweat': ['thinking-sweat-1', 'thinking-sweat-2'],
   'idle-sleep': ['idle-sleep-1', 'idle-sleep-2'],
 };
-let mascotMood = '', mascotClient = '', mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotDrag = null, mascotResizeDrag = null;
+let mascotMood = '', mascotClient = '', mascotDisplayMood = '', mascotCurrentRest = '', mascotCurrentSize = null;
+let mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotIdleTimer = 0, mascotRenderSequence = 0;
+let mascotIdleVariantIndex = 0, mascotIdleDrawingIndex = 0, mascotIdleStep = 0, mascotDrag = null, mascotResizeDrag = null;
 let savedMascotPosition = null, savedMascotSize = 180;
+const mascotAssetCache = new Map();
 try { savedMascotPosition = JSON.parse(localStorage.getItem(MASCOT_POS_KEY)); } catch {}
 try { savedMascotSize = clamp(Number(localStorage.getItem(MASCOT_SIZE_KEY)) || 180, 96, 360); } catch {}
 mascot.style.setProperty('--mascot-h', savedMascotSize + 'px');
@@ -5195,21 +5334,83 @@ function showMascotBubble(text) {
   mascotBubble.classList.toggle('show', !!text);
   if (text) mascotBubbleTimer = setTimeout(() => mascotBubble.classList.remove('show'), 2500);
 }
+function mascotAssetUrl(client, mood, layer) { return `${MASCOT_LAYER_ROOT}/${client}/${mood}/${layer}.webp`; }
+function preloadMascotMood(client, mood) {
+  const key = `${client}/${mood}`;
+  if (mascotAssetCache.has(key)) return mascotAssetCache.get(key);
+  const spec = MASCOT_RIGS[client]?.[mood];
+  if (!spec) return Promise.reject(new Error(`unknown mascot rig ${key}`));
+  const promise = (async () => {
+    const names = [...new Set([...spec.layers, 'rest'])];
+    const loaded = await Promise.all(names.map(async layer => {
+      const image = new Image(); image.decoding = 'async';
+      const done = new Promise((resolve, reject) => { image.onload = resolve; image.onerror = () => reject(new Error(`mascot asset failed: ${mascotAssetUrl(client, mood, layer)}`)); });
+      image.src = mascotAssetUrl(client, mood, layer);
+      if (image.decode) await image.decode().catch(() => done);
+      await done;
+      return [layer, image];
+    }));
+    return {spec, images: new Map(loaded), rest: new Map(loaded).get('rest')};
+  })();
+  mascotAssetCache.set(key, promise);
+  return promise;
+}
+function setMascotOverlaySize(image, size) {
+  image.style.inset = 'auto auto 0 50%'; image.style.width = 'auto'; image.style.height = '100%';
+  image.style.aspectRatio = `${size[0]} / ${size[1]}`; image.style.transform = 'translateX(-50%)';
+}
+function makeMascotLayer(client, mood, layer, assets) {
+  const image = document.createElement('img');
+  const classes = ['mascot-layer', `${mood}-${layer}`];
+  if (MASCOT_IDLE_DRAWINGS.includes(mood) && ['hairL', 'hairR', 'tail', 'ahoge'].includes(layer)) classes.push(`idle-${layer}`);
+  image.className = [...new Set(classes)].join(' '); image.dataset.layer = layer; image.alt = ''; image.setAttribute('aria-hidden', 'true'); image.decoding = 'async';
+  image.src = assets.images.get(layer).src;
+  const pivot = assets.spec.pivots[layer]?.pct;
+  if (pivot) image.style.transformOrigin = `${pivot[0]}% ${pivot[1]}%`;
+  return image;
+}
+function makeMascotRest(assets) {
+  const image = document.createElement('img');
+  image.className = 'mascot-layer'; image.dataset.layer = 'rest'; image.alt = ''; image.setAttribute('aria-hidden', 'true'); image.decoding = 'async'; image.src = assets.rest.src;
+  return image;
+}
+function resetMascotAnimations() {
+  for (const animation of mascotImage.getAnimations({subtree: true})) if (!animation.animationName?.includes('blink')) animation.currentTime = 0;
+}
+async function mountMascotMood(client, mood, variant, sequence) {
+  const assets = await preloadMascotMood(client, mood);
+  if (sequence !== mascotRenderSequence) return false;
+  const rig = mascotImage.querySelector('.rig');
+  rig.className = `rig${variant ? ' ' + variant : ''}`; rig.style.aspectRatio = `${assets.spec.size[0]} / ${assets.spec.size[1]}`;
+  rig.dataset.client = client; rig.dataset.mood = mood; rig.dataset.variant = variant || ''; rig.dataset.ready = 'false';
+  const children = mascotMotionAllowed() ? assets.spec.layers.map(layer => makeMascotLayer(client, mood, layer, assets)) : [makeMascotRest(assets)];
+  rig.replaceChildren(...children); rig.dataset.ready = 'true';
+  mascotDisplayMood = mood; mascotCurrentRest = assets.rest.src; mascotCurrentSize = assets.spec.size;
+  setMascotOverlaySize(mascotBlink, assets.spec.size); setMascotOverlaySize(mascotTransition, assets.spec.size);
+  return true;
+}
+function applyMascotVariant(variant) {
+  const rig = mascotImage.querySelector('.rig');
+  if (!rig) return;
+  rig.classList.remove(...MASCOT_IDLE_VARIANTS); rig.classList.add(variant); rig.dataset.variant = variant; resetMascotAnimations();
+}
+function clearMascotIdle() { clearInterval(mascotIdleTimer); mascotIdleTimer = 0; }
 function scheduleMascotBlink() {
   clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
-  if (!mascotMotionAllowed() || !['idle', 'thinking'].includes(mascotMood)) return;
+  if (!mascotMotionAllowed() || mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
   mascotBlinkTimer = setTimeout(() => {
+    if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
     mascot.classList.add('blinking');
-    setTimeout(() => mascot.classList.remove('blinking'), 120);
-    scheduleMascotBlink();
-  }, 4000 + Math.random() * 3000);
+    setTimeout(() => { mascot.classList.remove('blinking'); scheduleMascotBlink(); }, 120);
+  }, mascotBlinkDelay ?? (4000 + Math.random() * 3000));
 }
-function playMascotTransition(from, to) {
+function playMascotTransition(client, from, to) {
   clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning', 'crossfading');
   const frames = mascotTransitions[`${from}-${to}`];
-  if (!mascotMotionAllowed() || mascotClient !== chatClient || !frames) return;
-  const source = frame => `/assets/avatars/${chatClient}-tr-${from}-${to}-${frame}.webp`;
+  if (!mascotMotionAllowed() || !frames) return;
+  const source = frame => `/assets/avatars/${client}-tr-${frame}.webp`;
   let index = 0;
+  if (mascotCurrentSize) setMascotOverlaySize(mascotTransition, mascotCurrentSize);
   mascotTransition.src = source(frames[index]); mascotTransition.decoding = 'async'; mascot.classList.add('transitioning');
   mascotTransitionTimer = setInterval(() => {
     index++;
@@ -5217,10 +5418,52 @@ function playMascotTransition(from, to) {
     mascotTransition.src = source(frames[index]);
   }, 80);
 }
-function crossfadeMascot(source) {
+function crossfadeMascot(source, size = mascotCurrentSize) {
   if (!mascotMotionAllowed() || !source) return;
-  mascotTransition.src = source; mascotTransition.decoding = 'async'; mascot.classList.add('crossfading');
+  if (size) setMascotOverlaySize(mascotBlink, size);
+  mascotBlink.src = source; mascotBlink.decoding = 'async'; mascot.classList.add('crossfading');
   requestAnimationFrame(() => mascot.classList.remove('crossfading'));
+}
+function startMascotIdle(client) {
+  clearMascotIdle();
+  if (!mascotMotionAllowed() || mascotMood !== 'idle') return;
+  void Promise.all(MASCOT_IDLE_DRAWINGS.map(mood => preloadMascotMood(client, mood)));
+  mascotIdleTimer = setInterval(async () => {
+    if (!mascotMotionAllowed() || mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
+    mascotIdleStep++;
+    mascotIdleVariantIndex = (mascotIdleVariantIndex + 1) % MASCOT_IDLE_VARIANTS.length;
+    const variant = MASCOT_IDLE_VARIANTS[mascotIdleVariantIndex];
+    if (mascotIdleStep % 2 === 0) {
+      const previous = mascotCurrentRest, previousSize = mascotCurrentSize;
+      mascotIdleDrawingIndex = (mascotIdleDrawingIndex + 1) % MASCOT_IDLE_DRAWINGS.length;
+      const mood = MASCOT_IDLE_DRAWINGS[mascotIdleDrawingIndex], sequence = mascotRenderSequence;
+      const mounted = await mountMascotMood(client, mood, variant, sequence);
+      if (mounted && previous && previous !== mascotCurrentRest) crossfadeMascot(previous, previousSize);
+    } else applyMascotVariant(variant);
+    resetMascotAnimations(); scheduleMascotBlink();
+  }, mascotIdleSwitchMs);
+}
+function updateChatMascot() {
+  const last = chatMessages[chatMessages.length - 1];
+  const running = chatBusy && !$('#chat-progress').hidden;
+  const mood = mascotForcedSleep ? 'sleep' : running ? 'thinking'
+    : !chatMessages.length ? 'sleep'
+    : last.status === 'stopped' || last.error ? 'sweat'
+    : last.role === 'assistant' ? 'happy'
+    : 'idle';
+  const previousMood = mascotMood, previousClient = mascotClient, previousRest = mascotCurrentRest, previousSize = mascotCurrentSize;
+  mascotMood = mood; mascotClient = chatClient; clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0; mascot.classList.remove('blinking');
+  if (mood === 'idle') { mascotIdleVariantIndex = 0; mascotIdleDrawingIndex = 0; mascotIdleStep = 0; }
+  mascot.classList.remove('mood-idle', 'mood-thinking', 'mood-happy', 'mood-sweat', 'mood-sleep'); mascot.classList.add('mood-' + mood);
+  const sequence = ++mascotRenderSequence, variant = mood === 'idle' ? MASCOT_IDLE_VARIANTS[0] : '';
+  mountMascotMood(chatClient, mood, variant, sequence).then(mounted => {
+    if (!mounted || sequence !== mascotRenderSequence) return;
+    if (previousRest && previousClient === chatClient && previousMood !== mood && mascotTransitions[`${previousMood}-${mood}`]) playMascotTransition(chatClient, previousMood, mood);
+    else if (previousRest && previousRest !== mascotCurrentRest) crossfadeMascot(previousRest, previousSize);
+    if (mood === 'idle') { startMascotIdle(chatClient); scheduleMascotBlink(); }
+  }).catch(error => console.error(error));
+  const bubble = mood === 'thinking' ? '思考中…' : mood === 'happy' ? '完成了' : mood === 'sweat' ? '出錯了…' : mood === 'sleep' ? 'zzz' : '';
+  if (previousMood !== mood || previousClient !== chatClient) showMascotBubble(bubble);
 }
 function wakeMascot() {
   mascotForcedSleep = false;
@@ -5276,29 +5519,6 @@ requestAnimationFrame(() => {
   } else clampMascot();
   wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
 });
-function updateChatMascot() {
-  const last = chatMessages[chatMessages.length - 1];
-  const running = chatBusy && !$('#chat-progress').hidden;
-  const mood = mascotForcedSleep ? 'sleep' : running ? 'thinking'
-    : !chatMessages.length ? 'sleep'
-    : last.status === 'stopped' || last.error ? 'sweat'
-    : last.role === 'assistant' ? 'happy'
-    : 'idle';
-  const previousMood = mascotMood, previousClient = mascotClient, previousSource = mascotImage.getAttribute('src');
-  mascotMood = mood; mascotClient = chatClient;
-  mascot.classList.remove('mood-idle', 'mood-thinking', 'mood-happy', 'mood-sweat', 'mood-sleep'); mascot.classList.add('mood-' + mood);
-  const source = `/assets/avatars/${chatClient}-body-${mood}.webp`;
-  mascotImage.src = source; mascotImage.decoding = 'async';
-  mascotBlink.src = `/assets/avatars/${chatClient}-body-blink.webp`; mascotBlink.decoding = 'async';
-  mascot.classList.remove('blinking');
-  if (previousSource && previousSource !== source) {
-    if (previousMood && previousClient === chatClient && previousMood !== mood && mascotTransitions[`${previousMood}-${mood}`]) playMascotTransition(previousMood, mood);
-    else crossfadeMascot(previousSource);
-  }
-  const bubble = mood === 'thinking' ? '思考中…' : mood === 'happy' ? '完成了' : mood === 'sweat' ? '出錯了…' : mood === 'sleep' ? 'zzz' : '';
-  if (previousMood !== mood || previousClient !== chatClient) showMascotBubble(bubble);
-  scheduleMascotBlink();
-}
 function updateChatControls() {
   const info = chatClients.get(chatClient), enabled = !!currentWall && !!info?.available && !chatBusy;
   $('#chat-progress-avatar').src = `/assets/avatars/${chatClient}-thinking.webp`; $('#chat-progress-avatar').decoding = 'async';

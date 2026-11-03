@@ -104,6 +104,16 @@ function chatClient(value) {
   return value;
 }
 
+function assetFiles(folder, prefix) {
+  const files = [];
+  for (const entry of fs.readdirSync(folder, {withFileTypes: true})) {
+    const file = path.join(folder, entry.name), url = `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...assetFiles(file, url));
+    else if (/\.(?:png|webp)$/.test(entry.name)) files.push([url, file]);
+  }
+  return files;
+}
+
 function executable(pathname) {
   try { return fs.statSync(pathname).isFile() ? path.resolve(pathname) : null; } catch { return null; }
 }
@@ -513,10 +523,8 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   const corkImage = fs.readFileSync(path.join(projectDir, '..', 'assets', 'cork.jpg'));
   const paperGrain = fs.readFileSync(path.join(projectDir, '..', 'assets', 'paper-grain.png'));
   // Character art and the app icon are small fixed files, read once and served from memory.
-  const assetImages = new Map(['avatars', 'icon'].flatMap(dir => {
-    const folder = path.join(projectDir, '..', 'assets', dir);
-    return fs.readdirSync(folder).filter(name => /\.(?:png|webp)$/.test(name)).map(name => [`/assets/${dir}/${name}`, fs.readFileSync(path.join(folder, name))]);
-  }));
+  const assetImages = new Map(['avatars', 'icon'].flatMap(dir => assetFiles(path.join(projectDir, '..', 'assets', dir), `/assets/${dir}`)
+    .map(([url, file]) => [url, fs.readFileSync(file)])));
   let server;
 
   const handleApi = async (req, res, parts, url) => {

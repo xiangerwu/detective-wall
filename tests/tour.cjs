@@ -421,7 +421,9 @@ async function tourChat(page, combo) {
     'AI 對話顯示工具進度', combo.key);
   await capture(page, combo, 'chat-progress');
   await page.waitForFunction(() => document.querySelector('#chat-progress').hidden && document.querySelector('#chat-messages .chat-message.assistant'));
-  check(await page.locator('#mascot-image').getAttribute('src').then(src => src.includes('claude-body-happy.webp')),
+  // The rig switches once every layer of the new mood has decoded.
+  await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'happy', null, {timeout: 5000}).catch(() => {});
+  check(await page.locator('#mascot-image .rig').getAttribute('data-mood') === 'happy',
     'AI 回覆後桌寵進入完成狀態', combo.key);
 }
 

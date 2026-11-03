@@ -216,8 +216,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.click('#chat-new');
     await page.click('#ai-tab-chat');
     await page.waitForFunction(() => document.querySelectorAll('#chat-messages .chat-message').length === 0);
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sleep\.webp$/);
-    assert.ok(await page.locator('#mascot-image').evaluate(img => img.complete && img.naturalWidth > 0));
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'sleep');
+    assert.ok(await page.locator('#mascot-image .rig > img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)));
     await page.fill('#chat-input', 'warmup');
     assert.ok(await page.evaluate(() => {
       const send = document.querySelector('#chat-send').getBoundingClientRect(), status = document.querySelector('#chat-status').getBoundingClientRect();
@@ -230,8 +230,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await send();
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-message')].some(row => row.textContent.includes('UI message')));
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
-      && document.querySelector('#mascot-image')?.getAttribute('src').endsWith('/assets/avatars/claude-body-happy.webp'));
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-happy\.webp$/);
+      && document.querySelector('#mascot-image .rig')?.dataset.mood === 'happy');
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'happy');
     const claudeAvatars = page.locator('#chat-messages .chat-line.ai .chat-avatar');
     assert.ok(await claudeAvatars.count() >= 2);
     assert.match(await claudeAvatars.first().getAttribute('src'), /\/assets\/avatars\/claude-idle\.webp$/);
@@ -245,15 +245,15 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await send();
     await page.waitForFunction(() => document.querySelector('#chat-status.error')?.textContent.includes('fake CLI failure'));
     await page.waitForFunction(() => document.querySelector('#chat-progress')?.hidden
-      && document.querySelector('#mascot-image')?.getAttribute('src').endsWith('/assets/avatars/claude-body-sweat.webp'));
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sweat\.webp$/);
+      && document.querySelector('#mascot-image .rig')?.dataset.mood === 'sweat');
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'sweat');
     await page.waitForFunction(() => [...document.querySelectorAll('#chat-messages .chat-line.ai .chat-avatar')].at(-1)?.getAttribute('src').endsWith('/assets/avatars/claude-sweat.webp'));
     await page.fill('#chat-input', 'progress sleep');
     await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     assert.equal(await page.locator('#chat-progress-track').isVisible(), false, 'progress bar stays hidden without percentage data');
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-thinking\.webp$/);
-    assert.ok(await page.locator('#mascot-image').evaluate(img => img.complete && img.naturalWidth > 0));
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'thinking');
+    assert.ok(await page.locator('#mascot-image .rig > img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)));
     assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/claude-thinking\.webp$/);
     assert.deepEqual(await page.locator('#chat-progress-list li').allTextContents(), [
       '讀取 README.md', '搜尋卡片：方法', '送出提案（41 項）',
@@ -263,17 +263,17 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.click('#ai-tab-model');
     await page.selectOption('#chat-client', 'codex');
     await page.click('#ai-tab-chat');
-    await page.waitForFunction(() => document.querySelector('#mascot-image')?.getAttribute('src').includes('/assets/avatars/codex-body-'));
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.client === 'codex');
     await page.fill('#chat-input', 'progress sleep');
     await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/codex-body-thinking\.webp$/);
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'thinking');
     assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/codex-thinking\.webp$/);
     assert.deepEqual(await page.locator('#chat-progress-list li').allTextContents(), [
       '讀取 README.md', '搜尋卡片：方法', '送出提案（41 項）',
     ]);
     await page.waitForFunction(() => document.querySelector('#chat-progress').hidden);
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/codex-body-happy\.webp$/);
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'happy');
     assert.match(await page.locator('#chat-messages .chat-line.ai .chat-avatar').last().getAttribute('src'), /\/assets\/avatars\/codex-happy\.webp$/);
     await page.click('#ai-tab-model');
     await page.selectOption('#chat-client', 'claude');
@@ -284,8 +284,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     await page.click('#chat-stop');
     await page.waitForFunction(() => document.querySelector('#chat-status')?.textContent === '已停止');
-    await page.waitForFunction(() => document.querySelector('#mascot-image')?.getAttribute('src').endsWith('/assets/avatars/claude-body-sweat.webp'));
-    assert.match(await page.locator('#mascot-image').getAttribute('src'), /\/assets\/avatars\/claude-body-sweat\.webp$/);
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'sweat');
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'sweat');
     const stoppedHistory = (await request('/api/chat/chat-wall?client=claude')).body;
     assert.equal(stoppedHistory.messages.at(-1).status, 'stopped');
     console.log('PASS UI streams mapped tool progress, captures a progress screenshot, and stops with persisted status');
