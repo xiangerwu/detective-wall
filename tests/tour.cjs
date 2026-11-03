@@ -230,11 +230,12 @@ async function tourCardEditor(page, combo) {
   await page.click('#f-color [data-color="purple"]');
   await page.click('#f-mount [data-mount="tape"]');
   await page.click('#f-level [data-level="source"]');
-  await page.check('#f-fold'); await page.check('#f-curl');
+  await page.check('#f-fold');
   await page.fill('#f-note', 'P15 編輯內容');
   await page.fill('#f-links', '來源 | C:\\p15\\source.md | p. 15 | 巡檢');
   await page.waitForFunction(() => byId('shoup').title === 'P15 編輯卡' && byId('shoup').kind === 'note'
-    && byId('shoup').mount === 'tape' && byId('shoup').level === 'source' && byId('shoup').fold && byId('shoup').curl);
+    && byId('shoup').mount === 'tape' && byId('shoup').level === 'source' && byId('shoup').fold
+    && !Object.hasOwn(byId('shoup'), 'curl'));
   check(await page.evaluate(() => byId('shoup').tags?.length === 1 && byId('shoup').links?.length === 1), '卡片編輯器欄位會寫回資料', combo.key);
   await capture(page, combo, 'card-editor');
   await page.click('#f-close');
@@ -255,7 +256,7 @@ async function tourCardState(page, combo) {
   if (!await page.evaluate(() => Number.isInteger(byId('shoup').w) && Number.isInteger(byId('shoup').h)))
     await page.evaluate(() => { const c = byId('shoup'); c.w = 245; c.h = 190; render(); save(true); });
   const resized = await page.locator('.card[data-id="shoup"] .resize-handle').count() === 1 && await page.evaluate(() => Number.isInteger(byId('shoup').w) && Number.isInteger(byId('shoup').h));
-  check(resized && (!before.w || byIdSafe('shoup')), '卡片大小把手可調整固定尺寸，折疊與翻角仍保留', combo.key);
+  check(resized && (!before.w || byIdSafe('shoup')), '卡片大小把手可調整固定尺寸，折疊仍保留', combo.key);
   await capture(page, combo, 'card-state');
   function byIdSafe() { return true; }
 }
@@ -466,6 +467,8 @@ function auditSource() {
     const base = parse(root.getPropertyValue('--wall-color')) || [127,127,127,1];
     const background = (el, special = false) => {
       if (special) return parse(root.getPropertyValue('--band-label-bg')) || base;
+      const sheet = el.closest('.card.curl:not(.folded):not(.photo-card)')?.querySelector('.card-sheet');
+      if (sheet) return parse(getComputedStyle(sheet).backgroundColor) || base;
       const layers = [];
       for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
         const colour = parse(getComputedStyle(node).backgroundColor);

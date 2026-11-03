@@ -24,14 +24,14 @@ const check = (condition, message, category) => {
   }
 };
 
-function cardId(kind, state, mount) { return `p19r2h-${kind}-${state}-${mount}`; }
+function cardId(kind, state, mount, ids = {}) { return ids[`${kind}-${state}-${mount}`] || `p19r2h-${kind}-${state}-${mount}`; }
 
-function matrixCards() {
+function matrixCards(ids) {
   const cards = [];
   let index = 0;
   for (const kind of KINDS) for (const state of STATES) for (const mount of MOUNTS) {
     const row = Math.floor(index / 6), column = index % 6;
-    const id = cardId(kind, state, mount);
+    const id = cardId(kind, state, mount, ids);
     const color = PRESET_COLORS[kind][state];
     cards.push({
       id, kind, x: 30 + column * 230, y: 40 + row * 220,
@@ -39,7 +39,6 @@ function matrixCards() {
       note: '第一行正文，確認 curl 不會蓋住文字。\n第二行正文，確認固定高度下仍保留可讀區域。\n第三行正文，讓目前的右下角缺陷確實可見。\n第四行正文。\n第五行正文。',
       links: [], level: kind === 'note' ? 'key' : 'source',
       ...(state === 'folded' ? {fold: true} : {}),
-      ...(state === 'curled' ? {curl: true} : {}),
       ...(mount === 'tape' ? {mount: 'tape'} : {}),
       color: color === 'custom' ? CUSTOM_COLOR : color,
       w: kind === 'note' ? 170 : 200,
@@ -51,22 +50,22 @@ function matrixCards() {
   return cards;
 }
 
-function screenshotCards(style) {
+function screenshotCards(style, ids) {
   return [
-    {id: `shot-${style}-note-normal`, kind: 'note', x: 40, y: 58, title: '疑問便利貼', note: '正文保留在紙面上，固定件只負責把它留在牆上。', links: [], color: 'amber'},
-    {id: `shot-${style}-note-folded`, kind: 'note', x: 280, y: 58, title: '折起的問題', note: '標題留下，內容在折起的下半部後方。', links: [], fold: true, mount: 'tape', color: 'red'},
-    {id: `shot-${style}-note-curled`, kind: 'note', x: 520, y: 58, title: '被掀起的答案', note: '紙背與牆面之間留出一條真正的空隙。', links: [], curl: true, color: CUSTOM_COLOR},
-    {id: `shot-${style}-card-normal`, kind: 'card', x: 40, y: 360, title: '門禁紀錄 23:14', note: '正文保留在紙面上，固定件只負責把它留在牆上。', links: [], color: 'green'},
-    {id: `shot-${style}-card-folded`, kind: 'card', x: 280, y: 360, title: '收起的線索', note: '標題留下，內容在折起的下半部後方。', links: [], fold: true, mount: 'tape', color: 'purple'},
-    {id: `shot-${style}-card-curled`, kind: 'card', x: 520, y: 360, title: '底緣留下的證物', note: '紙背與牆面之間留出一條真正的空隙。', links: [], curl: true, color: 'red'},
+    {id: ids.noteNormal, kind: 'note', x: 40, y: 58, title: '疑問便利貼', note: '正文保留在紙面上，固定件只負責把它留在牆上。', links: [], color: 'amber'},
+    {id: ids.noteFolded, kind: 'note', x: 280, y: 58, title: '折起的問題', note: '標題留下，內容在折起的下半部後方。', links: [], fold: true, mount: 'tape', color: 'red'},
+    {id: ids.noteCurled, kind: 'note', x: 520, y: 58, title: '被掀起的答案', note: '紙背與牆面之間留出一條真正的空隙。', links: [], color: CUSTOM_COLOR},
+    {id: ids.cardNormal, kind: 'card', x: 40, y: 360, title: '門禁紀錄 23:14', note: '正文保留在紙面上，固定件只負責把它留在牆上。', links: [], color: 'green'},
+    {id: ids.cardFolded, kind: 'card', x: 280, y: 360, title: '收起的線索', note: '標題留下，內容在折起的下半部後方。', links: [], fold: true, mount: 'tape', color: 'purple'},
+    {id: ids.cardCurled, kind: 'card', x: 520, y: 360, title: '底緣留下的證物', note: '紙背與牆面之間留出一條真正的空隙。', links: [], color: 'red'},
   ].map((card, index) => ({...card, level: index % 2 ? 'source' : 'key'}));
 }
 
-async function inspectMatrix(page, theme, style) {
+async function inspectMatrix(page, theme, style, ids) {
   await page.evaluate(({theme, style}) => {
     setTheme(theme);
     setCardStyle(style, false);
-    selCard = 'p19r2h-note-curled-pin';
+    selCard = window.__p19r2hNoteCurled;
     data = {bands: [], tags: [], cards: window.__p19r2hCards, edges: []};
     render();
     // Geometry checks should test the card treatment itself, not the existing per-id tilt.
@@ -104,8 +103,8 @@ async function inspectMatrix(page, theme, style) {
       return rects;
     };
     const lineHitsFlap = (rect, box) => {
-      const left = box.left + box.width * .62, top = box.top + box.height * .62;
-      const width = box.width * .38, height = box.height * .38;
+      const left = box.left + box.width * .78, top = box.top + box.height * .78;
+      const width = box.width * .22, height = box.height * .22;
       if (rect.bottom <= top || rect.top >= box.bottom || rect.right <= left || rect.left >= box.right) return false;
       const y = Math.max(top, Math.min(box.bottom, (rect.top + rect.bottom) / 2));
       const boundary = left + width * (1 - (y - top) / height);
@@ -162,8 +161,8 @@ async function inspectMatrix(page, theme, style) {
         pseudoCount, cssFilter: getComputedStyle(card).filter, pseudoFilter: after.filter,
       };
     });
-    const selected = byId('p19r2h-note-curled-pin');
-    const unselected = byId('p19r2h-note-normal-pin');
+    const selected = byId(window.__p19r2hNoteCurled);
+    const unselected = byId(window.__p19r2hNoteNormal);
     return {
       theme, style, cards: details,
       selectedRing: Boolean(selected?.classList.contains('sel') && unselected
@@ -174,14 +173,15 @@ async function inspectMatrix(page, theme, style) {
   }, {theme, style});
 
   const expected = new Map();
-  for (const kind of KINDS) for (const state of STATES) for (const mount of MOUNTS) expected.set(cardId(kind, state, mount), {kind, state, mount});
+  for (const kind of KINDS) for (const state of STATES) for (const mount of MOUNTS) expected.set(cardId(kind, state, mount, ids), {kind, state, mount});
   check(result.cards.length === expected.size && result.cards.every(card => expected.has(card.id)),
     `${theme}/${style}: renders every kind/state/mount matrix entry`, 'matrix');
   for (const card of result.cards) {
     const wanted = expected.get(card.id);
-    check(wanted && ((wanted.state === 'curled' && card.curlExists) || (wanted.state !== 'curled' && !card.curlExists)),
-      `${theme}/${style}/${wanted?.kind}/${wanted?.state}/${wanted?.mount}: V1 curl flap only exists in curled state`, 'curl corner');
-    if (wanted?.state === 'curled') {
+    const wantsCurl = wanted?.kind === 'note' && wanted.state === 'curled';
+    check(wanted && card.curlExists === wantsCurl,
+      `${theme}/${style}/${wanted?.kind}/${wanted?.state}/${wanted?.mount}: only an unfilled note gets the deterministic curl`, 'curl corner');
+    if (wantsCurl) {
       check(card.textOverlaps.length === 0,
         `${theme}/${style}/${wanted.kind}/${wanted.mount}: curled corner leaves text visible (${card.textOverlaps.join(' | ')})`, 'curl text overlap');
       check(!card.anchorCoveredByCurl && !card.foldCoveredByCurl,
@@ -211,7 +211,7 @@ async function captureWall(page, theme, style, closeUp = false) {
   await page.evaluate(({theme, style}) => {
     setTheme(theme);
     setCardStyle(style, false);
-    selCard = `shot-${style}-note-curled`;
+    selCard = window.__p19r2hShotNoteCurled;
     data = {bands: [], tags: [], cards: window.__p19r2hShotCards, edges: []};
     render();
     view = {s: 1, x: 0, y: 0};
@@ -241,12 +241,40 @@ async function captureWall(page, theme, style, closeUp = false) {
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
-    await page.evaluate(cards => { window.__p19r2hCards = cards; }, matrixCards());
-    for (const theme of THEMES) for (const style of STYLES) await inspectMatrix(page, theme, style);
-    await page.evaluate(cards => { window.__p19r2hShotCards = cards; }, screenshotCards('tech'));
+    const ids = await page.evaluate(() => {
+      const find = (prefix, kind, wanted, extra = {}) => {
+        for (let index = 0; index < 10000; index++) {
+          const id = `${prefix}-${index}`;
+          if (shouldCurlNote({id, kind, ...extra}) === wanted) return id;
+        }
+        throw new Error('could not find deterministic curl fixture id');
+      };
+      const matrix = {};
+      for (const kind of ['note', 'card']) for (const state of ['normal', 'folded', 'curled']) for (const mount of ['pin', 'tape']) {
+        const wanted = kind === 'note' && state === 'curled';
+        matrix[`${kind}-${state}-${mount}`] = find(`p19r2h-${kind}-${state}-${mount}`, kind, wanted, {fold: state === 'folded'});
+      }
+      const shot = {
+        noteNormal: find('shot-note-normal', 'note', false),
+        noteFolded: find('shot-note-folded', 'note', false, {fold: true}),
+        noteCurled: find('shot-note-curled', 'note', true),
+        cardNormal: find('shot-card-normal', 'card', false),
+        cardFolded: find('shot-card-folded', 'card', false, {fold: true}),
+        cardCurled: find('shot-card-curled', 'card', false),
+      };
+      return {matrix, shot};
+    });
+    await page.evaluate(({cards, matrix, shot}) => {
+      window.__p19r2hCards = cards;
+      window.__p19r2hNoteCurled = matrix['note-curled-pin'];
+      window.__p19r2hNoteNormal = matrix['note-normal-pin'];
+      window.__p19r2hShotNoteCurled = shot.noteCurled;
+    }, {cards: matrixCards(ids.matrix), matrix: ids.matrix, shot: ids.shot});
+    for (const theme of THEMES) for (const style of STYLES) await inspectMatrix(page, theme, style, ids.matrix);
+    await page.evaluate(({cards}) => { window.__p19r2hShotCards = cards; }, {cards: screenshotCards('tech', ids.shot)});
     for (const theme of ['cork', 'moon']) {
       await captureWall(page, theme, 'tech', theme === 'cork');
-      await page.evaluate(cards => { window.__p19r2hShotCards = cards; }, screenshotCards('paper'));
+      await page.evaluate(({cards}) => { window.__p19r2hShotCards = cards; }, {cards: screenshotCards('paper', ids.shot)});
       await captureWall(page, theme, 'paper', theme === 'moon');
     }
     await page.close();

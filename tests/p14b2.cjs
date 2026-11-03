@@ -36,13 +36,13 @@ const out = artifacts('p14b2');
     console.log('PASS B2-1 V1 paper surface, layered shadows, and anchor badges render');
 
     await page.evaluate(() => openPanel('b2-key'));
-    await page.check('#f-curl');
-    await page.waitForFunction(() => byId('b2-key').curl === true && document.querySelector('.card[data-id="b2-key"]').classList.contains('curl'));
+    assert.equal(await page.locator('#f-curl').count(), 0);
+    assert.ok(!(await page.locator('#panel-body').textContent()).includes('翻角'));
     assert.equal(await page.locator('#f-level button[data-level="key"]').getAttribute('aria-checked'), 'true');
     await page.evaluate(() => closePanel());
     await reload(page);
-    assert.deepEqual(await page.evaluate(() => ({level: byId('b2-key').level, curl: byId('b2-key').curl})), {level: 'key', curl: true});
-    console.log('PASS B2-1 curl editor control and reload persistence');
+    assert.deepEqual(await page.evaluate(() => ({level: byId('b2-key').level, hasCurl: Object.hasOwn(byId('b2-key'), 'curl')})), {level: 'key', hasCurl: false});
+    console.log('PASS B2-1 editor removes the curl control and keeps anchor state across reload');
 
     await page.click('#add-image');
     await page.setInputFiles('#image-file', {name: 'evidence.jpg', mimeType: 'image/jpeg', buffer: fs.readFileSync(path.join(__dirname, '..', 'assets', 'cork.jpg'))});
@@ -65,20 +65,28 @@ const out = artifacts('p14b2');
       const card = byId('b2-key'), snapshot = structuredClone(data), canvas = toCanvas(snapshot);
       const node = canvas.nodes.find(value => value.id === card.id);
       const roundTrip = fromCanvas(canvas).cards.find(value => value.id === card.id);
+      const legacy = {id: 'legacy-curl', kind: 'note', x: 0, y: 0, title: '舊資料', note: '', links: [], curl: true};
+      const legacyCanvas = toCanvas({cards: [legacy], bands: [], tags: [], edges: []});
+      const legacyNode = legacyCanvas.nodes.find(value => value.id === legacy.id);
       const normalized = normalize({cards: [{id: 'normal-level', kind: 'card', title: '匯入', note: '', links: [], level: 'source', curl: true}], edges: []});
-      return {canvas: {level: node.detective.level, curl: node.detective.curl}, roundTrip: {level: roundTrip.level, curl: roundTrip.curl}, normalized: normalized.cards[0]};
+      const legacyRoundTrip = fromCanvas(legacyCanvas).cards[0];
+      return {canvas: {level: node.detective.level, hasCurl: Object.hasOwn(node.detective, 'curl')},
+        roundTrip: {level: roundTrip.level, hasCurl: Object.hasOwn(roundTrip, 'curl')},
+        legacy: {canvasHasCurl: Object.hasOwn(legacyNode.detective, 'curl'), roundTripHasCurl: Object.hasOwn(legacyRoundTrip, 'curl')},
+        normalized: normalized.cards[0]};
     });
     assert.equal(canvasFields.canvas.level, 'key');
-    assert.equal(canvasFields.canvas.curl, true);
-    assert.deepEqual(canvasFields.roundTrip, {level: 'key', curl: true});
+    assert.equal(canvasFields.canvas.hasCurl, false);
+    assert.deepEqual(canvasFields.roundTrip, {level: 'key', hasCurl: false});
+    assert.deepEqual(canvasFields.legacy, {canvasHasCurl: false, roundTripHasCurl: false});
     assert.equal(canvasFields.normalized.level, 'source');
-    assert.equal(canvasFields.normalized.curl, true);
+    assert.equal(Object.hasOwn(canvasFields.normalized, 'curl'), false);
     const importRows = await page.evaluate(() => {
-      openImporter('level-curl.json', {cards: [{id: 'b2-key', kind: 'card', x: 430, y: 150, title: '重點判斷', note: '紙張重點', links: [], level: 'source', curl: false}], edges: []});
+      openImporter('level.json', {cards: [{id: 'b2-key', kind: 'card', x: 430, y: 150, title: '重點判斷', note: '紙張重點', links: [], level: 'source'}], edges: []});
       return [...document.querySelectorAll('.im-row small')].map(row => row.textContent);
     });
     assert.ok(importRows.some(text => text.includes('等級')));
-    assert.ok(importRows.some(text => text.includes('翻角')));
+    assert.ok(!importRows.some(text => text.includes('翻角')));
     await page.click('#im-cancel');
     await page.evaluate(() => closePanel());
     console.log('PASS B2-1 normalize, Canvas round trip, and import diff fields');

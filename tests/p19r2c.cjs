@@ -101,16 +101,17 @@ async function cardContrast(page, id) {
       const index = selector => all.indexOf(document.querySelector(selector));
       const parent = selector => document.querySelector(selector)?.closest('.editor-pair-row, .editor-options-row');
       return {
-        order: ['#f-mount', '#f-note', '#f-links', '#f-tags', '#f-level', '#f-color', '#f-size-reset', '#f-fold', '#f-curl', '#f-del'].map(index),
+        order: ['#f-mount', '#f-note', '#f-links', '#f-tags', '#f-level', '#f-color', '#f-size-reset', '#f-fold', '#f-del'].map(index),
         pair: parent('#f-tags') && parent('#f-tags') === parent('#f-level'),
-        options: ['#f-color', '#f-size-reset', '#f-fold', '#f-curl', '#f-del'].every(selector => parent(selector)?.classList.contains('editor-options-row')),
+        options: ['#f-color', '#f-size-reset', '#f-fold', '#f-del'].every(selector => parent(selector)?.classList.contains('editor-options-row')),
+        noCurl: !document.querySelector('#f-curl') && !body.textContent.includes('翻角'),
         custom: document.querySelector('#f-color button[data-color="custom"]') !== null,
         native: document.querySelector('#f-custom-color')?.type === 'color',
       };
     });
     ok(editor.order.every((value, index, all) => value >= 0 && (index === 0 || value > all[index - 1])),
       'editor fields follow fixed, note, source, tags/level, then color/size/toggles/delete order');
-    ok(editor.pair && editor.options, 'editor uses the required two rows for tags/level and final options');
+    ok(editor.pair && editor.options && editor.noCurl, 'editor uses the required two rows and removes the curl option');
     ok(editor.custom && editor.native, 'editor exposes a 自訂 swatch backed by a native colour input');
 
     const picked = await setPickedColor(page, '#fffbe6');

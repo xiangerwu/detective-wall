@@ -54,6 +54,15 @@ async function productChecks(browser) {
     `index.html default tech widths are note 170px/card 200px (${JSON.stringify(defaults.tech)})`);
   check(defaults.paper.note.width === 170 && defaults.paper.card.width === 200 && defaults.paper.note.height >= 170,
     `index.html default paper note is a square-sized 170px pad (${JSON.stringify(defaults.paper)})`);
+  check(await page.evaluate(() => {
+    if (typeof shouldCurlNote !== 'function' || CURL_PROBABILITY !== 1 / 3) return false;
+    for (let index = 0; index < 10000; index++) {
+      const id = `p19r2f-note-${index}`;
+      if (shouldCurlNote({id, kind: 'note'})) return !shouldCurlNote({id, kind: 'card'});
+    }
+    return false;
+  }),
+  'product note samples use the id-based curl rule and never curl index cards');
 
   for (const theme of THEMES) {
     await page.evaluate(theme => { setTheme(theme); setCardStyle('paper', false); showClipboard(true, false); }, theme);

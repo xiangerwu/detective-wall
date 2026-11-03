@@ -1,7 +1,7 @@
 const playwright = require('playwright-core');
 const {ready} = require('./wall-ready.cjs');
 
-// The editor's last row (顏色, 大小選項, 折疊, 翻角, 刪除卡片) stays one readable row:
+// The editor's last row (顏色, 大小選項, 折疊, 刪除卡片) stays one readable row:
 // swatches on a single line and no label squeezed into vertical text, at 1400 and 1280 wide.
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) process.exitCode = 1; };
 

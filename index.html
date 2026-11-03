@@ -14,7 +14,7 @@
   --radius-sm:5px;--radius-md:6px;--radius-lg:8px;--pill-radius:999px;--rail-icon-w:78px;--rail-full-w:232px;--rail-panel-w:300px;
   --font-xs:12px;--font-sm:13px;--font-body:14px;--font-title:16px;
   --control-font:var(--font-sm);--control-pad-y:5px;--control-pad-x:8px;--popup-shadow:0 12px 40px var(--ui-shadow);
-  --paper-shadow-top:var(--ui-shadow-soft);--paper-shadow-near:var(--ui-shadow-soft);--paper-shadow-bottom:var(--ui-shadow);--paper-shadow-drag:var(--ui-shadow);--paper-curl-shadow:var(--ui-shadow-soft);
+  --paper-shadow-top:var(--ui-shadow-soft);--paper-shadow-near:var(--ui-shadow-soft);--paper-shadow-bottom:var(--ui-shadow);--paper-shadow-drag:var(--ui-shadow);
   --photo-frame:#fffdf7;--photo-ink:#302b25;--shell-ui-text:var(--ui-text);--shell-ui-input:var(--ui-input)}
 :root,[data-theme=moon]{--ui-bg:#283642;--ui-panel:#1b2530;--ui-bar:#121c25;--ui-surface:#24313d;--ui-raised:#31424f;--ui-input:#111c25;
   --ui-text:#e3ecf3;--ui-muted:#c4d1db;--ui-border:#526574;--ui-hover:#3a4b58;--ui-accent:#8fb8de;--ui-active:#2e4e68;
@@ -351,14 +351,14 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #panel .row{display:flex;justify-content:space-between}
 #panel .editor-pair-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
 #panel .editor-pair-row > .field{min-width:0}
-#panel .editor-options-row{display:grid;grid-template-columns:minmax(0,1fr) 88px 38px 38px 66px;align-items:end;gap:4px;min-width:0}
+#panel .editor-options-row{display:grid;grid-template-columns:minmax(0,1fr) 88px 38px 66px;align-items:end;gap:4px;min-width:0}
 #panel .editor-options-row > .field,#panel .editor-options-row > .check{min-width:0}
 #panel .editor-options-row > .check{justify-content:center;white-space:normal;text-align:center;line-height:1.2}
 #panel .editor-options-row > .check input{margin:0}
 #panel .editor-options-row #f-del{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
 #panel .editor-options-row .size-field button{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
-/* One left-to-right row: 顏色, 大小選項, 折疊, 翻角, 刪除卡片. At 360px the swatches wrapped into a grid and 折疊／翻角 turned vertical. */
-#panel .editor-options-row{grid-template-columns:auto auto auto auto auto;justify-content:space-between;align-items:center;gap:8px}
+/* One left-to-right row: 顏色, 大小選項, 折疊, 刪除卡片. */
+#panel .editor-options-row{grid-template-columns:auto auto auto auto;justify-content:space-between;align-items:center;gap:8px}
 #panel .editor-options-row #f-color{flex-wrap:nowrap;gap:3px}
 #panel .editor-options-row #f-color > *{width:22px;height:22px;min-width:22px;padding:0;flex:none}
 #panel .editor-options-row > .check,#panel .editor-options-row #f-del,#panel .editor-options-row .size-field button{white-space:nowrap;width:auto}
@@ -790,11 +790,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 [data-card-style=paper] .card-paper.note{box-shadow:0 -1px 2px var(--paper-shadow-top),0 5px 9px var(--paper-shadow-near),0 13px 20px var(--paper-shadow-bottom)}
 [data-card-style=paper] .card-paper.dragging{box-shadow:0 -2px 3px var(--paper-shadow-top),0 10px 14px var(--paper-shadow-near),0 22px 30px var(--paper-shadow-drag);transform:none}
 [data-card-style=paper] .card-paper.note.dragging{transform:rotate(-1.5deg)}
-/* N5: the lifted corner is shared by tech and paper cards; the body reserves its rectangle. */
-.card.curl:not(.folded):not(.photo-card)::after{content:'';position:absolute;right:-1px;bottom:-1px;z-index:2;width:58px;height:58px;clip-path:polygon(100% 0,100% 100%,0 100%);
-  background:linear-gradient(140deg,transparent 42%,color-mix(in srgb,var(--c-border) 62%,transparent) 43% 49%,#fff8e4 50% 72%,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 72%,white) 73%);
-  box-shadow:-7px -7px 11px color-mix(in srgb,var(--c-title) 28%,transparent);pointer-events:none}
-.card.curl:not(.folded):not(.photo-card) > :is(.md,p,.tags,.links),.card.curl:not(.folded):not(.photo-card):is(.fixed-size,:not(:has(> :is(.md,p)))) > h3{max-width:calc(100% - 58px);min-width:0}
 [data-card-style=paper] .card-paper:not(.photo-card){
   background-image:linear-gradient(color-mix(in srgb,#fff9e8 43%,transparent),color-mix(in srgb,#fff9e8 43%,transparent)),url('/assets/paper-grain.png');
   background-position:14px 8px,0 0;background-size:calc(100% - 28px) 11px,auto;background-repeat:no-repeat,repeat;background-blend-mode:normal,multiply;
@@ -883,7 +878,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #case-folder .case-pane input:not([type=checkbox]):not([type=radio]),#case-folder .case-pane select,#case-folder .case-pane textarea{color:var(--shell-ui-text);background:var(--shell-ui-input)}
 #case-folder .case-pane ::placeholder{color:var(--shell-ui-text);opacity:.78}
 
-/* Physical paper cards keep their existing data-driven mount/curl semantics. */
+/* Physical paper cards keep their existing data-driven mount semantics. */
 [data-card-style=paper] .card-paper:not(.photo-card){border-radius:6px}
 [data-card-style=paper] .card-paper.note{border-radius:3px 3px 15px 3px}
 
@@ -908,18 +903,18 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 .card.curl:not(.folded):not(.photo-card){pointer-events:none}
 .card.curl:not(.folded):not(.photo-card){background-color:transparent}
 .card.curl:not(.folded):not(.photo-card) > .card-sheet{
-  pointer-events:auto;clip-path:polygon(0 0,100% 0,100% 62%,62% 100%,0 100%);
+  pointer-events:auto;clip-path:polygon(0 0,100% 0,100% 78%,78% 100%,0 100%);
 }
 .card.curl:not(.folded):not(.photo-card) > :is(.pin,.anchor-badge,.fold,.resize-handle,.card-body){pointer-events:auto}
 .card.curl:not(.folded):not(.photo-card) > .card-body{pointer-events:none}
 .card.curl:not(.folded):not(.photo-card) > .card-body a{pointer-events:auto}
 .card.curl:not(.folded):not(.photo-card) > h3{max-width:none !important;min-width:0}
 .card.curl:not(.folded):not(.photo-card) .curl-spacer{
-  display:block;float:right;width:38%;height:var(--curl-flap-size,65px);
+  display:block;float:right;width:var(--curl-flap-size,38px);height:var(--curl-flap-size,38px);
   shape-outside:polygon(0 0,100% 0,0 100%) border-box;shape-margin:1px;pointer-events:none;  /* border-box: the spacer is pushed down with margin-top */
 }
 .card.curl:not(.folded):not(.photo-card)::after{
-  content:'';position:absolute;right:0;bottom:0;z-index:6;width:38%;height:38%;
+  content:'';position:absolute;right:0;bottom:0;z-index:6;width:22%;height:22%;
   clip-path:polygon(0 0,100% 0,0 100%);border:1px solid var(--c-border);
   background:linear-gradient(135deg,transparent 47.8%,color-mix(in srgb,var(--c-border) 70%,transparent) 48.5% 51.5%,transparent 52.2%),
     linear-gradient(135deg,color-mix(in srgb,var(--paper-bg,var(--c-bg)) 80%,white),color-mix(in srgb,var(--paper-bg,var(--c-bg)) 91%,white));
@@ -1213,7 +1208,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
       <div class="field color-field"><span id="f-color-label">顏色</span><div id="f-color" role="radiogroup" aria-labelledby="f-color-label"></div><input id="f-custom-color" type="color" value="#8fb8de" aria-label="選擇自訂卡片顏色" tabindex="-1"></div>
       <div class="field size-field"><span>大小選項</span><button id="f-size-reset" type="button">還原預設大小</button></div>
       <label class="check"><input type="checkbox" id="f-fold">折疊</label>
-      <label class="check"><input type="checkbox" id="f-curl">翻角</label>
       <button id="f-del" class="danger" type="button">刪除卡片</button>
     </div>
   </div>
@@ -2083,6 +2077,7 @@ function load(d) {
 // Every change ends here and becomes an undo step; changes within 500 ms (typing) merge into one.
 // separate = an import, replace or reset that must stay its own step.
 function save(separate = false) {
+  migrateWall(data);
   const json = JSON.stringify(data);
   if (json !== lastJSON) {
     const now = performance.now();
@@ -2359,8 +2354,16 @@ function fitView(whole) {
   applyView();
 }
 
-function tilt(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0; return (Math.abs(h) % 7 - 3) * 0.5; }
-function photoTilt(id) { let h = 0; for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) | 0; return ((Math.abs(h) % 3) + 1) * (h & 1 ? -1 : 1); }
+function stringHash(id) { let h = 0; for (const ch of String(id)) h = (h * 31 + ch.charCodeAt(0)) | 0; return h; }
+const CURL_PROBABILITY = 1 / 3;
+// Murmur3 finaliser: similar ids (note-1, note-2) give nearby string hashes, so spread them before taking a bucket.
+function mixHash(h) { h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16; return h >>> 0; }
+function shouldCurlNote(card) {
+  return typeof card?.id === 'string' && card.kind === 'note' && !card.fold && typeof card.image !== 'string'
+    && mixHash(stringHash(card.id)) % 1000 < CURL_PROBABILITY * 1000;
+}
+function tilt(id) { const h = stringHash(id); return (Math.abs(h) % 7 - 3) * 0.5; }
+function photoTilt(id) { const h = stringHash(id); return ((Math.abs(h) % 3) + 1) * (h & 1 ? -1 : 1); }
 const CARD_MIN_W = 120, CARD_MAX_W = 600, CARD_MIN_H = 60, CARD_MAX_H = 1200;
 const END_SIDES = ['n', 'e', 's', 'w'];
 const cardBaseW = c => c.kind === 'note' ? 170 : 200;
@@ -2377,7 +2380,7 @@ function migrateCardFields(card) {
   if (Number.isFinite(card.h)) card.h = clamp(Math.round(card.h), CARD_MIN_H, CARD_MAX_H); else delete card.h;
   if (card.mount !== 'tape') delete card.mount;
   if (!['source', 'key'].includes(card.level)) delete card.level;
-  if (card.curl !== true) delete card.curl;
+  delete card.curl;
   const color = normalizeColorValue(card.color);
   if (color) card.color = color; else delete card.color;
   delete card.size;
@@ -2535,9 +2538,10 @@ function renderCards() {
   wall.querySelectorAll('.card').forEach(n => n.remove());
   for (const c of data.cards) {
     const photo = typeof c.image === 'string' && !(c.note || '').trim();
+    const curl = shouldCurlNote(c);
     const el = document.createElement('div');
     el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
-      + (c.curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
+      + (curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
       + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
     applyCardColorStyle(el, c);
     el.dataset.id = c.id;
@@ -2551,7 +2555,7 @@ function renderCards() {
       const sheet = mk('div', 'card-sheet');
       sheet.append(mk('span', 'adhesive-highlight'));
       el.append(sheet);
-      if (c.curl) el.style.setProperty('--curl-flap-size', Math.round(cardW(c) * .38) + 'px');
+      if (curl) el.style.setProperty('--curl-flap-size', Math.round(cardW(c) * .22) + 'px');
     }
     const pin = document.createElement('span');
     pin.className = 'pin';
@@ -2577,8 +2581,8 @@ function renderCards() {
     } else {
       const contents = photo ? [pin, anchor, resize] : [pin, anchor, h, resize];
       el.append(...contents.filter(Boolean));
-      const contentParent = c.curl && !photo ? mk('div', 'card-body') : el;
-      if (c.curl && !photo) {
+      const contentParent = curl && !photo ? mk('div', 'card-body') : el;
+      if (curl && !photo) {
         const spacer = mk('span', 'curl-spacer');
         spacer.setAttribute('aria-hidden', 'true');
         contentParent.append(spacer);
@@ -2628,7 +2632,7 @@ function renderCards() {
     const body = card.querySelector('.card-body'), spacer = card.querySelector('.curl-spacer');
     if (!body || !spacer) continue;
     // Layout units, not getBoundingClientRect: the wall is scaled by the zoom transform.
-    spacer.style.marginTop = Math.max(0, Math.ceil(card.offsetHeight * .62 - body.offsetTop)) + 'px';
+    spacer.style.marginTop = Math.max(0, Math.ceil(card.offsetHeight * .78 - body.offsetTop)) + 'px';
   }
   for (const c of data.cards) {
     const el = cardElements.get(c.id);
@@ -3657,7 +3661,7 @@ function setType(k, persist = true) {
 
 const LEVEL_LABELS = {source: '源頭', key: '重點'};
 const levelOf = c => LEVEL_LABELS[c.level] ? c.level : '';
-const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), customColor: $('#f-custom-color'), mount: $('#f-mount'), level: $('#f-level'), note: $('#f-note'), links: $('#f-links'), fold: $('#f-fold'), curl: $('#f-curl')};
+const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), customColor: $('#f-custom-color'), mount: $('#f-mount'), level: $('#f-level'), note: $('#f-note'), links: $('#f-links'), fold: $('#f-fold')};
 for (const [value, label] of [['', '大頭釘'], ['tape', '透明膠帶']]) {
   const b = document.createElement('button');
   b.type = 'button'; b.dataset.mount = value; b.textContent = label; b.setAttribute('role', 'radio');
@@ -3839,8 +3843,8 @@ function clampPanel() {
   const box = vp.getBoundingClientRect(), margin = 8;
   const saved = readPanelSize();
   const maxWidth = Math.max(0, box.width - margin * 2), maxHeight = Math.max(0, box.height - margin * 2);
-  // 470px keeps the last editor row (顏色, 大小選項, 折疊, 翻角, 刪除卡片) on one line, also for sizes saved before that row existed.
-  const minWidth = Math.min(470, maxWidth), minHeight = Math.min(240, maxHeight);
+  // 420px keeps the last editor row on one line, also for sizes saved before that row existed.
+  const minWidth = Math.min(420, maxWidth), minHeight = Math.min(240, maxHeight);
   const width = clamp(Number.isFinite(parseFloat(panel.style.width)) ? parseFloat(panel.style.width) : saved?.width || 500, minWidth, maxWidth);
   const height = clamp(Number.isFinite(parseFloat(panel.style.height)) ? parseFloat(panel.style.height) : saved?.height || 560, minHeight, maxHeight);
   panel.style.minWidth = minWidth + 'px'; panel.style.minHeight = minHeight + 'px';
@@ -3930,7 +3934,6 @@ function openPanel(id, prune = true) {
   f.note.value = c.note;
   f.links.value = (c.links || []).map(formatLink).filter(Boolean).join('\n');
   f.fold.checked = !!c.fold;
-  f.curl.checked = !!c.curl;
   renderColorControls();
   markColor(c);
   markMount(c);
@@ -3947,9 +3950,6 @@ panel.addEventListener('input', ev => {
   if (ev.target.id === 'f-tag' || ev.target === f.customColor) return;
   const c = byId(selCard);
   if (!c) return;
-  if (ev.target === f.curl) {
-    if (f.curl.checked) c.curl = true; else delete c.curl;
-  }
   Object.assign(c, {title: f.title.value, kind: f.kind.value, note: f.note.value, links: parseLinks(f.links.value), fold: f.fold.checked});
   markColor(c);  // a card without a chosen color follows its kind's default
   render();
@@ -4301,10 +4301,14 @@ function toCanvas(snapshot) {
   const elements = new Map([...wall.querySelectorAll('.card')].map(el => [el.dataset.id, el]));
   const rectFor = c => cardBox(c, elements.get(c.id));
   const cardsById = new Map(snapshot.cards.map(card => [card.id, card]));
-  const cards = snapshot.cards.map(c => ({id: c.id, type: 'text', x: Math.round(c.x), y: Math.round(c.y),
-    width: Math.round(rectFor(c).width), height: Math.round(rectFor(c).height), color: CANVAS_COLORS[colorKeyOf(c)] || colorOf(c),
-    text: [`## ${c.title}`, c.note, (c.links || []).map(markdownLink).filter(Boolean).join('\n')].filter(Boolean).join('\n\n'),
-    detective: c}));
+  const cards = snapshot.cards.map(c => {
+    const detective = structuredClone(c);
+    migrateCardFields(detective);
+    return {id: c.id, type: 'text', x: Math.round(c.x), y: Math.round(c.y),
+      width: Math.round(rectFor(c).width), height: Math.round(rectFor(c).height), color: CANVAS_COLORS[colorKeyOf(c)] || colorOf(c),
+      text: [`## ${c.title}`, c.note, (c.links || []).map(markdownLink).filter(Boolean).join('\n')].filter(Boolean).join('\n\n'),
+      detective};
+  });
   const used = new Set(cards.map(c => c.id));
   // Cards, bands and edges have separate ID spaces in the wall, but share one in this export.
   const unique = id => { while (used.has(id)) id = '_' + id; used.add(id); return id; };
@@ -4389,6 +4393,7 @@ function fromCanvas(canvas) {
 async function exportWall(format) {
   const snapshot = structuredClone(data), name = currentWall.name, images = Object.create(null);
   try {
+    migrateWall(snapshot);
     // Capture rendered geometry before waiting for image reads or a possible wall switch.
     const output = format === 'canvas' ? toCanvas(snapshot) : snapshot;
     for (const id of new Set(snapshot.cards.map(c => c.image).filter(id => typeof id === 'string'))) {
@@ -4521,7 +4526,7 @@ function cardDiff(a, b, tags = data.tags) {
   const height = c => Number.isFinite(c.h) ? String(Math.round(c.h)) : '跟隨內容';
   const level = c => LEVEL_LABELS[c.level] || '一般';
   return [['標題', a.title, b.title], ['樣式', kind(a), kind(b)], ['顏色', colorLabel(a), colorLabel(b)], ['固定方式', mountOf(a) === 'tape' ? '透明膠帶' : '大頭釘', mountOf(b) === 'tape' ? '透明膠帶' : '大頭釘'],
-    ['寬度', String(cardW(a)), String(cardW(b))], ['高度', String(height(a)), String(height(b))], ['等級', level(a), level(b)], ['翻角', a.curl ? '是' : '否', b.curl ? '是' : '否'], ['折疊', a.fold ? '是' : '否', b.fold ? '是' : '否'],
+    ['寬度', String(cardW(a)), String(cardW(b))], ['高度', String(height(a)), String(height(b))], ['等級', level(a), level(b)], ['折疊', a.fold ? '是' : '否', b.fold ? '是' : '否'],
     ['圖片', a.image, b.image], ['筆記', a.note, b.note], ['標籤', names(a, data.tags), names(b, tags)], ['連結', links(a), links(b)], ['位置', pos(a), pos(b)]]
     .filter(([field, x, y]) => x !== y || field === '標籤' && JSON.stringify([...(a.tags || [])].sort()) !== JSON.stringify([...(b.tags || [])].sort()));
 }

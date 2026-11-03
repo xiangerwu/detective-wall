@@ -127,6 +127,11 @@ async function anchorOrder(page) {
 
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page); await setFixture(page);
+    ok(await page.evaluate(() => typeof shouldCurlNote === 'function' && CURL_PROBABILITY === 1 / 3
+      && !shouldCurlNote({id: 'p19r2i-index', kind: 'card'})
+      && !shouldCurlNote({id: 'p19r2i-folded', kind: 'note', fold: true})
+      && !shouldCurlNote({id: 'p19r2i-photo', kind: 'note', image: 'photo'})),
+    'wrapping fixture keeps index, folded, and photo cards out of the id-based curl rule');
 
     for (const style of ['tech', 'paper']) {
       const problems = await overflowAudit(page, style);
