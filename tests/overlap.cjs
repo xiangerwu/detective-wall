@@ -36,6 +36,7 @@ function allowedOverlap(a, b, context = {}) {
   if (names.has('mascot') && names.has('clipboard')) return '桌寵永遠在案件夾上方，允許它蓋在案件夾上';
   if (names.has('rail') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 rail 上';
   if (names.has('navigation') && (names.has('mascot') || names.has('mascot-bubble'))) return '桌寵位置由使用者保留，允許它蓋在 navigation 上';
+  if (names.has('clipboard') && names.has('clipboard-tabs')) return '分頁收在案件夾板子裡，本來就在板子範圍內';
   if (names.has('clipboard') && names.has('panel')) return '浮動案件夾與編輯器可在右側暫時相交，編輯器保持較高互動層';
   if (names.has('clipboard-tabs') && names.has('panel')) return '案件夾分頁與編輯器可在右側暫時相交，編輯器保持較高互動層';
   if (context.clipboardOpen && names.has('clipboard') && names.has('marquee')) return '開啟案件夾可暫時覆蓋畫布選取框';
@@ -139,7 +140,7 @@ async function collect(page) {
     for (const id of ['tabmenu', 'layout-wall-menu', 'search-results', 'card-menu', 'edgepop', 'bandpop', 'tagpop', 'f-tag-list']) add(`menu:${id}`, `#${id}`);
     const tabProblems = [];
     const tabs = [...document.querySelectorAll('.case-folder-tab')].filter(visible);
-    const tabBlockers = ['#case-folder-header', '#clipboard-close', '.clipboard-clip', '.clipboard-peek-clip', '#rail', '#rail-panel', '#topbar', '#tabmenu', '#layout-wall-menu', '#search-results', '#card-menu', '#edgepop', '#bandpop', '#tagpop', '#f-tag-list'];
+    const tabBlockers = ['#case-folder-header', '#clipboard-close', '.clipboard-clip', '#rail', '#rail-panel', '#topbar', '#tabmenu', '#layout-wall-menu', '#search-results', '#card-menu', '#edgepop', '#bandpop', '#tagpop', '#f-tag-list'];
     for (const tab of tabs) {
       const rect = tab.getBoundingClientRect();
       if (rect.left < -1 || rect.right > innerWidth + 1 || rect.top < -1 || rect.bottom > innerHeight + 1) tabProblems.push(`${tab.textContent.trim()} escapes viewport`);

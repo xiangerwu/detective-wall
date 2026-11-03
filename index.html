@@ -184,14 +184,12 @@ body.rail-hidden #rail-panel{display:none}
 .rail-anchor-group h3{margin:2px 0 0;color:var(--ui-muted);font-size:11px;font-weight:600}
 .rail-anchor-suggestion-list button{color:var(--ui-muted)}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
-#sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(380px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 52px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
+#sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(440px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 78px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
 #sidebar.is-open{transform:none}
 #sidebar:focus-visible{outline:3px solid var(--ui-accent);outline-offset:4px}
 #sidebar.clipboard-window{display:block}
-#clipboard-peek{position:absolute;z-index:20;inset:0 auto 0 0;width:52px;padding:0;border:0;border-radius:12px 0 0 12px;background:transparent;color:var(--ui-text);cursor:pointer}
+#clipboard-peek{position:absolute;z-index:20;inset:0 auto 0 0;width:78px;padding:0;border:0;border-radius:12px 0 0 12px;background:transparent;color:var(--ui-text);cursor:pointer}
 #clipboard-peek span{display:none}
-#clipboard-peek .clipboard-peek-clip{position:absolute;top:12px;left:1px;display:block;width:50px;height:30px;overflow:visible}
-#sidebar.is-open #clipboard-peek .clipboard-peek-clip{display:none}
 #clipboard-peek:focus-visible{outline:3px solid var(--ui-accent);outline-offset:-4px}
 #sidebar.is-open #clipboard-peek{pointer-events:none;cursor:default}
 #sidebar.is-open #clipboard-peek:focus-visible{outline:0}
@@ -742,22 +740,21 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #f-size-reset:hover,#f-size-reset:focus-visible{color:#2b180c;background:#f0d59d;border-color:#6f4a20}
 
 /* Penco-like clipboard: dark recycled hardboard, one centred metal clip, and real file-folder tabs. */
-#case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;width:100%;height:100%;overflow:visible;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-left-color:transparent;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
+#case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;width:100%;height:100%;overflow:visible;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
 #case-folder::before{display:none}
-#case-folder-header{position:relative;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;height:124px;padding:88px 12px 0;border-bottom:0}
+#case-folder-header{position:relative;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;height:84px;padding:30px 12px 0 14px;border-bottom:0}
 #case-folder-header .clipboard-heading{min-width:0;overflow:hidden}
-#case-folder-header .eyebrow{margin:0 0 2px;color:#e7c681;font-size:10px;letter-spacing:.1em;font-weight:800;white-space:nowrap}
 #case-folder-header h1{margin:0;color:#fff3d6;font-size:18px;line-height:1.2;white-space:nowrap}
 #clipboard-close{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:7px;color:#fff3d6;background:rgba(42,21,10,.28);font-size:21px;line-height:1}
 #clipboard-close:hover,#clipboard-close:focus-visible{background:rgba(255,243,214,.18)}
 .clipboard-clip{position:absolute;z-index:12;top:0;left:50%;width:196px;height:82px;transform:translateX(-50%);pointer-events:none;overflow:visible}
 .clipboard-clip-art{display:block;width:100%;height:100%;overflow:visible}
-#case-folder-tabs{position:absolute;z-index:6;top:136px;left:-60px;width:60px;display:flex;flex-direction:column;gap:4px;flex:none;padding:0;border:0;background:transparent;overflow:visible}
+#case-folder-tabs{position:absolute;z-index:25;top:96px;left:10px;width:60px;display:flex;flex-direction:column;gap:4px;flex:none;padding:0;border:0;background:transparent;overflow:visible}
 .case-folder-tab{position:relative;z-index:1;flex:none;width:60px;min-width:60px;min-height:44px;height:44px;padding:7px 5px;overflow:visible;color:var(--clipboard-ink);background-color:#e7d0a0;background-image:linear-gradient(180deg,#e7d0a0,#caa873);border:1px solid #9e773f;border-right:0;border-radius:9px 0 0 9px;box-shadow:0 4px 8px rgba(38,19,8,.28);font-size:12px;font-weight:700;white-space:nowrap}
 .case-folder-tab + .case-folder-tab{margin-left:0}
 .case-folder-tab:hover,.case-folder-tab:focus-visible{color:var(--clipboard-ink);background:#fff8df;border-color:#a77c38}
 .case-folder-tab[aria-selected=true]{z-index:5;height:44px;margin:0;color:var(--clipboard-ink);background:var(--clipboard-paper);border-color:#b18d55;border-right:0;box-shadow:none;transform:none}
-#case-folder .case-pane{--ui-text:var(--clipboard-ink);--ui-muted:var(--clipboard-muted);--ui-border:#c9ad7f;--ui-surface:#fff3d6;--ui-raised:#fff8e7;--ui-hover:#f4deb3;--ui-active:#f1d18e;--ui-accent:#8a5b23;--ui-warning:#8a5b23;--ui-success:#2e6b4b;--ui-danger:#9a2732;position:relative;z-index:3;flex:1;margin:12px 10px 10px 0;padding:10px;color:var(--ui-text);background:var(--clipboard-paper);border:1px solid #c9ad7f;border-top-color:transparent;border-left-width:0;border-radius:0 0 10px 10px;box-shadow:0 5px 12px rgba(38,19,8,.24)}
+#case-folder .case-pane{--ui-text:var(--clipboard-ink);--ui-muted:var(--clipboard-muted);--ui-border:#c9ad7f;--ui-surface:#fff3d6;--ui-raised:#fff8e7;--ui-hover:#f4deb3;--ui-active:#f1d18e;--ui-accent:#8a5b23;--ui-warning:#8a5b23;--ui-success:#2e6b4b;--ui-danger:#9a2732;position:relative;z-index:3;flex:1;margin:12px 12px 12px 70px;padding:10px;color:var(--ui-text);background:var(--clipboard-paper);border:1px solid #c9ad7f;border-top-color:transparent;border-left-width:0;border-radius:0 0 10px 10px;box-shadow:0 5px 12px rgba(38,19,8,.24)}
 #case-folder .case-pane input:not([type=checkbox]):not([type=radio]),#case-folder .case-pane select,#case-folder .case-pane textarea{color:var(--shell-ui-text);background:var(--shell-ui-input)}
 #case-folder .case-pane ::placeholder{color:var(--shell-ui-text);opacity:.78}
 
@@ -1015,17 +1012,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
  <aside id="sidebar" class="clipboard-window" aria-label="AI 案件夾" aria-expanded="false" tabindex="0">
    <button id="clipboard-peek" type="button" aria-label="開啟 AI 案件夾" title="開啟 AI 案件夾">
      <span aria-hidden="true">AI</span>
-     <svg class="clipboard-peek-clip" viewBox="0 0 360 150" focusable="false" aria-hidden="true">
-       <defs>
-         <linearGradient id="clipboard-peek-k2-brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0a5"/><stop offset=".25" stop-color="#b7832f"/><stop offset=".52" stop-color="#f4d16b"/><stop offset=".8" stop-color="#8d6120"/><stop offset="1" stop-color="#d6a949"/></linearGradient>
-         <linearGradient id="clipboard-peek-k2-dark" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#75511d"/><stop offset=".5" stop-color="#d2a449"/><stop offset="1" stop-color="#573b16"/></linearGradient>
-       </defs>
-       <path data-part="front-plate" d="M43 72h274q9 0 9 9v25q0 11-11 11H45q-11 0-11-11V83q0-11 9-11Z" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/>
-       <path data-part="front-edge" d="M45 101h270q-2 14-14 17H59q-12-2-14-17Z" fill="url(#clipboard-peek-k2-dark)" stroke="#604417" stroke-width="2"/>
-       <rect data-part="flat-lever" x="79" y="54" width="202" height="25" rx="12" fill="url(#clipboard-peek-k2-dark)" stroke="#604417" stroke-width="3"/>
-       <path data-part="rolled-hinge" d="M98 56v-18q0-18 18-18h128q18 0 18 18v18" fill="none" stroke="#d9b65b" stroke-width="8" stroke-linecap="round"/>
-       <circle data-part="rivet" cx="63" cy="91" r="9" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/><circle data-part="rivet" cx="297" cy="91" r="9" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/>
-     </svg>
    </button>
    <div id="case-folder">
      <div class="clipboard-clip" data-clip-design="K2" aria-hidden="true">
@@ -1048,7 +1034,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
        </svg>
      </div>
      <header id="case-folder-header">
-       <div class="clipboard-heading"><p class="eyebrow">CASEGRAPH / AI CONTROL</p><h1>AI 案件夾</h1></div>
+       <div class="clipboard-heading"><h1>AI 案件夾</h1></div>
        <button id="clipboard-close" type="button" title="關閉 AI 案件夾" aria-label="關閉 AI 案件夾">×</button>
      </header>
      <div id="case-folder-tabs" role="tablist" aria-label="AI 案件夾分頁">

@@ -54,7 +54,7 @@ async function setState(page, theme, rail, open, width, height) {
           if (style.writingMode !== 'horizontal-tb' || /rotate\(/.test(style.transform)) out.push(`tab ${tab.textContent.trim()} label is not horizontal`);
           if (tab.scrollWidth > tab.clientWidth + 1) out.push(`tab ${tab.textContent.trim()} is clipped`);
           if (index && rect.top <= rects[index - 1].rect.top) out.push('tabs are not stacked top to bottom');
-          if (board && Math.abs(rect.right - board.left) > 2) out.push(`tab ${tab.textContent.trim()} is not attached to board left edge`);
+          if (board && sheetRect && (rect.left < board.left || Math.abs(rect.right - sheetRect.left) > 2)) out.push(`tab ${tab.textContent.trim()} is not inside the board against the sheet's left edge`);
           if (rect.left < -1 || rect.right > innerWidth + 1 || rect.top < -1 || rect.bottom > innerHeight + 1) out.push(`tab ${tab.textContent.trim()} falls outside the viewport`);
           const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
           if (!target || !tab.contains(target)) out.push(`tab ${tab.textContent.trim()} is not hit at its centre`);
@@ -82,7 +82,7 @@ async function setState(page, theme, rail, open, width, height) {
           if (c.width < 180 || c.width > 220 || c.height < 55 || c.height > 95) out.push(`K2 clip size is ${Math.round(c.width)}x${Math.round(c.height)}, expected a wide brass plate`);
           if (clip.querySelector('filter,[filter]')) out.push('clip uses an SVG filter');
         }
-        const blockers = ['#case-folder-header', '#clipboard-close', '.clipboard-clip', '.clipboard-peek-clip', '#rail', '#rail-panel', '#topbar', '#tabmenu', '#layout-wall-menu', '#search-results', '#card-menu', '#edgepop', '#bandpop', '#tagpop', '#f-tag-list'];
+        const blockers = ['#case-folder-header', '#clipboard-close', '.clipboard-clip', '#rail', '#rail-panel', '#topbar', '#tabmenu', '#layout-wall-menu', '#search-results', '#card-menu', '#edgepop', '#bandpop', '#tagpop', '#f-tag-list'];
         for (const {tab, rect} of rects) for (const selector of blockers) {
           const blocker = document.querySelector(selector);
           if (shown(blocker) && hit(rect, blocker.getBoundingClientRect())) out.push(`tab ${tab.textContent.trim()} intersects ${selector}`);
