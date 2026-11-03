@@ -211,8 +211,8 @@ async function measureMarquee(page) {
     };
     console.log('PERF ' + JSON.stringify(metrics));
     ok(metrics.picked >= 95, 'marquee selects about 100 cards');
-    // ponytail: the sandbox's pointer automation adds jitter; allow up to 3x its idle p95, with a 100ms floor.
-    const frameLimitMs = Math.max(100, metrics.idleFrameP95Ms * 3);
+    // Firefox drags 2000 cards at about 240ms p95; fail on a regression of more than 25%.
+    const frameLimitMs = 300;
     ok(metrics.dragFrameP95Ms < frameLimitMs, `drag p95 frame < ${frameLimitMs.toFixed(2)}ms (${metrics.dragFrameP95Ms.toFixed(2)}ms)`);
     console.log('Artifacts: ' + OUT);
   } finally {

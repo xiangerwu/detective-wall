@@ -834,10 +834,10 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #canvas-islands #zoom button:hover{background:var(--ui-hover)}
 #canvas-islands .rail-icon{display:inline-flex;width:20px;height:20px;align-items:center;justify-content:center;font-size:16px;line-height:1}
 #canvas-islands #zoom-pct{min-width:58px}
-#edgepop [data-type] svg{background:var(--ui-input);border:1px solid var(--ui-border);border-radius:4px}
+#edgepop [data-type]{display:flex;align-items:center;gap:6px;padding:4px 8px;font-size:12px;white-space:nowrap}
 #edgepop [data-type] line{stroke:var(--ui-text)!important}
-#edgepop [data-type].on svg{background:var(--ui-active)}
-#edgepop{min-width:278px;display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:10px;white-space:normal}
+#edgepop [data-type].on{background:var(--ui-active);border-color:var(--ui-accent)}
+#edgepop{min-width:380px;display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:10px;white-space:normal}
 #edgepop{position:fixed;z-index:900;transform:translate(-50%,-130%);pointer-events:none}
 #edgepop button,#edgepop input{pointer-events:auto}
 #edgepop .edge-popup-title{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:7px;border-bottom:1px solid var(--ui-border);font-size:13px;font-weight:700;pointer-events:none}
@@ -3410,6 +3410,7 @@ function buildTypeButtons() {
     b.setAttribute('aria-label', t.label);
     b.setAttribute('role', 'radio');
     b.innerHTML = sample(k);
+    b.append(mk('span', 'edge-type-label', t.label));
     types.append(b);
   }
   pop.append(types);

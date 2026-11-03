@@ -205,6 +205,11 @@ function hit(a, b) {
     check(popup.title && popup.close && popup.groups >= 3, 'edge popup has a title, close control, and separated groups');
     check(popup.buttonGap >= 6 && popup.groupGap >= 10, `edge popup button gaps are >=6px and group gaps are larger (buttons ${popup.buttonGap.toFixed(1)}px, groups ${popup.groupGap.toFixed(1)}px)`);
     check(popup.inside, 'edge popup stays inside the viewport near the selected string');
+    const typeButtons = await page.evaluate(() => [...document.querySelectorAll('#edgepop [data-type]')].map(button => ({
+      label: button.textContent.trim(), expected: TYPES[button.dataset.type].label,
+      iconBg: getComputedStyle(button.querySelector('svg')).backgroundColor, top: Math.round(button.getBoundingClientRect().top)})));
+    check(typeButtons.length === 3 && typeButtons.every(b => b.label === b.expected && b.iconBg === 'rgba(0, 0, 0, 0)') && new Set(typeButtons.map(b => b.top)).size === 1,
+      `edge type buttons show their names on one row, without a dark icon box (${JSON.stringify(typeButtons)})`);
     await page.locator('#edgepop').screenshot({path: path.join(OUT, 'edge-popup.png')});
 
     await page.evaluate(() => { selectEdge(null); openPanel('r2d-colour'); });
