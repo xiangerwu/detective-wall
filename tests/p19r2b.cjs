@@ -75,7 +75,7 @@ function clipAround(rects, viewport) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
 
-    // Badge shape and visibility: both levels must have a deliberate clipped corner and stay inside the card box.
+    // Badge shape and visibility: both levels must be complete shapes (no clip-path cutting a corner) inside the card box.
     for (const style of ['tech', 'paper']) for (const theme of THEMES) {
       await page.evaluate(({theme, style}) => { setTheme(theme); setCardStyle(style); }, {theme, style});
       await setFixture(page, [
@@ -87,7 +87,7 @@ function clipAround(rects, viewport) {
         return {level: badge.closest('.card').dataset.level, clip: getComputedStyle(badge).clipPath,
           visible: box.left >= parent.left && box.right <= parent.right && box.top >= parent.top && box.bottom <= parent.bottom};
       }));
-      ok(badges.length === 2 && badges.every(badge => badge.clip !== 'none' && badge.visible), `${theme}/${style}: both level badges have complete clipped shapes and visible boxes`);
+      ok(badges.length === 2 && badges.every(badge => badge.clip === 'none' && badge.visible), `${theme}/${style}: both level badges are complete shapes with visible boxes`);
     }
 
     // Rail and last-used type behaviour. The type controls must only appear after a string exists.

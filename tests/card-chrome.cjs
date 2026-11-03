@@ -33,7 +33,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         const problems = [];
         if (fold && hit(badge, fold)) problems.push(card.dataset.id + ' badge/fold');
         if (title && title.height && hit(badge, title)) problems.push(card.dataset.id + ' badge/title');
-        if (getComputedStyle(card.querySelector('.anchor-badge')).clipPath === 'none') problems.push(card.dataset.id + ' badge has no complete shape');
+        if (getComputedStyle(card.querySelector('.anchor-badge')).clipPath !== 'none') problems.push(card.dataset.id + ' badge corner is clipped');
         if (badge.left < card.getBoundingClientRect().left || badge.right > card.getBoundingClientRect().right
           || badge.top < card.getBoundingClientRect().top || badge.bottom > card.getBoundingClientRect().bottom) problems.push(card.dataset.id + ' badge box escapes card');
         // A title squeezed to one glyph per line means something still reserves room for the old corner badge.
