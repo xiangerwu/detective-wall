@@ -28,6 +28,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         const panel = document.querySelector('#panel').getBoundingClientRect();
         if ([...row.children].some(el => el.getBoundingClientRect().right > panel.right - 4)) out.push('row runs past the editor edge');
         if (panel.right > innerWidth || panel.bottom > innerHeight) out.push('editor does not fit the window');
+        const levels = [...document.querySelectorAll('#f-level button')].map(el => el.getBoundingClientRect());
+        if (levels.some((r, i) => i && r.left - levels[i - 1].right < 6)) out.push('anchor level buttons touch each other');
         return out;
       });
       ok(problems.length === 0, `${width}x${height}: editor options stay one readable row ${problems.join('; ')}`);
