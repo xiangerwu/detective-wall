@@ -290,8 +290,10 @@ body.side-closed #sidebar,body.side-closed #sidebar-resize{display:none}
 #tagpop{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;padding:10px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px}
 #tag-name{width:100%}
 .dim{opacity:.15}
-#f-color{display:flex;gap:8px}
+#f-color{display:flex;flex-wrap:wrap;gap:4px}
 button.swatch,button.swatch.on{width:28px;height:28px;padding:0;background:var(--c-bg);border:2px solid var(--c-top);border-radius:50%}
+button.swatch.custom-swatch{background:conic-gradient(var(--builds),var(--question),var(--uses),var(--builds))}  /* a colour wheel: the word 自訂 did not fit a 22px swatch */
+#f-custom-color{position:absolute;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none}
 button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .pin{position:absolute;left:50%;top:-7px;width:16px;height:16px;margin-left:-8px;border-radius:50%;cursor:crosshair;
   background:radial-gradient(circle at 35% 35%,var(--ui-pin-light),var(--ui-pin) 60%,var(--ui-pin-dark));box-shadow:0 0 8px color-mix(in srgb,var(--ui-danger-strong) 70%,transparent)}
@@ -328,6 +330,19 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .edge-weights button + button{border-left:1px solid var(--ui-border)}
 #panel textarea{resize:vertical}
 #panel .row{display:flex;justify-content:space-between}
+#panel .editor-pair-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-2)}
+#panel .editor-pair-row > .field{min-width:0}
+#panel .editor-options-row{display:grid;grid-template-columns:minmax(0,1fr) 88px 38px 38px 66px;align-items:end;gap:4px;min-width:0}
+#panel .editor-options-row > .field,#panel .editor-options-row > .check{min-width:0}
+#panel .editor-options-row > .check{justify-content:center;white-space:normal;text-align:center;line-height:1.2}
+#panel .editor-options-row > .check input{margin:0}
+#panel .editor-options-row #f-del{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
+#panel .editor-options-row .size-field button{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
+/* One left-to-right row: 顏色, 大小選項, 折疊, 翻角, 刪除卡片. At 360px the swatches wrapped into a grid and 折疊／翻角 turned vertical. */
+#panel .editor-options-row{grid-template-columns:auto auto auto auto auto;justify-content:space-between;align-items:center;gap:8px}
+#panel .editor-options-row #f-color{flex-wrap:nowrap;gap:3px}
+#panel .editor-options-row #f-color > *{width:22px;height:22px;min-width:22px;padding:0;flex:none}
+#panel .editor-options-row > .check,#panel .editor-options-row #f-del,#panel .editor-options-row .size-field button{white-space:nowrap;width:auto}
 #importer,#backups{width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px);padding:16px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:8px}
 #importer[open],#backups[open]{display:flex;flex-direction:column;gap:6px}
 #importer::backdrop,#backups::backdrop{background:var(--ui-backdrop)}
@@ -623,7 +638,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar #chat-status.error{color:var(--ui-danger)}
 
 /* Technology is the existing dense style. Paper is deliberately light so it reads on all six walls. */
-[data-card-style=paper] .card-paper{--paper-bg:#fbf7ee;--paper-ink:#2a2722;--paper-body:#514a42;background:var(--paper-bg);border:1px solid color-mix(in srgb,var(--paper-ink) 24%,transparent);border-top:3px solid var(--builds);color:var(--paper-ink);box-shadow:0 10px 18px var(--ui-shadow-soft),0 2px 3px var(--ui-shadow-soft);transform:none}
+[data-card-style=paper] .card-paper{--paper-bg:#fbf7ee;--paper-ink:#2a2722;--paper-body:#514a42;--paper-top:var(--builds);background:var(--paper-bg);border:1px solid color-mix(in srgb,var(--paper-ink) 24%,transparent);border-top:3px solid var(--paper-top);color:var(--paper-ink);box-shadow:0 10px 18px var(--ui-shadow-soft),0 2px 3px var(--ui-shadow-soft);transform:none}
 [data-card-style=paper] .card-paper.c-amber{--paper-bg:#ffe985}
 [data-card-style=paper] .card-paper.c-red{--paper-bg:#ffe1e3}
 [data-card-style=paper] .card-paper.c-green{--paper-bg:#dff3e5}
@@ -970,14 +985,20 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <div id="panel-body">
     <label>標題<input id="f-title"></label>
     <label>樣式<select id="f-kind"><option value="card">線索卡</option><option value="note">疑問便利貼</option></select></label>
-    <div class="field"><label for="f-tag">標籤</label><div id="f-tags" class="tags"></div><div class="tag-picker"><input id="f-tag" list="tag-names" maxlength="30" placeholder="輸入標籤，按 Enter 新增" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-tag-list"><div id="f-tag-list" role="listbox" hidden></div></div><datalist id="tag-names"></datalist></div>
-  <div class="field">顏色<div id="f-color" role="radiogroup" aria-label="卡片顏色"></div></div>
-  <div class="field">固定方式<div id="f-mount" role="radiogroup" aria-label="卡片固定方式"></div></div>
-    <div class="field">錨點等級<div id="f-level" role="radiogroup" aria-label="錨點等級"></div></div>
-    <div class="row"><button id="f-size-reset" type="button">還原預設大小</button><label class="check"><input type="checkbox" id="f-fold">折疊，只顯示標題</label><label class="check"><input type="checkbox" id="f-curl">翻角</label></div>
+    <div class="field">固定方式<div id="f-mount" role="radiogroup" aria-label="卡片固定方式"></div></div>
     <label>筆記（支援 Markdown）<textarea id="f-note" rows="6"></textarea></label>
     <label>來源（一行一個：名稱 | 路徑或網址 | 位置 | 摘錄）<textarea id="f-links" rows="5" placeholder="來源名稱 | https://example.com/paper.pdf | p. 12 | 關鍵摘錄"></textarea></label>
-    <div class="row"><button id="f-del" class="danger">刪除卡片</button></div>
+    <div class="editor-pair-row">
+      <div class="field"><label for="f-tag">標籤</label><div id="f-tags" class="tags"></div><div class="tag-picker"><input id="f-tag" list="tag-names" maxlength="30" placeholder="輸入標籤，按 Enter 新增" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="f-tag-list"><div id="f-tag-list" role="listbox" hidden></div></div><datalist id="tag-names"></datalist></div>
+      <div class="field">錨點等級<div id="f-level" role="radiogroup" aria-label="錨點等級"></div></div>
+    </div>
+    <div class="editor-options-row">
+      <div class="field color-field"><span id="f-color-label">顏色</span><div id="f-color" role="radiogroup" aria-labelledby="f-color-label"></div><input id="f-custom-color" type="color" value="#8fb8de" aria-label="選擇自訂卡片顏色" tabindex="-1"></div>
+      <div class="field size-field"><span>大小選項</span><button id="f-size-reset" type="button">還原預設大小</button></div>
+      <label class="check"><input type="checkbox" id="f-fold">折疊</label>
+      <label class="check"><input type="checkbox" id="f-curl">翻角</label>
+      <button id="f-del" class="danger" type="button">刪除卡片</button>
+    </div>
   </div>
   <span id="panel-resize" role="separator" aria-label="調整編輯器大小" tabindex="0"></span>
 </div>
@@ -1565,7 +1586,60 @@ try {
   if (savedLayoutMode && LAYOUT_MODES[savedLayoutMode]) layoutMode = savedLayoutMode;
 } catch {}
 const COLORS = {slate: '藍灰', amber: '琥珀', red: '紅', green: '綠', purple: '紫', cream: '便利貼黃'};
-const colorOf = c => COLORS[c.color] ? c.color : c.kind === 'note' ? 'amber' : 'slate';
+const CUSTOM_COLORS_KEY = 'thesis-detective-wall-custom-colors', CUSTOM_COLOR_LIMIT = 5;
+const isHexColor = value => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
+const normalizeColorValue = value => Object.hasOwn(COLORS, value) ? value : isHexColor(value) ? value.toLowerCase() : null;
+const colorOf = c => normalizeColorValue(c?.color) || (c?.kind === 'note' ? 'amber' : 'slate');
+const colorKeyOf = c => COLORS[colorOf(c)] ? colorOf(c) : 'custom';
+const colorLabel = c => {
+  const value = typeof c === 'string' ? normalizeColorValue(c) : colorOf(c);
+  return COLORS[value] || value || '藍灰';
+};
+function hexRgb(value) {
+  const hex = value.slice(1);
+  return [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16));
+}
+function rgbHex(rgb) { return '#' + rgb.map(value => Math.round(value).toString(16).padStart(2, '0')).join(''); }
+function mixHex(a, b, amount) {
+  const from = hexRgb(a), to = hexRgb(b);
+  return rgbHex(from.map((value, index) => value + (to[index] - value) * amount));
+}
+function luminanceHex(value) {
+  return hexRgb(value).map(channel => channel / 255).map(channel => channel <= .03928 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4)
+    .reduce((sum, channel, index) => sum + channel * [.2126, .7152, .0722][index], 0);
+}
+function hexContrast(a, b) {
+  const [light, dark] = [luminanceHex(a), luminanceHex(b)].sort((x, y) => y - x);
+  return (light + .05) / (dark + .05);
+}
+function customColorPalette(value) {
+  const ink = hexContrast(value, '#000000') >= 4.5 ? '#000000' : '#ffffff';
+  const border = mixHex(value, ink, .45), top = mixHex(value, ink, .72);
+  return {bg: value, border, top, title: ink, text: ink, link: ink};
+}
+function applyCardColorStyle(element, card) {
+  const value = colorOf(card);
+  if (!isHexColor(value)) return;
+  const palette = customColorPalette(value);
+  for (const [name, color] of Object.entries({
+    '--c-bg': palette.bg, '--c-border': palette.border, '--c-top': palette.top,
+    '--c-title': palette.title, '--c-text': palette.text, '--c-link': palette.link,
+    '--paper-bg': palette.bg, '--paper-ink': palette.title, '--paper-body': palette.text,
+    '--paper-top': palette.top, '--photo-frame': palette.bg, '--photo-border': palette.border,
+    '--photo-ink': palette.title,
+  })) element.style.setProperty(name, color);
+}
+function readCustomColors() {
+  try {
+    const value = JSON.parse(localStorage.getItem(CUSTOM_COLORS_KEY));
+    return Array.isArray(value) ? value.map(normalizeColorValue).filter(isHexColor).slice(0, CUSTOM_COLOR_LIMIT) : [];
+  } catch { return []; }
+}
+function rememberCustomColor(value) {
+  if (!isHexColor(value)) return;
+  const colors = [value.toLowerCase(), ...readCustomColors().filter(item => item !== value.toLowerCase())].slice(0, CUSTOM_COLOR_LIMIT);
+  try { localStorage.setItem(CUSTOM_COLORS_KEY, JSON.stringify(colors)); } catch {}
+}
 let cardStyle = 'tech';
 const SEED = {
   "tags": [],
@@ -2074,6 +2148,8 @@ function migrateCardFields(card) {
   if (card.mount !== 'tape') delete card.mount;
   if (!['source', 'key'].includes(card.level)) delete card.level;
   if (card.curl !== true) delete card.curl;
+  const color = normalizeColorValue(card.color);
+  if (color) card.color = color; else delete card.color;
   delete card.size;
   delete card.pin;
   return card;
@@ -2229,9 +2305,10 @@ function renderCards() {
   for (const c of data.cards) {
     const photo = typeof c.image === 'string' && !(c.note || '').trim();
     const el = document.createElement('div');
-    el.className = `card ${c.kind} c-${colorOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
+    el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
       + (c.curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
       + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
+    applyCardColorStyle(el, c);
     el.dataset.id = c.id;
     if (c.level) el.dataset.level = c.level;
     el.style.left = c.x + 'px';
@@ -2554,6 +2631,11 @@ function renderProposalGhosts(preview) {
     const card = op || {kind: 'card', title: position.tempId};
     const ghost = mk('div', 'proposal-ghost-card ' + (card.kind === 'note' ? 'note' : '') + (reviewFocus?.opIndex === position.opIndex ? ' focused' : ''));
     ghost.dataset.opIndex = position.opIndex;
+    const ghostColor = normalizeColorValue(card.color);
+    if (isHexColor(ghostColor)) {
+      const palette = customColorPalette(ghostColor);
+      ghost.style.backgroundColor = palette.bg; ghost.style.color = palette.title; ghost.style.borderColor = palette.border;
+    }
     Object.assign(ghost.style, {left: position.x + 'px', top: position.y + 'px', width: position.width + 'px'});
     ghost.append(mk('h3', '', card.title || '（未命名）'));
     if (card.band) ghost.append(mk('span', 'ghost-band', card.band));
@@ -3279,7 +3361,7 @@ function setType(k, persist = true) {
 
 const LEVEL_LABELS = {source: '源頭', key: '重點'};
 const levelOf = c => LEVEL_LABELS[c.level] ? c.level : '';
-const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), mount: $('#f-mount'), level: $('#f-level'), note: $('#f-note'), links: $('#f-links'), fold: $('#f-fold'), curl: $('#f-curl')};
+const f = {title: $('#f-title'), kind: $('#f-kind'), color: $('#f-color'), customColor: $('#f-custom-color'), mount: $('#f-mount'), level: $('#f-level'), note: $('#f-note'), links: $('#f-links'), fold: $('#f-fold'), curl: $('#f-curl')};
 for (const [value, label] of [['', '大頭釘'], ['tape', '透明膠帶']]) {
   const b = document.createElement('button');
   b.type = 'button'; b.dataset.mount = value; b.textContent = label; b.setAttribute('role', 'radio');
@@ -3290,25 +3372,62 @@ for (const [value, label] of [['', '一般'], ...Object.entries(LEVEL_LABELS)]) 
   b.type = 'button'; b.dataset.level = value; b.textContent = label; b.setAttribute('role', 'radio');
   f.level.append(b);
 }
-for (const [k, label] of Object.entries(COLORS)) {
-  const b = document.createElement('button');
-  b.className = 'swatch c-' + k;
-  b.dataset.color = k;
-  b.title = b.ariaLabel = label;
-  f.color.append(b);
+function markColor(c) {
+  const current = colorOf(c), custom = isHexColor(current);
+  f.color.querySelectorAll('button').forEach(b => {
+    const selected = b.dataset.color === current || custom && b.dataset.color === 'custom';
+    b.classList.toggle('on', selected);
+    b.setAttribute('aria-checked', selected);
+  });
+  if (f.customColor && custom) f.customColor.value = current;
 }
-const markColor = c => f.color.querySelectorAll('button').forEach(b => {
-  b.classList.toggle('on', b.dataset.color === colorOf(c));
-  b.setAttribute('aria-checked', b.dataset.color === colorOf(c));
-});
-f.color.addEventListener('click', ev => {
-  const b = ev.target.closest('button'), c = byId(selCard);
-  if (!b || !c) return;
-  c.color = b.dataset.color;
-  markColor(c);
+function swatchStyle(button, value) {
+  if (!isHexColor(value)) return;
+  const palette = customColorPalette(value);
+  button.style.setProperty('--c-bg', palette.bg);
+  button.style.setProperty('--c-top', palette.top);
+  button.style.color = palette.title;
+}
+function renderColorControls() {
+  f.color.replaceChildren();
+  for (const [value, label] of Object.entries(COLORS)) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'swatch c-' + value; b.dataset.color = value;
+    b.title = b.ariaLabel = label; b.setAttribute('role', 'radio');
+    b.onclick = () => setCardColor(value);
+    f.color.append(b);
+  }
+  const custom = document.createElement('button');
+  custom.type = 'button'; custom.className = 'swatch custom-swatch'; custom.dataset.color = 'custom';
+  custom.title = custom.ariaLabel = '自訂顏色（開啟色彩選擇器）'; custom.setAttribute('role', 'radio');
+  custom.onclick = () => {
+    const current = colorOf(byId(selCard));
+    if (f.customColor) { f.customColor.value = isHexColor(current) ? current : '#8fb8de'; f.customColor.click(); }
+  };
+  swatchStyle(custom, isHexColor(colorOf(byId(selCard))) ? colorOf(byId(selCard)) : '#8fb8de');
+  f.color.append(custom);
+  for (const value of readCustomColors()) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'swatch custom-history-swatch'; b.dataset.color = value; b.dataset.historyColor = value;
+    b.title = b.ariaLabel = '最近使用的自訂色 ' + value; b.setAttribute('role', 'radio'); swatchStyle(b, value);
+    b.onclick = () => setCardColor(value);
+    f.color.append(b);
+  }
+  const card = byId(selCard);
+  if (card) markColor(card);
+}
+function setCardColor(value) {
+  const c = byId(selCard), color = normalizeColorValue(value);
+  if (!c || !color) return;
+  c.color = color;
+  if (isHexColor(color)) rememberCustomColor(color);
+  renderColorControls();
   render();
   save();
-});
+}
+f.customColor.oninput = () => setCardColor(f.customColor.value);
+f.customColor.onchange = () => setCardColor(f.customColor.value);
+renderColorControls();
 const mountOf = c => c.mount === 'tape' ? 'tape' : '';
 const markMount = c => f.mount.querySelectorAll('button').forEach(b => {
   b.classList.toggle('on', b.dataset.mount === mountOf(c));
@@ -3430,8 +3549,9 @@ function clampPanel() {
   const box = vp.getBoundingClientRect(), margin = 8;
   const saved = readPanelSize();
   const maxWidth = Math.max(0, box.width - margin * 2), maxHeight = Math.max(0, box.height - margin * 2);
-  const minWidth = Math.min(300, maxWidth), minHeight = Math.min(240, maxHeight);
-  const width = clamp(Number.isFinite(parseFloat(panel.style.width)) ? parseFloat(panel.style.width) : saved?.width || 360, minWidth, maxWidth);
+  // 470px keeps the last editor row (顏色, 大小選項, 折疊, 翻角, 刪除卡片) on one line, also for sizes saved before that row existed.
+  const minWidth = Math.min(470, maxWidth), minHeight = Math.min(240, maxHeight);
+  const width = clamp(Number.isFinite(parseFloat(panel.style.width)) ? parseFloat(panel.style.width) : saved?.width || 500, minWidth, maxWidth);
   const height = clamp(Number.isFinite(parseFloat(panel.style.height)) ? parseFloat(panel.style.height) : saved?.height || 560, minHeight, maxHeight);
   panel.style.minWidth = minWidth + 'px'; panel.style.minHeight = minHeight + 'px';
   panel.style.width = width + 'px';
@@ -3521,6 +3641,7 @@ function openPanel(id, prune = true) {
   f.links.value = (c.links || []).map(formatLink).filter(Boolean).join('\n');
   f.fold.checked = !!c.fold;
   f.curl.checked = !!c.curl;
+  renderColorControls();
   markColor(c);
   markMount(c);
   markLevel(c);
@@ -3533,7 +3654,7 @@ function openPanel(id, prune = true) {
 }
 function closePanel() { selCard = null; panel.hidden = true; renderCards(); }
 panel.addEventListener('input', ev => {
-  if (ev.target.id === 'f-tag') return;
+  if (ev.target.id === 'f-tag' || ev.target === f.customColor) return;
   const c = byId(selCard);
   if (!c) return;
   if (ev.target === f.curl) {
@@ -3897,7 +4018,7 @@ function toCanvas(snapshot) {
   const rectFor = c => cardBox(c, elements.get(c.id));
   const cardsById = new Map(snapshot.cards.map(card => [card.id, card]));
   const cards = snapshot.cards.map(c => ({id: c.id, type: 'text', x: Math.round(c.x), y: Math.round(c.y),
-    width: Math.round(rectFor(c).width), height: Math.round(rectFor(c).height), color: CANVAS_COLORS[colorOf(c)],
+    width: Math.round(rectFor(c).width), height: Math.round(rectFor(c).height), color: CANVAS_COLORS[colorKeyOf(c)] || colorOf(c),
     text: [`## ${c.title}`, c.note, (c.links || []).map(markdownLink).filter(Boolean).join('\n')].filter(Boolean).join('\n\n'),
     detective: c}));
   const used = new Set(cards.map(c => c.id));
@@ -3925,8 +4046,8 @@ function fromCanvas(canvas) {
   const cards = [], bands = [], skippedLinks = [], seen = new Set();
   for (const n of canvas.nodes) {
     if (!n || typeof n.id !== 'string' || !n.id || seen.has(n.id) || !Number.isFinite(n.x) || !Number.isFinite(n.y)) continue;
-    let c = {id: n.id, kind: 'card', x: n.x, y: n.y, title: '', note: '', links: [],
-      color: Object.keys(CANVAS_COLORS).find(color => CANVAS_COLORS[color] === n.color) || 'slate'};
+    const canvasColor = normalizeColorValue(n.color) || Object.keys(CANVAS_COLORS).find(color => CANVAS_COLORS[color] === String(n.color)) || 'slate';
+    let c = {id: n.id, kind: 'card', x: n.x, y: n.y, title: '', note: '', links: [], color: canvasColor};
     if (n.type === 'text') {
       if (typeof n.text !== 'string') continue;
       const original = n.detective;
@@ -3934,7 +4055,9 @@ function fromCanvas(canvas) {
       if (original && !Array.isArray(original) && ['card', 'note'].includes(original.kind)
         && typeof original.title === 'string' && typeof original.note === 'string' && Array.isArray(original.links)) {
         for (const link of original.links) if (!normalizeLink(link) && typeof link?.href === 'string') skippedLinks.push({cardId: n.id, href: link.href});
-        c = {...original, links: originalLinks, id: n.id, x: n.x, y: n.y};
+        c = {...original, links: originalLinks, id: n.id, x: n.x, y: n.y,
+          color: normalizeColorValue(original.color) || canvasColor};
+        migrateCardFields(c);
       } else {
         const [first, ...rest] = n.text.split('\n');
         c.title = first.startsWith('#') ? first.replace(/^#+\s*/, '').trim() : first.slice(0, 60);
@@ -4113,7 +4236,7 @@ function cardDiff(a, b, tags = data.tags) {
   const names = (c, defs) => (c.tags || []).map(id => (defs.find(t => t.id === id) || data.tags.find(t => t.id === id))?.name || id).sort().join('\n');
   const height = c => Number.isFinite(c.h) ? String(Math.round(c.h)) : '跟隨內容';
   const level = c => LEVEL_LABELS[c.level] || '一般';
-  return [['標題', a.title, b.title], ['樣式', kind(a), kind(b)], ['顏色', COLORS[colorOf(a)], COLORS[colorOf(b)]], ['固定方式', mountOf(a) === 'tape' ? '透明膠帶' : '大頭釘', mountOf(b) === 'tape' ? '透明膠帶' : '大頭釘'],
+  return [['標題', a.title, b.title], ['樣式', kind(a), kind(b)], ['顏色', colorLabel(a), colorLabel(b)], ['固定方式', mountOf(a) === 'tape' ? '透明膠帶' : '大頭釘', mountOf(b) === 'tape' ? '透明膠帶' : '大頭釘'],
     ['寬度', String(cardW(a)), String(cardW(b))], ['高度', String(height(a)), String(height(b))], ['等級', level(a), level(b)], ['翻角', a.curl ? '是' : '否', b.curl ? '是' : '否'], ['折疊', a.fold ? '是' : '否', b.fold ? '是' : '否'],
     ['圖片', a.image, b.image], ['筆記', a.note, b.note], ['標籤', names(a, data.tags), names(b, tags)], ['連結', links(a), links(b)], ['位置', pos(a), pos(b)]]
     .filter(([field, x, y]) => x !== y || field === '標籤' && JSON.stringify([...(a.tags || [])].sort()) !== JSON.stringify([...(b.tags || [])].sort()));
@@ -4310,6 +4433,7 @@ function syncProposalReviewDependencies() {
 function appendReviewDetail(detail, item, title) {
   const op = item.op;
   if (op.type === 'add_card') {
+    if (normalizeColorValue(op.color)) detail.append(mk('p', '', '顏色：' + colorLabel(op.color)));
     if (op.note) { detail.append(mk('b', '', '筆記')); detail.append(renderNote(op.note)); }
     appendReviewLinks(detail, op.links);
     return;
@@ -4318,6 +4442,7 @@ function appendReviewDetail(detail, item, title) {
     const old = byId(op.cardId), next = {...old};
     if (op.title !== undefined) next.title = op.title;
     if (op.note !== undefined) next.note = op.note;
+    if (op.color !== undefined) next.color = op.color;
     if (op.tags !== undefined) next.tags = op.tags;
     if (op.links !== undefined) next.links = op.links;
     const diff = mk('dl', 'review-diff');

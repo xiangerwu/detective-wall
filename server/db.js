@@ -78,6 +78,13 @@ function proposalString(value, label, limit) {
   return value;
 }
 
+function proposalColor(value) {
+  const presets = new Set(['slate', 'amber', 'red', 'green', 'purple', 'cream']);
+  if (typeof value !== 'string' || !(presets.has(value) || /^#[\da-f]{6}$/i.test(value)))
+    throw new ProposalError(400, 'invalid proposal color');
+  return presets.has(value) ? value : value.toLowerCase();
+}
+
 function proposalId(value, label) {
   const result = proposalString(value, label, PROPOSAL_LIMITS.id);
   if (!result) throw new ProposalError(400, `invalid proposal ${label}`);
@@ -143,6 +150,7 @@ function normalizeProposalOp(op) {
         tags: proposalTags(op.tags ?? []),
         links: proposalLinks(op.links ?? []),
       };
+      if (op.color !== undefined) result.color = proposalColor(op.color);
       if (op.band !== undefined) {
         result.band = proposalString(op.band, 'band', PROPOSAL_LIMITS.band).trim();
         if (!result.band) throw new ProposalError(400, 'invalid proposal band');
@@ -154,6 +162,7 @@ function normalizeProposalOp(op) {
       if (op.note !== undefined) result.note = proposalString(op.note, 'note', PROPOSAL_LIMITS.note);
       if (op.tags !== undefined) result.tags = proposalTags(op.tags);
       if (op.links !== undefined) result.links = proposalLinks(op.links);
+      if (op.color !== undefined) result.color = proposalColor(op.color);
       if (Object.keys(result).length === 2) throw new ProposalError(400, 'proposal update has no fields');
       return result;
     }
@@ -453,7 +462,7 @@ function simulateProposal(row, wallRow, opIndexes) {
     if (op.type === 'add_card') {
       const id = deterministicId('c', row.id, op.tempId), existing = cardIn(after, id);
       const point = existing ? {x: existing.x, y: existing.y} : op.band !== undefined ? placeCard(after, op) : {x: 0, y: 0};
-      const tags = tagIds(after, op.tags), card = {id, kind: op.kind, x: point.x, y: point.y, title: op.title, note: op.note, tags, links: clone(op.links)};
+      const tags = tagIds(after, op.tags), card = {id, kind: op.kind, x: point.x, y: point.y, title: op.title, note: op.note, tags, links: clone(op.links), ...(op.color ? {color: op.color} : {})};
       tempIds.set(op.tempId, id);
       if (existing) {
         if (proposalJson(existing) !== proposalJson(card)) {
@@ -475,6 +484,7 @@ function simulateProposal(row, wallRow, opIndexes) {
       if (op.note !== undefined) card.note = op.note;
       if (op.tags !== undefined) card.tags = tagIds(after, op.tags);
       if (op.links !== undefined) card.links = clone(op.links);
+      if (op.color !== undefined) card.color = op.color;
       result.changed = true;
       addAffected('cards', card.id);
     } else if (op.type === 'add_edge') {

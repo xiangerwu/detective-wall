@@ -186,7 +186,7 @@ const node = (id, type, extra = {}) => ({id, type, x: 10, y: 20, width: 200, hei
     assert.deepEqual(await external.evaluate(() => data), before);
     const preview = await external.evaluate(() => ({cards: pending.cards, bands: pending.bands, edges: pending.edges}));
     assert.deepEqual(preview.cards.map(c => [c.title, c.note, c.color]), [
-      ['外部標題', '**外部筆記**', 'red'], ['來源.pdf', '', 'amber'], ['example.org', '', 'green'], ['a'.repeat(60), 'rest', 'slate'],
+      ['外部標題', '**外部筆記**', 'red'], ['來源.pdf', '', 'amber'], ['example.org', '', 'green'], ['a'.repeat(60), 'rest', '#aabbcc'],
     ]);
     assert.deepEqual(preview.cards[1].links, [{label: '來源.pdf', href: '資料/來源.pdf#page=3'}]);
     assert.deepEqual(preview.cards[2].links, [{label: 'https://example.org/paper?a=1', href: 'https://example.org/paper?a=1'}]);
