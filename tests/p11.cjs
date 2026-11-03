@@ -126,7 +126,7 @@ async function setWallFixture(page, fixture, selected = []) {
       const element = wall.querySelector(`.card[data-id="${CSS.escape(card.id)}"]`);
       return {id: card.id, x: card.x, y: card.y, width: element.offsetWidth, height: element.offsetHeight};
     }));
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.equal(overlap(boxes[i], boxes[j]), false, `${boxes[i].id}/${boxes[j].id}`);
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) assert.equal(overlap(boxes[i], boxes[j]), false, JSON.stringify([boxes[i], boxes[j]]));
     await page.evaluate(() => fitView(true));
     await page.screenshot({path: path.join(out, 'proposal-40-applied.png')});
     console.log('PASS 40-card proposal preview matches apply, leaves existing cards fixed, and has no overlaps');

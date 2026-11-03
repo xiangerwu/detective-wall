@@ -9,7 +9,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(process.env.WALL_TEST_URL); await ready(page); await openSidebar(page);
-    for (const theme of ['cork', 'moon', 'paper']) {
+    for (const theme of ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber']) {
       for (const [width, height] of [[1400, 900], [1280, 720]]) {
         await page.setViewportSize({width, height});
         await page.evaluate(t => setTheme(t), theme);
@@ -26,6 +26,11 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
             const c = clip.getBoundingClientRect();
             const texts = [...document.querySelectorAll('#case-folder-header *, .case-folder-tab')].filter(el => shown(el) && el.textContent.trim() && !el.closest('.clipboard-clip'));
             for (const el of texts) if (hit(c, el.getBoundingClientRect())) out.push(`clip covers 「${el.textContent.trim().slice(0, 12)}」`);
+            const art = clip.querySelector('svg.clipboard-clip-art');
+            const parts = new Set([...clip.querySelectorAll('[data-part]')].map(el => el.dataset.part));
+            if (!art || !parts.has('front-plate') || !parts.has('rolled-hinge') || !parts.has('flat-lever') || parts.size < 4) out.push('clip is not the K2 Penco brass lever structure');
+            if (c.width < 180 || c.width > 220 || c.height < 55 || c.height > 95) out.push(`K2 clip size is ${Math.round(c.width)}x${Math.round(c.height)}, expected a wide brass plate`);
+            if (clip.querySelector('filter,[filter]')) out.push('clip uses an SVG filter');
           }
           const active = document.querySelector('.case-folder-tab[aria-selected=true]'), sheet = document.querySelector('#case-folder .case-pane');
           if (!active || !sheet) out.push('active tab or sheet is missing');

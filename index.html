@@ -190,6 +190,8 @@ body.rail-hidden #rail-panel{display:none}
 #sidebar.clipboard-window{display:block}
 #clipboard-peek{position:absolute;z-index:20;inset:0 auto 0 0;width:52px;padding:0;border:0;border-radius:12px 0 0 12px;background:transparent;color:var(--ui-text);cursor:pointer}
 #clipboard-peek span{display:none}
+#clipboard-peek .clipboard-peek-clip{position:absolute;top:12px;left:1px;display:block;width:50px;height:30px;overflow:visible}
+#sidebar.is-open #clipboard-peek .clipboard-peek-clip{display:none}
 #clipboard-peek:focus-visible{outline:3px solid var(--ui-accent);outline-offset:-4px}
 #sidebar.is-open #clipboard-peek{pointer-events:none;cursor:default}
 #sidebar.is-open #clipboard-peek:focus-visible{outline:0}
@@ -742,17 +744,14 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 /* Penco-like clipboard: dark recycled hardboard, one centred metal clip, and real file-folder tabs. */
 #case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;width:100%;height:100%;overflow:hidden;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
 #case-folder::before{display:none}
-#case-folder-header{position:relative;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;height:92px;padding:54px 12px 0;border-bottom:0}
+#case-folder-header{position:relative;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;height:124px;padding:88px 12px 0;border-bottom:0}
 #case-folder-header .clipboard-heading{min-width:0;overflow:hidden}
 #case-folder-header .eyebrow{margin:0 0 2px;color:#e7c681;font-size:10px;letter-spacing:.1em;font-weight:800;white-space:nowrap}
 #case-folder-header h1{margin:0;color:#fff3d6;font-size:18px;line-height:1.2;white-space:nowrap}
 #clipboard-close{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:7px;color:#fff3d6;background:rgba(42,21,10,.28);font-size:21px;line-height:1}
 #clipboard-close:hover,#clipboard-close:focus-visible{background:rgba(255,243,214,.18)}
-.clipboard-clip{position:absolute;z-index:12;top:3px;left:50%;width:92px;height:48px;transform:translateX(-50%);border:1px solid #5c4d27;border-radius:9px 9px 18px 18px;background:linear-gradient(110deg,#776c35 0%,#c3a84c 28%,#877a3b 55%,#d0b35a 78%,#6a612f 100%);box-shadow:0 4px 8px rgba(20,11,4,.48);pointer-events:none}
-.clipboard-clip::before{content:'';position:absolute;left:17px;right:17px;top:5px;height:17px;border:2px solid #514723;border-bottom:0;border-radius:12px 12px 0 0;background:linear-gradient(90deg,#9a873c,#d2b45b,#827433)}
-.clipboard-clip::after{content:'';position:absolute;left:12px;right:12px;bottom:7px;height:13px;border-radius:3px 3px 10px 10px;background:rgba(56,38,13,.24)}
-.clipboard-rivet{position:absolute;z-index:1;top:12px;width:9px;height:9px;border:1px solid #51431e;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f1d77a 0 25%,#87752e 48%,#403619 100%);box-shadow:0 1px 1px rgba(0,0,0,.45)}
-.clipboard-rivet:first-child{left:13px}.clipboard-rivet:last-child{right:13px}
+.clipboard-clip{position:absolute;z-index:12;top:0;left:50%;width:196px;height:82px;transform:translateX(-50%);pointer-events:none;overflow:visible}
+.clipboard-clip-art{display:block;width:100%;height:100%;overflow:visible}
 #case-folder-tabs{position:relative;z-index:4;display:flex;align-items:flex-end;gap:0;flex:none;height:54px;padding:0 10px;border:0;background:transparent;overflow:visible}
 .case-folder-tab{position:relative;z-index:1;flex:1 1 0;min-width:0;height:34px;padding:7px 5px;overflow:hidden;color:var(--clipboard-ink);background-color:#e7d0a0;background-image:linear-gradient(180deg,#e7d0a0,#caa873);border:1px solid #9e773f;border-bottom:0;border-radius:9px 9px 0 0;box-shadow:0 4px 8px rgba(38,19,8,.28);font-size:12px;font-weight:700;white-space:nowrap}
 .case-folder-tab + .case-folder-tab{margin-left:-1px}
@@ -1014,9 +1013,40 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </div>
 
  <aside id="sidebar" class="clipboard-window" aria-label="AI 案件夾" aria-expanded="false" tabindex="0">
-   <button id="clipboard-peek" type="button" aria-label="開啟 AI 案件夾" title="開啟 AI 案件夾"><span aria-hidden="true">AI</span></button>
+   <button id="clipboard-peek" type="button" aria-label="開啟 AI 案件夾" title="開啟 AI 案件夾">
+     <span aria-hidden="true">AI</span>
+     <svg class="clipboard-peek-clip" viewBox="0 0 360 150" focusable="false" aria-hidden="true">
+       <defs>
+         <linearGradient id="clipboard-peek-k2-brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0a5"/><stop offset=".25" stop-color="#b7832f"/><stop offset=".52" stop-color="#f4d16b"/><stop offset=".8" stop-color="#8d6120"/><stop offset="1" stop-color="#d6a949"/></linearGradient>
+         <linearGradient id="clipboard-peek-k2-dark" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#75511d"/><stop offset=".5" stop-color="#d2a449"/><stop offset="1" stop-color="#573b16"/></linearGradient>
+       </defs>
+       <path data-part="front-plate" d="M43 72h274q9 0 9 9v25q0 11-11 11H45q-11 0-11-11V83q0-11 9-11Z" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/>
+       <path data-part="front-edge" d="M45 101h270q-2 14-14 17H59q-12-2-14-17Z" fill="url(#clipboard-peek-k2-dark)" stroke="#604417" stroke-width="2"/>
+       <rect data-part="flat-lever" x="79" y="54" width="202" height="25" rx="12" fill="url(#clipboard-peek-k2-dark)" stroke="#604417" stroke-width="3"/>
+       <path data-part="rolled-hinge" d="M98 56v-18q0-18 18-18h128q18 0 18 18v18" fill="none" stroke="#d9b65b" stroke-width="8" stroke-linecap="round"/>
+       <circle data-part="rivet" cx="63" cy="91" r="9" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/><circle data-part="rivet" cx="297" cy="91" r="9" fill="url(#clipboard-peek-k2-brass)" stroke="#604417" stroke-width="3"/>
+     </svg>
+   </button>
    <div id="case-folder">
-     <div class="clipboard-clip" aria-hidden="true"><span class="clipboard-rivet"></span><span class="clipboard-rivet"></span></div>
+     <div class="clipboard-clip" data-clip-design="K2" aria-hidden="true">
+       <svg class="clipboard-clip-art" viewBox="0 0 360 150" focusable="false">
+         <defs>
+           <linearGradient id="clipboard-k2-brass" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff0a5"/><stop offset=".25" stop-color="#b7832f"/><stop offset=".52" stop-color="#f4d16b"/><stop offset=".8" stop-color="#8d6120"/><stop offset="1" stop-color="#d6a949"/></linearGradient>
+           <linearGradient id="clipboard-k2-dark" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#75511d"/><stop offset=".5" stop-color="#d2a449"/><stop offset="1" stop-color="#573b16"/></linearGradient>
+         </defs>
+         <path data-part="front-plate" d="M43 72h274q9 0 9 9v25q0 11-11 11H45q-11 0-11-11V83q0-11 9-11Z" fill="url(#clipboard-k2-brass)" stroke="#604417" stroke-width="3"/>
+         <path data-part="front-edge" d="M45 101h270q-2 14-14 17H59q-12-2-14-17Z" fill="url(#clipboard-k2-dark)" stroke="#604417" stroke-width="2"/>
+         <rect data-part="flat-lever" x="79" y="54" width="202" height="25" rx="12" fill="url(#clipboard-k2-dark)" stroke="#604417" stroke-width="3"/>
+         <path data-part="lever-highlight" d="M105 57h151" stroke="#ffe79a" stroke-opacity=".7" stroke-width="3"/>
+         <path data-part="rolled-hinge" d="M98 56v-18q0-18 18-18h128q18 0 18 18v18" fill="none" stroke="#d9b65b" stroke-width="8" stroke-linecap="round"/>
+         <path data-part="hinge-highlight" d="M103 42h146" stroke="#fff0a5" stroke-opacity=".72" stroke-width="2"/>
+         <circle data-part="rivet" cx="63" cy="91" r="9" fill="url(#clipboard-k2-brass)" stroke="#604417" stroke-width="3"/>
+         <circle data-part="rivet" cx="297" cy="91" r="9" fill="url(#clipboard-k2-brass)" stroke="#604417" stroke-width="3"/>
+         <circle data-part="rivet-highlight" cx="60" cy="88" r="2.2" fill="#fff0a5"/>
+         <circle data-part="rivet-highlight" cx="294" cy="88" r="2.2" fill="#fff0a5"/>
+         <path data-part="plate-highlight" d="M72 111h216" stroke="#fff0a5" stroke-opacity=".7" stroke-width="2"/>
+       </svg>
+     </div>
      <header id="case-folder-header">
        <div class="clipboard-heading"><p class="eyebrow">CASEGRAPH / AI CONTROL</p><h1>AI 案件夾</h1></div>
        <button id="clipboard-close" type="button" title="關閉 AI 案件夾" aria-label="關閉 AI 案件夾">×</button>
