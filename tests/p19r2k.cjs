@@ -140,22 +140,6 @@ async function inspect(page, ids) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
 
-    check(await page.locator('#f-curl').count() === 0 && !(await page.locator('#panel-body').textContent()).includes('翻角'),
-      'editor has no 翻角 control');
-
-    const legacySave = await page.evaluate(async () => {
-      const card = byId(data.cards[0].id);
-      card.curl = true;
-      await save(true);
-      const saved = await store.getWall(currentWall.id);
-      const savedCard = saved?.data.cards.find(value => value.id === card.id);
-      return {dataHasCurl: Object.hasOwn(card, 'curl'), savedHasCurl: Object.hasOwn(savedCard || {}, 'curl')};
-    });
-    check(!legacySave.dataHasCurl && !legacySave.savedHasCurl, 'saving a card never writes curl');
-
-    const loaded = await page.evaluate(() => load({cards: [{id: 'legacy-curl', kind: 'note', x: 0, y: 0, title: '', note: '', links: [], curl: true}], edges: []}).cards[0]);
-    check(!Object.hasOwn(loaded, 'curl'), 'loading a wall with curl:true drops the field');
-
     const info = await helperInfo(page);
     check(info.available, 'page exposes the deterministic note curl helper');
     check(info.probability === 1 / 3, `curl probability is one named 1/3 constant (${info.probability})`);

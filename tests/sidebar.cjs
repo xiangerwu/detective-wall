@@ -41,7 +41,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await page.getAttribute('#sidebar', 'aria-expanded') === 'true', 'the focusable peek opens the clipboard');
 
     await openActivity(page, 'files');
-    ok(await page.evaluate(() => activityPanel.offsetWidth === 300 && !localStorage.getItem('thesis-detective-wall-activity-width')), 'rail panel keeps its fixed shell width and ignores the old width key');
+    ok(await page.evaluate(() => activityPanel.offsetWidth === 300), 'rail panel keeps its fixed shell width');
     await page.click('#activity-history');
     ok(await page.isVisible('#history-section') && !(await page.isVisible('#files-section')) && await page.getAttribute('#activity-history', 'aria-pressed') === 'true', 'activity icons keep only the active panel open');
     await page.click('#activity-history');

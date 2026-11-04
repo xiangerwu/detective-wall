@@ -1,14 +1,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const playwright = require('playwright-core');
 const {ready, reload} = require('./wall-ready.cjs');
 const {normalizeProposalOps} = require('../server/db.js');
 
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p19r2c');
-const SAMPLES = path.resolve(__dirname, '..', 'test-results', 'p19r2c-samples', 'index.html');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const failures = [];
 const ok = (condition, message) => {
@@ -74,20 +72,6 @@ async function cardContrast(page, id) {
   fs.mkdirSync(OUT, {recursive: true});
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
-    // Part A artifacts are standalone samples; no product selectors are changed for them.
-    const sample = await browser.newPage({viewport: {width: 1440, height: 1800}});
-    await sample.goto(pathToFileURL(SAMPLES).href);
-    await sample.waitForTimeout(100);
-    await sample.locator('h2').nth(0).screenshot({path: path.join(OUT, 'tabs-heading.png')});
-    await sample.locator('.variant-grid').nth(0).screenshot({path: path.join(path.dirname(SAMPLES), 'tabs-cork-moon.png')});
-    await sample.locator('.variant-grid').nth(1).screenshot({path: path.join(path.dirname(SAMPLES), 'edgepop-cork-moon.png')});
-    await sample.screenshot({path: path.join(path.dirname(SAMPLES), 'overview.png'), fullPage: true});
-    ok(await sample.locator('.variant').count() === 8, 'samples compare T1–T4 and E1–E4');
-    ok(await sample.locator('.clipboard.cork').count() === 4 && await sample.locator('.clipboard.moon').count() === 4,
-      'tab samples show cork and moon at both sidebar widths');
-    ok(await sample.locator('.edge-scene.cork').count() === 4 && await sample.locator('.edge-scene.moon').count() === 4,
-      'edge popup samples show all four variants in cork and moon');
-    await sample.close();
 
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page); await setFixture(page);
@@ -104,14 +88,13 @@ async function cardContrast(page, id) {
         order: ['#f-mount', '#f-note', '#f-links', '#f-tags', '#f-level', '#f-color', '#f-size-reset', '#f-fold', '#f-del'].map(index),
         pair: parent('#f-tags') && parent('#f-tags') === parent('#f-level'),
         options: ['#f-color', '#f-size-reset', '#f-fold', '#f-del'].every(selector => parent(selector)?.classList.contains('editor-options-row')),
-        noCurl: !document.querySelector('#f-curl') && !body.textContent.includes('翻角'),
         custom: document.querySelector('#f-color button[data-color="custom"]') !== null,
         native: document.querySelector('#f-custom-color')?.type === 'color',
       };
     });
     ok(editor.order.every((value, index, all) => value >= 0 && (index === 0 || value > all[index - 1])),
       'editor fields follow fixed, note, source, tags/level, then color/size/toggles/delete order');
-    ok(editor.pair && editor.options && editor.noCurl, 'editor uses the required two rows and removes the curl option');
+    ok(editor.pair && editor.options, 'editor uses the required two rows');
     ok(editor.custom && editor.native, 'editor exposes a 自訂 swatch backed by a native colour input');
 
     const picked = await setPickedColor(page, '#fffbe6');
@@ -210,5 +193,5 @@ async function cardContrast(page, id) {
     await browser.close();
   }
   assert.deepEqual(failures, [], 'P19-R2c checks failed: ' + JSON.stringify(failures));
-  console.log('PASS P19-R2c custom colours, editor order, proposal flow, and design samples');
+  console.log('PASS P19-R2c custom colours, editor order and proposal flow');
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -1,14 +1,11 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const playwright = require('playwright-core');
 const {ready, reload} = require('./wall-ready.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p19r2d');
-const SAMPLES = path.resolve(__dirname, '..', 'test-results', 'p19r2d-tabs', 'index.html');
-const SAMPLE_OUT = path.dirname(SAMPLES);
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1400, 900], [1280, 720]];
 const RAILS = ['hidden', 'icon', 'full'];
@@ -61,23 +58,8 @@ function hit(a, b) {
 
 (async () => {
   fs.mkdirSync(OUT, {recursive: true});
-  fs.mkdirSync(SAMPLE_OUT, {recursive: true});
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
-    const sample = await browser.newPage({viewport: {width: 1440, height: 2400}});
-    await sample.goto(pathToFileURL(SAMPLES).href); await sample.waitForTimeout(150);
-    await sample.screenshot({path: path.join(SAMPLE_OUT, 'overview.png'), fullPage: true});
-    await sample.locator('.variant').first().screenshot({path: path.join(SAMPLE_OUT, 'tabs-t5-cork-moon.png')});
-    const sampleCounts = await sample.evaluate(() => ({
-      variants: document.querySelectorAll('.variant').length,
-      samples: document.querySelectorAll('.sample').length,
-      byVariant: [...document.querySelectorAll('.variant')].map(section => [section.dataset.variant, section.querySelectorAll('.sample').length]),
-      themes: [...document.querySelectorAll('.sample')].reduce((out, sample) => { out[sample.dataset.theme] = (out[sample.dataset.theme] || 0) + 1; return out; }, {}),
-    }));
-    check(sampleCounts.variants === 4 && sampleCounts.samples === 16 && sampleCounts.byVariant.every(([, count]) => count === 4)
-      && sampleCounts.themes.cork === 8 && sampleCounts.themes.moon === 8,
-    'T5–T8 comparison page has cork/moon samples at 220/300px');
-    await sample.close();
 
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page); await setFixture(page);
@@ -234,7 +216,6 @@ function hit(a, b) {
     check(colourRow.count === colourRow.expected && colourRow.history === 0,
       `colour row stays at presets + one 自訂 swatch (${colourRow.count}/${colourRow.expected})`);
     check(colourRow.customOn && !colourRow.customBg.includes('conic-gradient'), 'the single 自訂 swatch shows the card colour with a selection ring');
-    check(await page.evaluate(() => !localStorage.getItem('thesis-detective-wall-custom-colors')), 'recent custom-colour localStorage is removed');
     await page.locator('#f-color').screenshot({path: path.join(OUT, 'colour-row-custom.png')});
     const presetWheel = await page.evaluate(() => {
       setCardColor(Object.keys(COLORS)[0]);

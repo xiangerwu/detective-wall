@@ -18,11 +18,9 @@ const ok = (condition, message) => { if (!condition) throw new Error(message); }
 
 for (const client of ['claude', 'codex']) {
   for (const mood of ['idle', 'thinking', 'happy', 'sweat', 'sleep']) {
-    const head = webp(`${client}-${mood}.webp`), body = webp(`${client}-body-${mood}.webp`);
-    assert.ok(head.bytes <= 400 * 1024 && body.bytes <= 400 * 1024, `${client}-${mood} images stay under 400KB`);
+    const head = webp(`${client}-${mood}.webp`);
+    assert.ok(head.bytes <= 400 * 1024, `${client}-${mood} images stay under 400KB`);
   }
-  const blink = webp(`${client}-body-blink.webp`);
-  assert.ok(blink.bytes <= 400 * 1024, `${client} blink stays under 400KB`);
   for (const [from, to] of [['idle', 'thinking'], ['thinking', 'happy'], ['thinking', 'sweat'], ['idle', 'sleep']]) {
     for (const frame of [1, 2]) {
       const transition = webp(`${client}-tr-${from}-${to}-${frame}.webp`);

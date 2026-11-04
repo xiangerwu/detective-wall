@@ -7,7 +7,6 @@ const {ready} = require('./wall-ready.cjs');
 const ROOT = path.resolve(__dirname, '..');
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.join(ROOT, 'test-results', 'p19r2j');
-const SAMPLE = path.join(ROOT, 'test-results', 'p19-note3');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const STYLES = ['paper', 'tech'];
 const BODY = '上段正文保持完整寬度。\n第二行正文確認翻角不會蓋住文字。\n第三行正文讓右下角留出真正的翻面空間。\n第四行正文。';
@@ -199,20 +198,6 @@ async function captureWall(page, theme, style, ids) {
   await page.locator('#viewport').screenshot({path: path.join(OUT, `wall-${theme}-${style}-100.png`)});
 }
 
-async function captureComparisons(page, browser, ids) {
-  await renderFixture(page, 'cork', 'paper', ids);
-  for (const state of ['flat', 'curled', 'folded']) {
-    const id = state === 'flat' ? ids.flatNote : state === 'curled' ? ids.curledNote : ids.foldedNote;
-    const product = await page.locator(`.card[data-id="${id}"]`).screenshot();
-    const sample = fs.readFileSync(path.join(SAMPLE, `closeup-${state}.png`)).toString('base64');
-    const product64 = product.toString('base64');
-    const compare = await browser.newPage({viewport: {width: 760, height: 360}});
-    await compare.setContent(`<style>body{margin:0;background:#e7dfd3;font:14px system-ui;color:#2b2722}main{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px}figure{margin:0;padding:8px;background:#fffdf7;border:1px solid #b8aa98}figcaption{margin-bottom:6px;font-weight:700}img{display:block;width:100%;height:250px;object-fit:contain;background:#d3cec6}</style><main><figure><figcaption>產品 ${state}</figcaption><img src="data:image/png;base64,${product64}"></figure><figure><figcaption>V1 sample ${state}</figcaption><img src="data:image/png;base64,${sample}"></figure></main>`);
-    await compare.screenshot({path: path.join(OUT, `close-up-${state}-next-to-v1.png`)});
-    await compare.close();
-  }
-}
-
 (async () => {
   fs.mkdirSync(OUT, {recursive: true});
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
@@ -247,7 +232,6 @@ async function captureComparisons(page, browser, ids) {
       check(zoomed.length > 0 && zoomed.every(card => card.noTextUnderFlap), `cork/${style}: at 50% zoom no text line intersects the curl flap`, 'curl zoom');
     }
     for (const theme of ['cork', 'moon']) for (const style of STYLES) await captureWall(page, theme, style, ids);
-    await captureComparisons(page, browser, ids);
     await page.close();
   } finally {
     await browser.close();

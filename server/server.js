@@ -751,7 +751,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
         const input = object(await body(req));
         if (input.id !== undefined && input.id !== wallId) throw new RequestError(400, 'wall id mismatch');
         if (typeof input.name !== 'string' || !input.data || typeof input.data !== 'object') throw new RequestError(400, 'invalid wall');
-        const version = input.version ?? input.baseVersion ?? input.base_version ?? null;
+        const version = input.version ?? null;
         if (version != null && (!Number.isInteger(version) || version < 0)) throw new RequestError(400, 'invalid wall version');
         json(res, 200, store.putWall(wallId, input.name, input.data, version)); return;
       }

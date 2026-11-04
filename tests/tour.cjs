@@ -234,8 +234,7 @@ async function tourCardEditor(page, combo) {
   await page.fill('#f-note', 'P15 編輯內容');
   await page.fill('#f-links', '來源 | C:\\p15\\source.md | p. 15 | 巡檢');
   await page.waitForFunction(() => byId('shoup').title === 'P15 編輯卡' && byId('shoup').kind === 'note'
-    && byId('shoup').mount === 'tape' && byId('shoup').level === 'source' && byId('shoup').fold
-    && !Object.hasOwn(byId('shoup'), 'curl'));
+    && byId('shoup').mount === 'tape' && byId('shoup').level === 'source' && byId('shoup').fold);
   check(await page.evaluate(() => byId('shoup').tags?.length === 1 && byId('shoup').links?.length === 1), '卡片編輯器欄位會寫回資料', combo.key);
   await capture(page, combo, 'card-editor');
   await page.click('#f-close');

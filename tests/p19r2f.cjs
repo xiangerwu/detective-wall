@@ -1,16 +1,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const playwright = require('playwright-core');
 const {ready} = require('./wall-ready.cjs');
 
 const ROOT = path.resolve(__dirname, '..');
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.join(ROOT, 'test-results', 'p19r2f');
-const NEW_SAMPLE = path.join(ROOT, 'test-results', 'p19r2f-notes', 'index.html');
-const OLD_SAMPLE = path.join(ROOT, 'test-results', 'p19-note-samples', 'index.html');
-const SAMPLE = fs.existsSync(NEW_SAMPLE) ? NEW_SAMPLE : OLD_SAMPLE;
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const failures = [];
 const check = (condition, message) => {
@@ -115,72 +111,14 @@ async function productChecks(browser) {
   await page.close();
 }
 
-async function sampleChecks(browser) {
-  await fs.promises.access(SAMPLE);
-  const page = await browser.newPage({viewport: {width: 1920, height: 1600}});
-  await page.goto(pathToFileURL(SAMPLE).href); await settled(page);
-  const info = await page.evaluate(() => {
-    const variants = [...document.querySelectorAll('.variant')];
-    const required = ['note', 'card'].flatMap(kind => ['normal', 'folded', 'curl'].map(state => `${kind}/${state}`));
-    const matrix = section => required.every(key => {
-      const [kind, state] = key.split('/');
-      return section.querySelectorAll(`.sample-card[data-kind="${kind}"][data-state="${state}"][data-style="tech"]`).length === 2
-        && section.querySelectorAll(`.sample-card[data-kind="${kind}"][data-state="${state}"][data-style="paper"]`).length === 2;
-    });
-    const normal = [...document.querySelectorAll('.sample-card[data-state=normal]')];
-    return {
-      ids: variants.map(item => item.dataset.variant),
-      sceneCounts: variants.map(item => item.querySelectorAll('.scene[data-theme]').length),
-      cardCounts: variants.map(item => item.querySelectorAll('.sample-card').length),
-      matrices: variants.map(matrix),
-      normalWidths: Object.fromEntries(['note', 'card'].map(kind => [kind,
-        normal.filter(card => card.dataset.kind === kind).map(card => card.offsetWidth)])),
-      normalAspect: normal.filter(card => card.dataset.kind === 'note').every(card => card.offsetHeight / card.offsetWidth >= .85 && card.offsetHeight / card.offsetWidth <= 1.25),
-      themes: ['cork', 'moon'].every(theme => document.querySelectorAll(`.variant .scene[data-theme="${theme}"]`).length === 4),
-      mounts: document.querySelectorAll('.sample-card[data-mount=pin]').length > 0 && document.querySelectorAll('.sample-card[data-mount=tape]').length > 0,
-      colours: ['amber', 'red', 'green', 'purple', 'custom'].every(color => document.querySelectorAll(`.sample-card[data-color="${color}"]`).length > 0),
-      selected: document.querySelectorAll('.sample-card.selected').length > 0,
-      baseline: document.querySelectorAll('.baseline-card[data-style=tech][data-kind=note][data-state=normal]').length > 0
-        && document.querySelectorAll('.baseline-card[data-style=tech][data-kind=card][data-state=curl]').length > 0
-        && document.querySelectorAll('.baseline-card[data-style=paper][data-kind=note][data-state=folded]').length > 0
-        && document.querySelectorAll('.baseline-card[data-style=paper][data-kind=card][data-state=normal]').length > 0,
-      externalImages: [...document.images].filter(image => /^https?:/i.test(image.currentSrc || image.src)).length,
-      externalStyles: [...document.querySelectorAll('link')].filter(link => /^https?:/i.test(link.href)).length,
-      svgFilters: document.querySelectorAll('filter').length,
-      cssFilter: [...document.querySelectorAll('.variant .sample-card')].some(card => getComputedStyle(card).filter !== 'none'),
-    };
-  });
-  check(JSON.stringify(info.ids) === JSON.stringify(['N5', 'N6', 'N7', 'N8']), 'note samples expose four new, named approaches N5–N8');
-  check(info.sceneCounts.length === 4 && info.sceneCounts.every(count => count === 2) && info.cardCounts.every(count => count === 24),
-    'each variant has cork/moon scenes with 24 full-size cards');
-  check(info.matrices.length === 4 && info.matrices.every(Boolean),
-    'each variant defines normal/folded/curl for note and clue card in tech and paper');
-  check(info.normalWidths.note?.length === 16 && info.normalWidths.note.every(width => width === 170)
-    && info.normalWidths.card?.length === 16 && info.normalWidths.card.every(width => width === 200) && info.normalAspect,
-  `sample cards keep product widths (note 170px/card 200px) and square note proportions (${JSON.stringify(info.normalWidths)})`);
-  check(info.themes && info.mounts && info.colours && info.selected, 'samples show cork/moon, pin/tape, five colours including custom, and selected state');
-  check(info.baseline, 'baseline includes both current tech/paper styles and normal/folded/curl for notes and clue cards');
-  check(info.externalImages === 0 && info.externalStyles === 0 && info.svgFilters === 0 && !info.cssFilter,
-    'note samples are local CSS-only scenes without SVG or per-card filters');
-
-  fs.mkdirSync(path.dirname(NEW_SAMPLE), {recursive: true});
-  await page.screenshot({path: path.join(path.dirname(NEW_SAMPLE), 'overview.png'), fullPage: true});
-  for (const section of await page.locator('.variant').all()) {
-    const id = await section.getAttribute('data-variant');
-    await section.screenshot({path: path.join(path.dirname(NEW_SAMPLE), `${id}-close-up.png`)});
-  }
-  await page.close();
-}
-
 (async () => {
   fs.mkdirSync(OUT, {recursive: true});
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
     await productChecks(browser);
-    await sampleChecks(browser);
   } finally {
     await browser.close();
   }
   assert.deepEqual(failures, [], 'P19-R2f checks failed: ' + JSON.stringify(failures));
-  console.log('PASS P19-R2f K2 clipboard and N5–N8 note samples with screenshots');
+  console.log('PASS P19-R2f K2 clipboard and product notes');
 })().catch(error => { console.error(error); process.exitCode = 1; });

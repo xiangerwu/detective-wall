@@ -1,13 +1,11 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const playwright = require('playwright-core');
 const {ready, reload, settled, artifacts} = require('./wall-ready.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = artifacts('p19r2i');
-const SAMPLES = path.resolve(__dirname, '..', 'test-results', 'p19r2i-notes', 'index.html');
 const LONG = '1'.repeat(200);
 const failures = [];
 const ok = (condition, message) => {
@@ -109,21 +107,6 @@ async function anchorOrder(page) {
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
     fs.mkdirSync(OUT, {recursive: true});
-    const sample = await browser.newPage({viewport: {width: 1500, height: 1800}});
-    await sample.goto(pathToFileURL(SAMPLES).href); await sample.waitForTimeout(120);
-    ok(await sample.locator('#observations li').count() >= 6, 'samples record the requested Traditional Chinese photo observations');
-    ok(await sample.locator('.variant[data-variant="S1"], .variant[data-variant="S2"], .variant[data-variant="S3"], .variant[data-variant="S4"]').count() === 4,
-      'samples include four sticky-note variants S1–S4');
-    const sampleAudit = await sample.evaluate(() => ({
-      states: [...document.querySelectorAll('.sample-card')].every(card => card.dataset.state && (card.dataset.state === 'normal' || card.classList.contains('is-' + card.dataset.state))),
-      photos: [...document.querySelectorAll('.reference-grid img')].every(img => img.complete && img.naturalWidth > 0),
-      pseudo: [...document.querySelectorAll('.sample-card')].every(card => ['::before', '::after'].filter(pseudo => getComputedStyle(card, pseudo).content !== 'none').length <= 2),
-      noSvgFilter: !document.querySelector('svg [filter], svg filter'),
-    }));
-    ok(sampleAudit.states && sampleAudit.photos && sampleAudit.pseudo && sampleAudit.noSvgFilter,
-      'samples cover normal/folded/curled states, local photo comparison, and the two-pseudo-element limit');
-    await sample.screenshot({path: path.join(OUT, 'samples-comparison.png'), fullPage: true});
-    await sample.close();
 
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page); await setFixture(page);
@@ -193,8 +176,6 @@ async function anchorOrder(page) {
 
     await setFixture(page);
     await page.evaluate(() => { setRailState('full'); showActivity(null); anchorNavOpen = true; render(); });
-    ok(await page.locator('.rail-anchor-suggestion-list, #rail-anchor-list h3').filter({hasText: '可能是源頭'}).count() === 0,
-      'rail 分層／錨點 panel removes the 可能是源頭 section');
     ok(await page.locator('#rail-anchor-list [data-anchor-card]').count() === 3, 'rail keeps only the three explicitly marked anchors');
     await page.screenshot({path: path.join(OUT, 'anchor-panel.png')});
 
@@ -259,5 +240,5 @@ async function anchorOrder(page) {
     await browser.close();
   }
   assert.deepEqual(failures, [], 'P19-R2i checks failed: ' + JSON.stringify(failures));
-  console.log('PASS P19-R2i wrapping, custom tabs, tab strip, anchor ordering, and sample comparison');
+  console.log('PASS P19-R2i wrapping, custom tabs, tab strip, and anchor ordering');
 })().catch(error => { console.error(error); process.exitCode = 1; });

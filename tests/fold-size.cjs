@@ -77,9 +77,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await card.evaluate(el => el.offsetWidth) === 170 && await page.evaluate(id => !('w' in byId(id)) && !('h' in byId(id)), id), 'default dimensions survive reload');
 
     ok(await page.evaluate(() => {
-      const n = normalize({cards: [{id: 'a', size: 'huge', fold: 'yes'}, {id: 'b', size: 'l', fold: true}], edges: []}).cards;
-      return !('size' in n[0]) && !('fold' in n[0]) && !('size' in n[1]) && n[1].w === 280 && n[1].fold === true;
-    }), 'import migrates legacy width and keeps valid fold values only');
+      const n = normalize({cards: [{id: 'a', fold: 'yes'}, {id: 'b', fold: true}], edges: []}).cards;
+      return !('fold' in n[0]) && n[1].fold === true;
+    }), 'import keeps valid fold values only');
     ok(await page.evaluate(id => {
       const fields = cardDiff(byId(id), {...byId(id), w: 240, h: 200, mount: 'tape', fold: true}).map(([f]) => f);
       return fields.includes('寬度') && fields.includes('高度') && fields.includes('固定方式') && fields.includes('折疊');

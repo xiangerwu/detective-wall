@@ -108,11 +108,11 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       && getComputedStyle(document.querySelector(`.card[data-id="${id}"]`), '::before').content !== 'none', edge.from), 'tape mode renders the paper tape pseudo-element');
     await page.screenshot({ path: path.join(OUT, 'pin-bottom.png') });
     await reload(page);
-    ok(await page.evaluate(id => byId(id).mount === 'tape' && !('pin' in byId(id)), edge.from), 'mount choice persists after reload and old pin data is absent');
+    ok(await page.evaluate(id => byId(id).mount === 'tape', edge.from), 'mount choice persists after reload');
     ok(await page.evaluate(() => {
-      const n = normalize({cards: [{id: 'p1', mount: 'bad'}, {id: 'p2', mount: 'tape'}, {id: 'p3', pin: 'ne'}], edges: []}).cards;
-      return !('mount' in n[0]) && n[1].mount === 'tape' && !('pin' in n[2]);
-    }), 'import keeps tape mount and drops invalid mount and old pin fields');
+      const n = normalize({cards: [{id: 'p1', mount: 'bad'}, {id: 'p2', mount: 'tape'}], edges: []}).cards;
+      return !('mount' in n[0]) && n[1].mount === 'tape';
+    }), 'import keeps tape mount and drops invalid mount');
     ok(await page.evaluate(id => cardDiff(byId(id), {...byId(id), mount: undefined}).some(([f]) => f === '固定方式'), edge.from), 'import preview lists a mount change');
     ok(errs.length === 0, 'no page errors ' + errs.join('; '));
   } finally {

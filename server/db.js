@@ -634,10 +634,6 @@ function createDatabase(filename, {readOnly = false} = {}) {
     );
     CREATE INDEX IF NOT EXISTS chat_messages_wall_client_id ON chat_messages(wall_id, client, id);
   `);
-  if (!readOnly && !db.prepare('PRAGMA table_info(chat_messages)').all().some(column => column.name === 'status')) {
-    db.exec('ALTER TABLE chat_messages ADD COLUMN status TEXT');
-  }
-
   const listWallsStatement = db.prepare('SELECT id, name, updated, version, data FROM walls ORDER BY id');
   const getWallStatement = db.prepare('SELECT id, name, updated, version, data FROM walls WHERE id = ?');
   const backupStatements = {

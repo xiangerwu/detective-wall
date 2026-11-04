@@ -1,14 +1,12 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
 const playwright = require('playwright-core');
 const {ready} = require('./wall-ready.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
 const ROOT = path.resolve(__dirname, '..');
 const OUT = process.env.WALL_TEST_OUT || path.join(ROOT, 'test-results', 'p19r2e');
-const SAMPLE = path.join(ROOT, 'test-results', 'p19r2e-clip', 'index.html');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1280, 720], [1400, 900]];
 const RAILS = ['hidden', 'icon', 'full'];
@@ -23,36 +21,6 @@ function hit(a, b) {
 }
 
 async function settled(page) { await page.waitForTimeout(700); }
-
-async function sampleChecks(browser) {
-  const page = await browser.newPage({viewport: {width: 1440, height: 2400}});
-  await page.goto(pathToFileURL(SAMPLE).href); await settled(page);
-  const info = await page.evaluate(() => ({
-    variants: [...document.querySelectorAll('.variant')].map(section => ({
-      id: section.dataset.variant,
-      boards: [...section.querySelectorAll('.board')].map(board => Math.round(board.getBoundingClientRect().width)),
-      closeups: section.querySelectorAll('.close-up').length,
-    })),
-    themes: [...document.querySelectorAll('.sample')].map(sample => sample.dataset.theme),
-    externalImages: document.images.length,
-    externalStyles: [...document.querySelectorAll('link, img')].filter(el => el.href && /^https?:/i.test(el.href)).length,
-    svgCount: document.querySelectorAll('svg').length,
-    filters: document.querySelectorAll('filter').length,
-  }));
-  check(info.variants.length === 5 && info.variants.every(item => item.boards.length === 2 && item.boards.every(width => width === 380) && item.closeups === 1),
-    'K1–K5 samples each show two 380px open boards and one clip close-up');
-  check(info.themes.filter(theme => theme === 'cork').length === 5 && info.themes.filter(theme => theme === 'moon').length === 5,
-    'clip samples cover cork and moon for every variant');
-  check(info.externalImages === 0 && info.externalStyles === 0 && info.svgCount >= 15 && info.filters === 0,
-    'clip samples use only CSS and inline SVG without network images or SVG filters');
-  await page.screenshot({path: path.join(path.dirname(SAMPLE), 'overview.png'), fullPage: true});
-  for (const section of await page.locator('.variant').all()) {
-    const id = await section.getAttribute('data-variant');
-    await section.screenshot({path: path.join(path.dirname(SAMPLE), `${id}-cork-moon.png`)});
-    await section.locator('.close-up').screenshot({path: path.join(path.dirname(SAMPLE), `${id}-close-up.png`)});
-  }
-  await page.close();
-}
 
 async function productState(page, theme, width, height, rail) {
   await page.setViewportSize({width, height});
@@ -134,10 +102,8 @@ async function menuChecks(page, theme, width, height, rail) {
 
 (async () => {
   fs.mkdirSync(OUT, {recursive: true});
-  await fs.promises.access(SAMPLE);
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
-    await sampleChecks(browser);
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
     for (const theme of THEMES) for (const [width, height] of SIZES) for (const rail of RAILS) {
@@ -156,5 +122,5 @@ async function menuChecks(page, theme, width, height, rail) {
     await browser.close();
   }
   assert.deepEqual(failures, [], 'P19-R2e topbar checks failed: ' + JSON.stringify(failures.slice(0, 16)));
-  console.log('PASS P19-R2e topbar islands, menu placement, clip samples, and screenshots');
+  console.log('PASS P19-R2e topbar islands and menu placement');
 })().catch(error => { console.error(error); process.exitCode = 1; });

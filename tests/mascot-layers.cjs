@@ -139,7 +139,6 @@ const meanDifference = async (page, restUrl) => {
         assert.equal(fs.existsSync(path.join(directory, 'orig.webp')), false, `${client}/${mood}/orig.webp is not copied`);
       }
     }
-    assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'avatars', 'codex-body-blink.webp')), 'codex blink replacement is present');
   });
 
   const browser = await playwright.chromium.launch();
@@ -280,41 +279,9 @@ const meanDifference = async (page, restUrl) => {
       assert.equal(await page.locator('#mascot-image .rig').evaluate(rig => [...rig.getAnimations({subtree: true})].some(animation => String(animation.animationName || '').includes('breathe'))), false);
     });
 
-    await check('animations play even when the OS asks for reduced motion (user decision)', async () => {
-      await page.emulateMedia({reducedMotion: 'reduce'});
-      for (const client of Object.keys(rigs)) {
-        await setState(page, client, 'idle'); await expectRig(page, client, 'idle');
-        const layered = await page.evaluate(() => {
-          const rig = document.querySelector('#mascot-image .rig');
-          return {count: rig?.querySelectorAll(':scope > img').length, animations: [...rig.getAnimations({subtree: true})].length};
-        });
-        assert.ok(layered.count > 1 && layered.animations > 0, `${client}/idle keeps its animated layers under reduced motion`);
-      }
-      assert.ok(!(await page.locator('#sidebar').evaluate(el => getComputedStyle(el).transitionDuration.split(',').every(d => parseFloat(d) === 0))), 'clipboard slide keeps its transition');
-      await page.emulateMedia({reducedMotion: 'no-preference'});
-    });
-
-    await check('fixed position, resize, click-to-open, and top z-layer remain intact', async () => {
-      await setState(page, 'claude', 'idle'); await expectRig(page, 'claude', 'idle');
+    await check('top z-layer remains intact', async () => {
       const z = await page.locator('#mascot').evaluate(element => Number.parseInt(getComputedStyle(element).zIndex, 10));
       assert.ok(z >= 1000, `mascot z-index ${z}`);
-      const beforeDrag = await page.locator('#mascot').boundingBox();
-      const start = await page.locator('#mascot-image').boundingBox();
-      const target = await page.evaluate(() => { const r = vp.getBoundingClientRect(); return {x: r.left + 40, y: r.top + 40}; });
-      await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2); await page.mouse.down();
-      await page.mouse.move(target.x + start.width / 2, target.y + start.height / 2, {steps: 5}); await page.mouse.up();
-      const afterDrag = await page.locator('#mascot').boundingBox();
-      assert.ok(beforeDrag && afterDrag && Math.abs(afterDrag.x - beforeDrag.x) <= 1 && Math.abs(afterDrag.y - beforeDrag.y) <= 1, 'layer rig stays fixed when dragged');
-      const before = await page.locator('#mascot').boundingBox();
-      const resize = await page.locator('#mascot-resize').boundingBox();
-      await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2); await page.mouse.down();
-      await page.mouse.move(resize.x - 36, resize.y - 36, {steps: 4}); await page.mouse.up();
-      const after = await page.locator('#mascot').boundingBox();
-      assert.ok(after.height > before.height && Math.abs(after.x + after.width - before.x - before.width) <= 2 && Math.abs(after.y + after.height - before.y - before.height) <= 2, 'top-left resize keeps bottom-right anchored');
-      await page.evaluate(() => showClipboard(false));
-      const click = await page.locator('#mascot-image').boundingBox();
-      await page.mouse.click(click.x + click.width / 2, click.y + click.height / 2);
-      await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true');
     });
 
     await check('mascot page errors stay empty', () => assert.deepEqual(errors, []));

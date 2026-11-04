@@ -71,7 +71,6 @@ async function snapNavigation(page, theme, width, height, state) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
 
-    assert.equal(await page.locator('#activitybar').count(), 0, 'old activity bar is removed');
     assert.equal(await page.locator('#rail').getAttribute('data-state'), 'icon');
     assert.equal(await page.locator('#rail').evaluate(el => Math.round(el.getBoundingClientRect().width)), 78, 'default rail is the icon rail');
     assert.equal(await page.getAttribute('#rail-toggle', 'aria-expanded'), 'true');

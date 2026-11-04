@@ -78,13 +78,14 @@ const near = (a, b, tolerance = 2) => Math.abs(a - b) <= tolerance;
     }), 'fixed height scrolls only the note, leaving the pin and resize grip whole');
     ok(await page.evaluate(() => {
       const normalized = normalize({cards: [
-        {id: 'legacy-note', kind: 'note', size: 'xl'},
-        {id: 'legacy-card', kind: 'card', size: 's'},
-        {id: 'bad', w: 9999, h: 1, pin: 'se'},
-      ], edges: [{from: 'legacy-note', to: 'legacy-card', type: 'builds', fromAt: {side: 'q', t: .5}, toAt: {side: 's', t: .25}}]});
-      return normalized.cards[0].w === 306 && normalized.cards[1].w === 160 && !('size' in normalized.cards[0]) && !('pin' in normalized.cards[2])
-        && normalized.cards[2].w === 600 && normalized.cards[2].h === 60 && !('fromAt' in normalized.edges[0]) && normalized.edges[0].toAt.side === 's';
-    }), 'normalize converts legacy size once, validates w/h, and drops pin');
+        {id: 'note', kind: 'note'},
+        {id: 'card', kind: 'card'},
+        {id: 'bad', w: 9999, h: 1},
+      ], edges: [{from: 'note', to: 'card', type: 'builds', fromAt: {side: 'q', t: .5}, toAt: {side: 's', t: .25}}]});
+      return !('w' in normalized.cards[0]) && !('w' in normalized.cards[1])
+        && normalized.cards[2].w === 600 && normalized.cards[2].h === 60
+        && !('fromAt' in normalized.edges[0]) && normalized.edges[0].toAt.side === 's';
+    }), 'normalize validates w/h and edge endpoints');
 
     await resetFixture();
     await page.evaluate(() => closePanel());
