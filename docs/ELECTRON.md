@@ -32,6 +32,10 @@ app.whenReady().then(() => {
 
 靜態檔案仍需在打包時把專案根目錄與 `server/` 放進應用程式內容；Electron 的 ASAR 可由 Node 檔案 API 讀取，但打包工具的檔案清單仍須包含 `index.html`、`server/layout.js` 與既有素材。
 
+## E1 開發執行方式
+
+在專案根目錄執行 `npm run app`。Electron 的 `app.getPath('userData')` 是本機使用者資料根目錄；E1 會在其下使用 `CaseGraph/settings.json`、`CaseGraph/projects/default/wall.db` 與 `CaseGraph/logs/main.log`。測試可用 `CASEGRAPH_USER_DATA` 指定暫存 userData，並用 `WALL_PORT=0` 要求本次啟動使用空閒埠。
+
 ## 聊天 CLI
 
 聊天功能不是 Electron 內建模型：服務會啟動外部 `claude` 或 `codex` CLI。打包後必須確認使用者已安裝並登入 CLI，或由 `WALL_CLAUDE_BIN`／`WALL_CODEX_BIN` 提供絕對路徑；僅把 CaseGraph 打包成桌面程式不會自動帶入 CLI、登入狀態或訂閱額度。若產品要免 CLI 執行，需另行決定模型整合方式，本次不實作。

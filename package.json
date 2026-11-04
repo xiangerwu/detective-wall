@@ -1,18 +1,21 @@
 {
   "name": "detective-wall",
   "version": "0.0.0-transfer",
+  "main": "electron/main.js",
   "description": "Local clue wall with an MCP server for proposing reviewed changes.",
   "license": "MIT",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
+    "app": "electron .",
     "start": "node server/server.js",
     "mcp": "node server/mcp.js",
     "test": "node tests/run.cjs",
     "typecheck": "tsc -p ."
   },
   "devDependencies": {
+    "electron": "45.2.1",
     "playwright-core": "1.60.0",
     "typescript": "5.5.2"
   },

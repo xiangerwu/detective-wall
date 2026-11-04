@@ -148,6 +148,14 @@ function tomlTable(values) {
   return `{${Object.entries(values).map(([key, value]) => `${key}=${tomlString(value)}`).join(',')}}`;
 }
 
+function electronChildEnv(env) {
+  return process.versions.electron ? {...env, ELECTRON_RUN_AS_NODE: '1'} : env;
+}
+
+function mcpEnvironment(databasePath, port, wallId) {
+  return electronChildEnv({WALL_DB: databasePath, WALL_PORT: String(port), WALL_MCP_WALLS: wallId});
+}
+
 function chatSystemPrompt(wall) {
   return [
     '你是案件圖譜（CaseGraph）的助手。',
@@ -166,7 +174,7 @@ function mcpConfig(databasePath, port, wallId) {
   return JSON.stringify({mcpServers: {'detective-wall': {
     command: process.execPath,
     args: [path.join(projectDir, 'mcp.js')],
-    env: {WALL_DB: databasePath, WALL_PORT: String(port), WALL_MCP_WALLS: wallId},
+    env: mcpEnvironment(databasePath, port, wallId),
   }}});
 }
 
@@ -188,7 +196,7 @@ function codexArgs(wall, databasePath, port, sessionId) {
   args.push(
     '-c', `mcp_servers.detective-wall.command=${tomlString(process.execPath)}`,
     '-c', `mcp_servers.detective-wall.args=${tomlArray([path.join(projectDir, 'mcp.js')])}`,
-    '-c', `mcp_servers.detective-wall.env=${tomlTable({WALL_DB: databasePath, WALL_PORT: port, WALL_MCP_WALLS: wall.id})}`,
+    '-c', `mcp_servers.detective-wall.env=${tomlTable(mcpEnvironment(databasePath, port, wall.id))}`,
     '-c', `developer_instructions=${tomlString(chatSystemPrompt(wall))}`);
   if (sessionId) args.push(sessionId);
   args.push('-');
@@ -275,7 +283,7 @@ function runCli(command, args, message, cwd, timeout = cliTimeout(), options = {
   let stopProcess = null;
   const promise = /** @type {Promise<any> & {stop?: () => Promise<void>}} */ (new Promise((resolve, reject) => {
     let stdout = '', stderr = '', lineBuffer = '', truncated = false, settled = false, timingOut = false, stopping = false;
-    const child = spawn(spec.command, spec.args, {cwd, env: process.env, shell: spec.shell, windowsHide: true, detached: process.platform !== 'win32'});
+    const child = spawn(spec.command, spec.args, {cwd, env: spec.command === process.execPath ? electronChildEnv(process.env) : process.env, shell: spec.shell, windowsHide: true, detached: process.platform !== 'win32'});
     const append = (target, chunk) => {
       if (target.length >= CHAT_OUTPUT_LIMIT) { truncated = true; return target; }
       const text = chunk.toString();
@@ -526,6 +534,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   // Character art and the app icon are small fixed files, read once and served from memory.
   const assetImages = new Map(['avatars', 'icon'].flatMap(dir => assetFiles(path.join(projectDir, '..', 'assets', dir), `/assets/${dir}`)
     .map(([url, file]) => [url, fs.readFileSync(file)])));
+  /** @type {any} */
   let server;
 
   const handleApi = async (req, res, parts, url) => {
@@ -853,14 +862,19 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
     }
   });
   server.db = store;
-  server.on('error', error => {
-    if (error.code === 'EADDRINUSE') {
-      console.error(`WALL_PORT ${port} 已被占用；請改用其他 WALL_PORT 後再啟動`);
-    } else {
-      console.error(`WALL server error: ${error.message || error}`);
-    }
-    process.exitCode = 1;
-  });
+  server.stopChats = async () => {
+    await Promise.all([...chatJobs.values()].map(job => job.stop?.()));
+  };
+  if (require.main === module) {
+    server.on('error', /** @param {any} error */ error => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`WALL_PORT ${port} 已被占用；請改用其他 WALL_PORT 後再啟動`);
+      } else {
+        console.error(`WALL server error: ${error.message || error}`);
+      }
+      process.exitCode = 1;
+    });
+  }
   server.listen(port, HOST);
   return server;
 }
@@ -870,7 +884,7 @@ if (require.main === module) {
   try {
     const server = createWallServer();
     server.once('listening', () => console.log(`WALL_READY ${server.address().port}`));
-    const close = () => server.close(() => { server.db.close(); });
+    const close = () => server.stopChats().finally(() => server.close(() => { server.db.close(); }));
     process.once('SIGINT', close);
     process.once('SIGTERM', close);
   } catch (error) {
@@ -879,4 +893,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { createWallServer, MAX_BODY, MAX_PROJECT_BODY };
+module.exports = { createWallServer, mcpConfig, MAX_BODY, MAX_PROJECT_BODY };
