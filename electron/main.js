@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const childProcess = require('node:child_process');
 const {
   app,
   BrowserWindow,
@@ -13,7 +14,8 @@ const {
   dialog,
   ipcMain,
 } = require('electron');
-const {createWallServer} = require('../server/server.js');
+const {createWallServer, cliPath} = require('../server/server.js');
+const {buildCliLaunch} = require('./cli-launch.js');
 
 const APP_TITLE = 'CaseGraph 案件圖譜';
 const DEFAULT_PORT = 3000;
@@ -38,6 +40,7 @@ let settings;
 let settingsPath;
 let caseGraphDir;
 let defaultProjectFolder;
+let runtimeDir;
 let logDir;
 let logPath;
 let activeProjectFolder;
@@ -50,6 +53,9 @@ let settingsNeedsRepair = false;
 let serviceStatus = 'starting';
 let serviceMessage = '正在啟動本機服務…';
 let lastError = null;
+let lastApplyError = null;
+let cliOpenedSinceStart = false;
+let staleClients = false;
 let hideNotified = false;
 let isQuitting = false;
 let shutdownTask;
@@ -77,6 +83,13 @@ function readLogTail() {
   } catch {
     return [];
   }
+}
+
+function clientState() {
+  return Object.fromEntries(['claude', 'codex'].map(client => {
+    const pathname = cliPath(client);
+    return [client, {available: Boolean(pathname), path: pathname}];
+  }));
 }
 
 function defaultSettings() {
@@ -231,6 +244,9 @@ function state() {
     effectiveAiWorkdir: effectiveAiWorkdir(),
     defaultProjectFolder,
     chatActive: Boolean(server?.hasActiveChats?.()),
+    clients: clientState(),
+    staleClients,
+    lastApplyError: lastApplyError ? {...lastApplyError} : null,
     logPath,
     logs: readLogTail(),
     nodeVersion: process.versions.node,
@@ -241,11 +257,16 @@ function state() {
 function updateTrayMenu() {
   if (!tray) return;
   const running = serviceStatus === 'running' || serviceStatus === 'starting' || serviceStatus === 'stopping';
+  const clients = clientState();
   tray.setContextMenu(Menu.buildFromTemplate([
     {label: '顯示 CaseGraph', click: showWindow},
     {label: '設定…', enabled: !isQuitting, click: () => { void requestSettings(); }},
     {label: '重新啟動服務', enabled: !isQuitting, click: () => serviceAction('restart')},
     {label: running ? '停止服務' : '啟動服務', enabled: !isQuitting, click: () => serviceAction(running ? 'stop' : 'start')},
+    {label: `開啟 Claude CLI${clients.claude.available ? '' : '（找不到）'}`, enabled: !isQuitting && clients.claude.available,
+      click: () => { void openClient('claude').catch(() => {}); }},
+    {label: `開啟 codex CLI${clients.codex.available ? '' : '（找不到）'}`, enabled: !isQuitting && clients.codex.available,
+      click: () => { void openClient('codex').catch(() => {}); }},
     {label: '開啟紀錄資料夾', click: () => { void shell.openPath(logDir).catch(error => writeLog('ERROR', '無法開啟紀錄資料夾', error)); }},
     {type: 'separator'},
     {label: '結束', click: () => app.quit()},
@@ -384,6 +405,7 @@ async function performStart({showStatus = true, touchSettings = true} = {}) {
   }
   server = candidate;
   effectivePort = candidate.address().port;
+  cliOpenedSinceStart = false;
   if (touchSettings && !settingsNeedsRepair) {
     const current = recentProject(activeProjectFolder);
     settings = buildSettings(configuredPort, activeProjectFolder, current?.aiWorkdir || null);
@@ -424,6 +446,53 @@ function serviceAction(action) {
   });
 }
 
+async function ensureServiceRunning() {
+  if (server?.listening) return state();
+  if (serviceStatus === 'port-occupied') runtimePortOverride = 0;
+  const result = await performStart({showStatus: false, touchSettings: false});
+  if (result.status !== 'running') throw new Error(result.message || '服務無法啟動');
+  return result;
+}
+
+function spawnClientTerminal(spec) {
+  return new Promise((resolve, reject) => {
+    let child;
+    try {
+      // Called through the module object so the Electron test can record the terminal launch instead of opening one.
+      child = childProcess.spawn(spec.file, spec.args, {cwd: spec.cwd, detached: true, stdio: 'ignore', windowsHide: false});
+    } catch (error) {
+      reject(error);
+      return;
+    }
+    child.once('error', reject);
+    child.once('spawn', () => {
+      child.unref();
+      resolve();
+    });
+  });
+}
+
+function openClient(client) {
+  if (client !== 'claude' && client !== 'codex') throw new Error('client must be claude or codex');
+  return queueService(async () => {
+    try {
+      await ensureServiceRunning();
+      const spec = buildCliLaunch(client, databasePath, effectivePort, effectiveAiWorkdir(), runtimeDir);
+      if (spec.error) throw new Error(spec.error);
+      await spawnClientTerminal(spec);
+      cliOpenedSinceStart = true;
+      staleClients = false;
+      writeLog('INFO', `已開啟 ${client} CLI，埠 ${effectivePort}，工作目錄 ${spec.cwd}`);
+      publishState();
+      return state();
+    } catch (error) {
+      writeLog('ERROR', `${client} CLI 啟動失敗`, error);
+      publishState();
+      throw error;
+    }
+  });
+}
+
 function restorePreviousSettings(previous) {
   settings = previous.settings;
   settingsNeedsRepair = previous.settingsNeedsRepair;
@@ -439,7 +508,11 @@ async function applySettings(input) {
   const currentAiWorkdir = configuredAiWorkdir();
   const projectChanged = pathKey(next.folder) !== pathKey(activeProjectFolder);
   const changed = projectChanged || next.port !== configuredPort || pathKey(next.aiWorkdir || '') !== pathKey(currentAiWorkdir || '');
-  if (!changed && !settingsNeedsRepair) return state();
+  if (!changed && !settingsNeedsRepair) {
+    lastApplyError = null;
+    publishState();
+    return state();
+  }
 
   const previous = {
     settings: structuredClone(settings),
@@ -450,7 +523,10 @@ async function applySettings(input) {
     runtimePortOverride,
     envPortOverride,
     running: Boolean(server?.listening),
+    cliOpenedSinceStart,
+    staleClients,
   };
+  const restartHadCli = changed && previous.running && previous.cliOpenedSinceStart;
   const nextSettings = buildSettings(next.port, next.folder, next.aiWorkdir);
 
   try {
@@ -468,12 +544,16 @@ async function applySettings(input) {
     if (changed || !server?.listening) {
       const result = await performStart({showStatus: false, touchSettings: false});
       if (result.status !== 'running') throw new Error(result.message || '服務無法啟動');
+      if (restartHadCli) staleClients = true;
     }
     writeSettings(settings);
+    lastApplyError = null;
     publishState();
     return state();
   } catch (error) {
     const failedMessage = errorText(error);
+    lastApplyError = {message: failedMessage, at: new Date().toISOString()};
+    writeLog('ERROR', `設定套用失敗：${failedMessage}`, error);
     if (server?.listening && changed) {
       await performStop({showStatus: false});
     }
@@ -482,6 +562,8 @@ async function applySettings(input) {
       const restored = await performStart({showStatus: false, touchSettings: false});
       if (restored.status !== 'running') writeLog('ERROR', '設定失敗後無法恢復原服務', restored.error || restored.message);
     }
+    cliOpenedSinceStart = previous.cliOpenedSinceStart;
+    staleClients = previous.staleClients;
     publishState();
     throw new Error(`設定套用失敗：${failedMessage}`);
   }
@@ -498,9 +580,7 @@ async function requestSettings() {
   try {
     return await queueService(async () => {
       if (!server?.listening) {
-        if (serviceStatus === 'port-occupied') runtimePortOverride = 0;
-        const result = await performStart({showStatus: false, touchSettings: false});
-        if (result.status !== 'running') return result;
+        try { await ensureServiceRunning(); } catch { return state(); }
       }
       const wallUrl = `http://127.0.0.1:${effectivePort}/`;
       if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.getURL() !== wallUrl) {
@@ -574,6 +654,17 @@ function registerIpc() {
     validSender(event);
     return queueService(() => applySettings(input));
   });
+  ipcMain.handle('casegraph:open-client', (event, client) => {
+    validSender(event);
+    if (client !== 'claude' && client !== 'codex') throw new Error('client must be claude or codex');
+    return openClient(client);
+  });
+  ipcMain.handle('casegraph:clear-apply-error', event => {
+    validSender(event);
+    lastApplyError = null;
+    publishState();
+    return state();
+  });
   ipcMain.handle('casegraph:pick-directory', async (event, kind) => {
     validSender(event);
     if (kind !== 'project' && kind !== 'aiWorkdir') throw new Error('invalid directory kind');
@@ -627,6 +718,7 @@ function main() {
     caseGraphDir = path.join(app.getPath('userData'), 'CaseGraph');
     settingsPath = path.join(caseGraphDir, 'settings.json');
     defaultProjectFolder = path.join(caseGraphDir, 'projects', 'default');
+    runtimeDir = path.join(caseGraphDir, 'runtime');
     logDir = path.join(caseGraphDir, 'logs');
     logPath = path.join(logDir, 'main.log');
     fs.mkdirSync(caseGraphDir, {recursive: true});

@@ -132,8 +132,14 @@ function resolveCli(command, override) {
 }
 
 function cliPath(client) {
+  const command = cliCommand(client);
+  if (!command) return null;
   const variable = client === 'claude' ? 'WALL_CLAUDE_BIN' : 'WALL_CODEX_BIN';
-  return resolveCli(CHAT_CLIENTS[client].command, process.env[variable]);
+  return resolveCli(command, process.env[variable]);
+}
+
+function cliCommand(client) {
+  return CHAT_CLIENTS[client]?.command || null;
 }
 
 function tomlString(value) {
@@ -153,7 +159,9 @@ function electronChildEnv(env) {
 }
 
 function mcpEnvironment(databasePath, port, wallId) {
-  return electronChildEnv({WALL_DB: databasePath, WALL_PORT: String(port), WALL_MCP_WALLS: wallId});
+  const env = {WALL_DB: databasePath, WALL_PORT: String(port)};
+  if (wallId !== undefined && wallId !== null) env.WALL_MCP_WALLS = wallId;
+  return electronChildEnv(env);
 }
 
 function chatSystemPrompt(wall) {
@@ -170,12 +178,25 @@ function chatSystemPrompt(wall) {
   ].join('\n');
 }
 
-function mcpConfig(databasePath, port, wallId) {
-  return JSON.stringify({mcpServers: {'detective-wall': {
+function mcpServerSpec(databasePath, port, wallId) {
+  return {
     command: process.execPath,
     args: [path.join(projectDir, 'mcp.js')],
     env: mcpEnvironment(databasePath, port, wallId),
-  }}});
+  };
+}
+
+function mcpConfig(databasePath, port, wallId) {
+  return JSON.stringify({mcpServers: {'detective-wall': mcpServerSpec(databasePath, port, wallId)}});
+}
+
+function mcpTomlArgs(databasePath, port, wallId) {
+  const spec = mcpServerSpec(databasePath, port, wallId);
+  return [
+    '-c', `mcp_servers.detective-wall.command=${tomlString(spec.command)}`,
+    '-c', `mcp_servers.detective-wall.args=${tomlArray(spec.args)}`,
+    '-c', `mcp_servers.detective-wall.env=${tomlTable(spec.env)}`,
+  ];
 }
 
 function claudeArgs(wall, databasePath, port, sessionId) {
@@ -194,9 +215,7 @@ function codexArgs(wall, databasePath, port, sessionId) {
   if (sessionId) args.push('resume');
   args.push('--json', '--disable', 'shell_tool', '--ignore-user-config', '--skip-git-repo-check');
   args.push(
-    '-c', `mcp_servers.detective-wall.command=${tomlString(process.execPath)}`,
-    '-c', `mcp_servers.detective-wall.args=${tomlArray([path.join(projectDir, 'mcp.js')])}`,
-    '-c', `mcp_servers.detective-wall.env=${tomlTable(mcpEnvironment(databasePath, port, wall.id))}`,
+    ...mcpTomlArgs(databasePath, port, wall.id),
     '-c', `developer_instructions=${tomlString(chatSystemPrompt(wall))}`);
   if (sessionId) args.push(sessionId);
   args.push('-');
@@ -208,6 +227,12 @@ function cliTimeout() {
   return Number.isFinite(override) && override > 0 ? Math.min(override, CHAT_TIMEOUT) : CHAT_TIMEOUT;
 }
 
+// A CLI's Node entry run by the app's own runtime; under Electron on Windows its console children must stay hidden.
+function nodeEntry(script, args) {
+  const hide = process.versions.electron && process.platform === 'win32' ? ['-r', path.join(projectDir, 'hidden-console.js')] : [];
+  return {command: process.execPath, args: [...hide, script, ...args], shell: false};
+}
+
 function spawnSpec(command, args) {
   const extension = path.extname(command).toLowerCase();
   if (process.platform === 'win32' && ['.cmd', '.bat'].includes(extension)) {
@@ -215,9 +240,9 @@ function spawnSpec(command, args) {
     const entry = fs.readFileSync(command, 'utf8').match(/"%dp0%\\([^"]+\.js)"/)?.[1];
     const script = entry && path.join(path.dirname(command), entry);
     if (!script || !executable(script)) throw new RequestError(503, `無法從 ${path.basename(command)} 找到 Node 進入點，請用 WALL_CLAUDE_BIN／WALL_CODEX_BIN 指向 .js 或 .exe`);
-    return {command: process.execPath, args: [script, ...args], shell: false};
+    return nodeEntry(script, args);
   }
-  if (['.js', '.cjs', '.mjs'].includes(extension)) return {command: process.execPath, args: [command, ...args], shell: false};
+  if (['.js', '.cjs', '.mjs'].includes(extension)) return nodeEntry(command, args);
   return {command, args, shell: false};
 }
 
@@ -898,4 +923,13 @@ if (require.main === module) {
   }
 }
 
-module.exports = { createWallServer, mcpConfig, MAX_BODY, MAX_PROJECT_BODY };
+module.exports = {
+  createWallServer,
+  mcpConfig,
+  mcpTomlArgs,
+  resolveCli,
+  cliCommand,
+  cliPath,
+  MAX_BODY,
+  MAX_PROJECT_BODY,
+};

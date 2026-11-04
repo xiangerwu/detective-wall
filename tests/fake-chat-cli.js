@@ -18,7 +18,7 @@ process.stdin.on('end', () => {
   const resumeCommand = args.indexOf('resume');
   const resumeId = resumeAt >= 0 ? args[resumeAt + 1] : resumeCommand >= 0 ? args.at(-2) : null;
   const sessionId = resumeId || client + '-session-' + (records.filter(row => row.client === client).length + 1);
-  const record = {client, args, cwd: process.cwd(), stdin: input, sessionId, pid: process.pid};
+  const record = {client, args, execArgv: process.execArgv, cwd: process.cwd(), stdin: input, sessionId, pid: process.pid};
   if (input.includes('timeout')) {
     const child = spawn(process.execPath, ['-e', "setInterval(() => require('node:fs').appendFileSync(process.env.WALL_FAKE_HEARTBEAT, 'x'), 20)"], {
       stdio: 'ignore', env: {...process.env, WALL_FAKE_HEARTBEAT: process.env.WALL_FAKE_HEARTBEAT},

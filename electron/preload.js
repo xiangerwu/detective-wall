@@ -22,6 +22,11 @@ contextBridge.exposeInMainWorld('caseGraph', Object.freeze({
     if (typeof action !== 'string' || !actions.has(action)) throw new TypeError('invalid service action');
     return ipcRenderer.invoke('casegraph:service', action);
   },
+  openClient: client => {
+    if (client !== 'claude' && client !== 'codex') throw new TypeError('invalid client');
+    return ipcRenderer.invoke('casegraph:open-client', client);
+  },
+  clearApplyError: () => ipcRenderer.invoke('casegraph:clear-apply-error'),
   openLogFolder: () => ipcRenderer.invoke('casegraph:open-log-folder'),
   openSettings: () => ipcRenderer.invoke('casegraph:open-settings'),
   onStateChanged: listener => {

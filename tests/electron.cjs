@@ -11,7 +11,7 @@ const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.j
 const {createWallServer} = require('../server/server.js');
 
 const root = path.join(__dirname, '..');
-const tempRoot = process.env.WALL_TEST_OUT || os.tmpdir();
+const tempRoot = process.env.WALL_TEST_ROOT || process.env.WALL_TEST_OUT || os.tmpdir();
 const electronPath = require('electron');
 
 function newUserData(label) {
@@ -21,6 +21,46 @@ function newUserData(label) {
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Records terminal launches in the main process instead of opening real terminal windows.
+// tests/cli-launch.cjs runs the generated scripts through real powershell.exe.
+async function recordTerminalLaunches(application) {
+  await application.evaluate(() => {
+    const childProcess = process.getBuiltinModule('node:child_process');
+    const {EventEmitter} = process.getBuiltinModule('node:events');
+    globalThis.terminalLaunches = [];
+    childProcess.spawn = (file, args, options) => {
+      globalThis.terminalLaunches.push({file, args, cwd: options.cwd, env: options.env ?? null});
+      const child = new EventEmitter();
+      child.unref = () => {};
+      process.nextTick(() => child.emit('spawn'));
+      return child;
+    };
+  });
+}
+
+async function waitForTerminalLaunches(application, count) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const launches = await application.evaluate(() => globalThis.terminalLaunches);
+    if (launches.length >= count) return launches;
+    await sleep(50);
+  }
+  assert.fail(`expected ${count} terminal launches`);
+}
+
+async function waitForPortClosed(port) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    try { await request(port, '/api/health'); } catch { return; }
+    await sleep(50);
+  }
+  assert.fail(`port ${port} is still reachable after Electron closed`);
+}
+
+async function closeAppAndAssertPort(application, port) {
+  await closeApp(application);
+  if (port == null) return;
+  await waitForPortClosed(port);
 }
 
 function request(port, pathname, method = 'GET', value) {
@@ -127,7 +167,8 @@ async function seedProject(folder, wallId, title) {
 }
 
 async function openSettings(page) {
-  await page.locator('#launcher-settings').click();
+  // Opening a CLI keeps the modal open to show its result.
+  if (!await page.locator('#launcher-settings-dialog[open]').count()) await page.locator('#launcher-settings').click();
   await page.locator('#launcher-settings-dialog[open]').waitFor();
 }
 
@@ -287,6 +328,13 @@ async function testAiWorkdir() {
     assert.equal(path.resolve(records.at(-1).cwd), path.join(path.dirname(value.dbPath), 'chat-workdir'));
     assert.deepEqual((await request(value.effectivePort, '/api/meta/sourceFolders')).body.value, sourceFolders);
     console.log('PASS AI workdir changes the fake CLI cwd, clearing restores the project fallback, and sourceFolders stay unchanged');
+
+    if (process.platform === 'win32') {
+      // Electron has no console, so a console program started by the CLI's Node entry (codex.js -> codex.exe)
+      // popped up a terminal window. Playwright's console hides that here, so check the preload is wired in.
+      assert.deepEqual(records.at(-1).execArgv, ['-r', path.join(root, 'server', 'hidden-console.js')]);
+      console.log('PASS in-app chat CLIs run with the hidden-console preload under Electron');
+    }
   } finally {
     await closeApp(application);
   }
@@ -466,6 +514,176 @@ async function testOccupiedPort() {
   }
 }
 
+async function testCliLaunchAndMcp() {
+  const userData = newUserData('cli');
+  const aiFolder = path.join(userData, "AI workdir's");
+  const fakeCli = path.join(__dirname, 'fake-cli-argv.cmd');
+  const application = await launch(userData, '0', {WALL_CLAUDE_BIN: fakeCli, WALL_CODEX_BIN: fakeCli});
+  let port;
+  try {
+    const page = await firstWindow(application);
+    await waitForWall(page);
+    await recordTerminalLaunches(application);
+    await application.evaluate(({dialog}, folder) => {
+      dialog.showOpenDialog = async () => ({canceled: false, filePaths: [folder]});
+    }, aiFolder);
+    await openSettings(page);
+    await page.locator('#launcher-ai-pick').click();
+    await page.locator('#launcher-apply').click();
+    await waitForWall(page);
+    let value = await getState(page);
+    port = value.effectivePort;
+    await putWall(port);
+    await openSettings(page);
+    await page.locator('#launcher-open-claude').click();
+    await page.locator('#launcher-open-codex').click();
+    const launches = await waitForTerminalLaunches(application, 2);
+    for (const launch of launches) {
+      assert.equal(path.resolve(launch.cwd), path.resolve(aiFolder));
+      // The terminal inherits the app's environment; ELECTRON_RUN_AS_NODE there would break any Electron app run from it.
+      assert.equal(launch.env, null);
+      assert.equal(launch.args[launch.args.indexOf('-File') + 1].startsWith(path.join(userData, 'CaseGraph', 'runtime')), true);
+    }
+    // The codex script carries the Electron-as-Node MCP command for the current DB and actual port.
+    const codexScript = fs.readFileSync(launches[1].args.at(-1), 'utf8');
+    assert.ok(codexScript.includes(`WALL_PORT=\\"${port}\\"`));
+    assert.ok(codexScript.includes('ELECTRON_RUN_AS_NODE=\\"1\\"'));
+
+    const configPath = path.join(userData, 'CaseGraph', 'runtime', 'claude-mcp.json');
+    assert.equal(fs.existsSync(configPath), true);
+    const spec = JSON.parse(fs.readFileSync(configPath, 'utf8')).mcpServers['detective-wall'];
+    assert.equal(spec.env.WALL_MCP_WALLS, undefined);
+    const transport = new StdioClientTransport({command: spec.command, args: spec.args,
+      env: {...process.env, ...spec.env}, stderr: 'pipe'});
+    const client = new Client({name: 'detective-wall-electron-cli-test', version: '1.0.0'});
+    await client.connect(transport);
+    try {
+      const listed = await client.callTool({name: 'list_boards'});
+      const data = listed.structuredContent || JSON.parse(listed.content[0].text);
+      assert.ok(data.boards.some(board => board.wallId === 'electron-test'));
+      assert.ok(data.boards.some(board => board.wallId === 'w-main'));
+    } finally {
+      await client.close();
+    }
+    console.log('PASS Electron opens both CLI terminals with the AI cwd, DB, actual port and an all-walls Claude MCP handshake');
+  } finally {
+    await closeAppAndAssertPort(application, port);
+  }
+}
+
+async function testMissingCliAvailability() {
+  const userData = newUserData('cli-missing');
+  const missingClaude = path.join(userData, 'missing claude.exe');
+  const application = await launch(userData, '0', {
+    PATH: '',
+    WALL_CLAUDE_BIN: missingClaude,
+    WALL_CODEX_BIN: path.join(userData, 'missing codex.exe'),
+  });
+  let port;
+  try {
+    const page = await firstWindow(application);
+    await waitForWall(page);
+    const value = await getState(page);
+    port = value.effectivePort;
+    assert.deepEqual(value.clients, {
+      claude: {available: false, path: null},
+      codex: {available: false, path: null},
+    });
+    await application.evaluate(({Menu}) => {
+      globalThis.trayMenuTemplates = [];
+      const build = Menu.buildFromTemplate.bind(Menu);
+      Menu.buildFromTemplate = template => {
+        globalThis.trayMenuTemplates.push(template.map(item => ({label: item.label, enabled: item.enabled})));
+        return build(template);
+      };
+    });
+    await page.evaluate(() => window.caseGraph.clearApplyError());
+    const trayItems = await application.evaluate(() => globalThis.trayMenuTemplates.at(-1));
+    assert.equal(trayItems.find(item => item.label.includes('Claude CLI')).enabled, false);
+    assert.equal(trayItems.find(item => item.label.includes('codex CLI')).enabled, false);
+    await openSettings(page);
+    assert.equal(await page.locator('#launcher-open-claude').isDisabled(), true);
+    assert.match(await page.locator('#launcher-claude-status').textContent(), /找不到 claude 指令/);
+    assert.match(await page.locator('#launcher-open-claude').textContent(), /找不到/);
+    assert.equal(await page.locator('#launcher-open-codex').isDisabled(), true);
+    console.log('PASS missing CLI state disables both modal launchers and labels the missing command');
+  } finally {
+    await closeAppAndAssertPort(application, port);
+  }
+}
+
+async function testStaleClientNotice() {
+  const userData = newUserData('cli-stale');
+  const application = await launch(userData, '0', {WALL_CLAUDE_BIN: path.join(__dirname, 'fake-cli-argv.cmd')});
+  let port;
+  try {
+    const page = await firstWindow(application);
+    await waitForWall(page);
+    await recordTerminalLaunches(application);
+    let value = await getState(page);
+    port = value.effectivePort;
+    await openSettings(page);
+    await page.locator('#launcher-open-claude').click();
+    await waitForTerminalLaunches(application, 1);
+    assert.equal((await getState(page)).staleClients, false);
+
+    const nextPort = await freePort();
+    await openSettings(page);
+    await page.locator('#launcher-port').fill(String(nextPort));
+    await page.locator('#launcher-apply').click();
+    await waitForWall(page);
+    value = await getState(page);
+    port = value.effectivePort;
+    assert.equal(value.staleClients, true);
+    await page.waitForFunction(() => document.querySelector('#wall-notice')?.textContent.includes('仍連到舊的服務'));
+
+    await openSettings(page);
+    await page.locator('#launcher-open-claude').click();
+    await waitForTerminalLaunches(application, 2);
+    await page.waitForFunction(() => !document.querySelector('#wall-notice')?.textContent);
+    assert.equal((await getState(page)).staleClients, false);
+    console.log('PASS opening a CLI after a port restart clears the stale-client wall notice');
+  } finally {
+    await closeAppAndAssertPort(application, port);
+  }
+}
+
+async function testApplyFailureIsVisible() {
+  const blocker = http.createServer((_req, res) => { res.writeHead(200); res.end('occupier'); });
+  await new Promise((resolve, reject) => { blocker.once('error', reject); blocker.listen(0, '127.0.0.1', resolve); });
+  const occupiedPort = blocker.address().port;
+  const userData = newUserData('apply-failure');
+  const application = await launch(userData, '0');
+  let originalPort;
+  try {
+    const page = await firstWindow(application);
+    await waitForWall(page);
+    originalPort = (await getState(page)).effectivePort;
+    assert.notEqual(originalPort, 3000);
+    await openSettings(page);
+    await page.locator('#launcher-port').fill(String(occupiedPort));
+    await page.locator('#launcher-apply').click();
+    await waitForWall(page);
+    await page.locator('#launcher-settings-dialog[open]').waitFor();
+    const value = await getState(page);
+    // WALL_PORT=0 gives the restored service a new free port; a configured port would come back unchanged.
+    assert.notEqual(value.effectivePort, occupiedPort);
+    originalPort = value.effectivePort;
+    assert.equal((await request(originalPort, '/api/health')).status, 200);
+    assert.equal(value.configuredPort, 3000, 'the failed port must not be saved');
+    assert.match(await page.locator('#launcher-settings-message').textContent(), /設定套用失敗/);
+    assert.match(await page.locator('#launcher-settings-message').textContent(), /已恢復原設定/);
+    assert.equal(await page.locator('#launcher-recent-logs').evaluate(node => node.open), true);
+    assert.ok(value.lastApplyError);
+    await page.locator('#launcher-cancel').click();
+    await page.waitForFunction(async () => (await window.caseGraph.getState()).lastApplyError === null);
+    console.log('PASS failed port apply restores the service and reopens the modal with an expanded log tail');
+  } finally {
+    await closeAppAndAssertPort(application, originalPort);
+    await new Promise(resolve => blocker.close(resolve));
+  }
+}
+
 (async () => {
   await testLifecycleAndRuntime();
   await testSingleInstance();
@@ -475,6 +693,10 @@ async function testOccupiedPort() {
   await testProjectSwitchAndPersistence();
   await testAiWorkdir();
   await testBrokenSettingsRepair();
+  await testCliLaunchAndMcp();
+  await testMissingCliAvailability();
+  await testStaleClientNotice();
+  await testApplyFailureIsVisible();
 })().catch(error => {
   console.error(`FAIL Electron suite: ${error.stack || error}`);
   process.exitCode = 1;

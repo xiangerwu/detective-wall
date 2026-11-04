@@ -574,6 +574,8 @@ dialog#launcher-settings-dialog::backdrop{background:var(--ui-backdrop)}
 #launcher-settings-dialog #launcher-apply{color:var(--ui-input);background:var(--ui-accent);border-color:var(--ui-accent);font-weight:700}
 #launcher-settings-dialog .settings-help{margin:6px 0 0;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #launcher-settings-dialog .settings-help .settings-path,#launcher-settings-dialog #launcher-db-path{display:inline;padding:0;border:0;background:none;font:inherit}
+#launcher-settings-dialog #launcher-recent-logs{margin-top:8px}
+#launcher-settings-dialog #launcher-log-lines{max-height:200px;overflow:auto;margin:0;white-space:pre-wrap}
 #launcher-settings-dialog .settings-error{min-height:0;margin:4px 0 0;color:var(--ui-danger);font-size:12px}
 #launcher-settings-dialog .settings-error:empty{display:none}
 #launcher-settings-dialog .settings-message{min-height:1.4em;margin:2px 0 8px;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
@@ -1413,8 +1415,22 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
       <p class="settings-help">這是 Claude／codex CLI 的工作目錄，不等於 MCP 的授權資料夾；要讓 MCP 讀取，請到「資料夾」面板明確加入。</p>
     </section>
     <section>
+      <h3>AI 命令列</h3>
+      <div class="right">
+        <button id="launcher-open-claude" type="button">開啟 Claude CLI</button>
+        <button id="launcher-open-codex" type="button">開啟 codex CLI</button>
+      </div>
+      <p id="launcher-claude-status" class="settings-help"></p>
+      <p id="launcher-codex-status" class="settings-help"></p>
+      <p class="settings-help">會在新的終端機視窗開啟，連到目前專案與實際埠，工作目錄為 AI 工作資料夾。</p>
+    </section>
+    <section>
       <h3>紀錄</h3>
       <button id="launcher-open-logs" type="button">開啟紀錄資料夾</button>
+      <details id="launcher-recent-logs">
+        <summary>最近紀錄</summary>
+        <pre id="launcher-log-lines" class="settings-path"></pre>
+      </details>
     </section>
     <div class="settings-actions">
       <button id="launcher-reset" type="button">重設為預設</button>
@@ -4057,11 +4073,22 @@ function flash(btn, msg) {
   setTimeout(() => { btn.textContent = text; }, 3000);
 }
 let noticeTimer = 0;
+let staleClientsNotice = false;
+const staleClientsMessage = '已開啟的 Claude／codex 視窗仍連到舊的服務，請關閉後重新開啟。';
 function showNotice(text) {
   clearTimeout(noticeTimer);
   const notice = $('#wall-notice');
   notice.textContent = text;
-  noticeTimer = setTimeout(() => { notice.textContent = ''; noticeTimer = 0; }, 3500);
+  noticeTimer = setTimeout(() => {
+    notice.textContent = staleClientsNotice ? staleClientsMessage : '';
+    noticeTimer = 0;
+  }, 3500);
+}
+function renderStaleClientsNotice(value) {
+  staleClientsNotice = Boolean(value?.staleClients);
+  clearTimeout(noticeTimer);
+  noticeTimer = 0;
+  $('#wall-notice').textContent = staleClientsNotice ? staleClientsMessage : '';
 }
 
 $('#f-close').onclick = closePanel;
@@ -6269,6 +6296,28 @@ function launcherMessage(text = '', kind = '') {
 function launcherRecent(folder) {
   return (launcherState?.recentProjects || []).find(item => String(item.folder).toLowerCase() === String(folder).toLowerCase());
 }
+function renderLauncherClients() {
+  const clients = launcherState?.clients || {};
+  for (const client of ['claude', 'codex']) {
+    const info = clients[client] || {}, available = Boolean(info.available);
+    const button = launcherById(`launcher-open-${client}`);
+    button.disabled = !available || launcherBusy;
+    button.textContent = available ? `開啟 ${client === 'claude' ? 'Claude' : 'codex'} CLI` : `開啟 ${client === 'claude' ? 'Claude' : 'codex'} CLI（找不到）`;
+    launcherById(`launcher-${client}-status`).textContent = available ? `已找到：${info.path}` : `找不到 ${client} 指令`;
+  }
+}
+function renderLauncherLogs() {
+  if (!launcherState) return;
+  launcherById('launcher-log-lines').textContent = (launcherState.logs || []).slice(-50).join('\n');
+  launcherById('launcher-recent-logs').open = launcherState.status === 'error'
+    || launcherState.status === 'port-occupied' || Boolean(launcherState.lastApplyError);
+}
+function renderLauncherRuntime() {
+  if (!launcherState) return;
+  launcherById('launcher-effective-port').textContent = launcherState.effectivePort ?? '-';
+  renderLauncherClients();
+  renderLauncherLogs();
+}
 function renderLauncherSettings() {
   if (!launcherDraft || !launcherState) return;
   launcherPort.value = launcherDraft.port ?? '';
@@ -6294,6 +6343,7 @@ function renderLauncherSettings() {
     list.append(button);
   }
   if (!list.children.length) list.append(mk('p', 'settings-help', '尚無最近專案'));
+  renderLauncherRuntime();
 }
 async function openLauncherSettings() {
   if (!window.caseGraph || launcherBusy) return;
@@ -6306,7 +6356,10 @@ async function openLauncherSettings() {
       aiWorkdir: launcherState.aiWorkdir ?? current?.aiWorkdir ?? null,
     };
     launcherError('launcher-port-error'); launcherError('launcher-project-error'); launcherError('launcher-ai-error');
-    launcherMessage(launcherState.settingsNeedsRepair ? '設定檔需要修復；檢查後按「套用」才會寫回。' : '');
+    const applyError = launcherState.lastApplyError;
+    launcherMessage(applyError
+      ? `設定套用失敗：${applyError.message}（已恢復原設定）`
+      : launcherState.settingsNeedsRepair ? '設定檔需要修復；檢查後按「套用」才會寫回。' : '', applyError ? 'error' : '');
     renderLauncherSettings();
     if (!launcherDialog.open) launcherDialog.showModal();
   } catch (error) {
@@ -6357,6 +6410,21 @@ async function applyLauncherSettings() {
     launcherById('launcher-apply').disabled = false;
   }
 }
+async function openLauncherClient(client) {
+  if (launcherBusy) return;
+  launcherBusy = true;
+  renderLauncherClients();
+  try {
+    launcherState = await window.caseGraph.openClient(client);
+    launcherMessage(`已在新的終端機視窗開啟 ${client === 'claude' ? 'Claude' : 'codex'} CLI。`, 'success');
+    renderLauncherRuntime();
+  } catch (error) {
+    launcherMessage(error.message || String(error), 'error');
+  } finally {
+    launcherBusy = false;
+    renderLauncherRuntime();
+  }
+}
 launcherButton.hidden = !window.caseGraph;
 if (window.caseGraph) {
   launcherButton.onclick = () => { void openLauncherSettings(); };
@@ -6377,7 +6445,10 @@ if (window.caseGraph) {
     } catch (error) { launcherError('launcher-ai-error', error.message || String(error)); }
   };
   launcherById('launcher-ai-clear').onclick = () => { launcherDraft.aiWorkdir = null; renderLauncherSettings(); };
+  launcherById('launcher-open-claude').onclick = () => { void openLauncherClient('claude'); };
+  launcherById('launcher-open-codex').onclick = () => { void openLauncherClient('codex'); };
   launcherById('launcher-open-logs').onclick = () => window.caseGraph.openLogFolder().catch(error => launcherMessage(error.message || String(error), 'error'));
+  launcherDialog.addEventListener('close', () => { void window.caseGraph.clearApplyError().catch(() => {}); });
   launcherById('launcher-cancel').onclick = () => launcherDialog.close();
   launcherById('launcher-apply').onclick = () => { void applyLauncherSettings(); };
   launcherById('launcher-reset').onclick = () => {
@@ -6391,8 +6462,10 @@ if (window.caseGraph) {
   window.caseGraph.onOpenSettings(() => { void openLauncherSettings(); });
   window.caseGraph.onStateChanged(value => {
     launcherState = value;
+    renderStaleClientsNotice(value);
     if (!launcherDialog.open && launcherButton.hidden === false) launcherButton.title = value.message || '';
-    if (launcherDialog.open && !launcherBusy) launcherById('launcher-effective-port').textContent = value.effectivePort ?? '-';
+    if (launcherDialog.open && !launcherBusy) renderLauncherRuntime();
+    if (value.lastApplyError && !launcherDialog.open && window.wallReady) void openLauncherSettings();
   });
 }
 
@@ -6408,6 +6481,15 @@ async function start() {
   await switchWall(walls.some(w => w.id === id) ? id : walls[0].id);
   document.body.inert = false;
   window.wallReady = true;
+  if (window.caseGraph) {
+    try {
+      launcherState = await window.caseGraph.getState();
+      renderStaleClientsNotice(launcherState);
+      if (launcherState.lastApplyError) await openLauncherSettings();
+    } catch (error) {
+      showNotice(error.message || String(error));
+    }
+  }
   await refreshTemplates();
   await refreshSourceFolders();
   await refreshChatClients();
