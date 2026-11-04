@@ -5,6 +5,7 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { spawn } = require('node:child_process');
 const playwright = require('playwright-core');
+const { createWallServer } = require('../server/server.js');
 
 const out = process.env.WALL_TEST_OUT || path.join(__dirname, '..', 'test-results', 'server');
 fs.mkdirSync(out, {recursive: true});
@@ -123,6 +124,16 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     console.log('PASS PRAGMA integrity_check = ok');
     assert.equal(journalMode, 'wal');
     console.log('PASS PRAGMA journal_mode = wal');
+
+    const customDb = path.join(out, 'temp', 'custom-chat', 'wall.db');
+    const customChatWorkDir = path.join(out, 'temp', 'custom-chat-workdir');
+    const custom = createWallServer({dbPath: customDb, port: 0, chatWorkDir: customChatWorkDir});
+    await new Promise((resolve, reject) => { custom.once('error', reject); custom.once('listening', resolve); });
+    assert.equal(path.resolve(custom.chatWorkDir), path.resolve(customChatWorkDir));
+    assert.equal(fs.statSync(customChatWorkDir).isDirectory(), true);
+    await custom.stopChats();
+    await new Promise(resolve => custom.close(() => { custom.db.close(); resolve(); }));
+    console.log('PASS createWallServer accepts a custom chatWorkDir and creates it');
 
     server = await start(db);
     const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();

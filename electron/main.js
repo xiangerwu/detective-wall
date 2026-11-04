@@ -10,12 +10,18 @@ const {
   Tray,
   nativeImage,
   shell,
+  dialog,
   ipcMain,
 } = require('electron');
 const {createWallServer} = require('../server/server.js');
 
 const APP_TITLE = 'CaseGraph 案件圖譜';
 const DEFAULT_PORT = 3000;
+const SETTINGS_SCHEMA_VERSION = 1;
+const ICON_PATHS = Object.freeze({
+  window: path.join(__dirname, '..', 'assets', 'icon', 'icon.ico'),
+  tray: path.join(__dirname, '..', 'assets', 'icon', process.platform === 'win32' ? 'icon.ico' : 'icon-16.png'),
+});
 const SERVICE_ACTIONS = new Set(['start', 'stop', 'restart', 'useFreePort']);
 
 const requestedUserData = process.env.CASEGRAPH_USER_DATA;
@@ -39,6 +45,7 @@ let databasePath;
 let configuredPort = DEFAULT_PORT;
 let effectivePort = null;
 let runtimePortOverride = null;
+let envPortOverride = process.env.WALL_PORT === undefined || process.env.WALL_PORT === '' ? null : Number(process.env.WALL_PORT);
 let settingsNeedsRepair = false;
 let serviceStatus = 'starting';
 let serviceMessage = '正在啟動本機服務…';
@@ -47,6 +54,7 @@ let hideNotified = false;
 let isQuitting = false;
 let shutdownTask;
 let serviceQueue = Promise.resolve();
+let settingsRequestQueued = false;
 
 function errorText(error) {
   return error instanceof Error ? error.message : String(error);
@@ -72,26 +80,80 @@ function readLogTail() {
 }
 
 function defaultSettings() {
-  return {schemaVersion: 1, port: DEFAULT_PORT, activeProjectFolder: defaultProjectFolder};
+  return {
+    schemaVersion: SETTINGS_SCHEMA_VERSION,
+    port: DEFAULT_PORT,
+    activeProjectFolder: defaultProjectFolder,
+    recentProjects: [{folder: defaultProjectFolder, aiWorkdir: null, lastUsedAt: new Date().toISOString()}],
+  };
 }
 
 function validPort(value) {
   return Number.isInteger(value) && value >= 0 && value <= 65535;
 }
 
+function validConfiguredPort(value) {
+  return Number.isInteger(value) && value >= 1024 && value <= 65535;
+}
+
+function pathKey(value) {
+  return path.normalize(path.resolve(value)).replace(/[\\/]+$/, '').toLowerCase();
+}
+
+function isAbsolutePath(value) {
+  return typeof value === 'string' && path.isAbsolute(value);
+}
+
+function validateRecentProjects(value) {
+  if (!Array.isArray(value) || value.length > 10) throw new Error('recentProjects is invalid');
+  const seen = new Set();
+  return value.map(item => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)
+      || !isAbsolutePath(item.folder)
+      || !(item.aiWorkdir === null || isAbsolutePath(item.aiWorkdir))
+      || typeof item.lastUsedAt !== 'string' || Number.isNaN(Date.parse(item.lastUsedAt))) {
+      throw new Error('recentProjects is invalid');
+    }
+    const folder = path.resolve(item.folder);
+    const key = pathKey(folder);
+    if (seen.has(key)) throw new Error('recentProjects contains duplicate folders');
+    seen.add(key);
+    return {folder, aiWorkdir: item.aiWorkdir === null ? null : path.resolve(item.aiWorkdir), lastUsedAt: item.lastUsedAt};
+  });
+}
+
+function validateStoredSettings(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || value.schemaVersion !== SETTINGS_SCHEMA_VERSION
+    || Object.hasOwn(value, 'legacyMigration')
+    || !validConfiguredPort(value.port)
+    || !isAbsolutePath(value.activeProjectFolder)) {
+    throw new Error('settings schema is invalid');
+  }
+  const activeProjectFolder = path.resolve(value.activeProjectFolder);
+  if (!fs.existsSync(activeProjectFolder) || !fs.statSync(activeProjectFolder).isDirectory()) {
+    throw new Error('active project folder does not exist');
+  }
+  const recentProjects = validateRecentProjects(value.recentProjects);
+  if (!recentProjects.some(item => pathKey(item.folder) === pathKey(activeProjectFolder))) {
+    throw new Error('active project is not in recentProjects');
+  }
+  for (const item of recentProjects) {
+    if (item.aiWorkdir && pathKey(item.aiWorkdir) === pathKey(path.join(item.folder, 'wall.db'))) {
+      throw new Error('aiWorkdir cannot be wall.db');
+    }
+    if (item.aiWorkdir && fs.existsSync(item.aiWorkdir) && !fs.statSync(item.aiWorkdir).isDirectory()) {
+      throw new Error('aiWorkdir is not a directory');
+    }
+  }
+  return {schemaVersion: SETTINGS_SCHEMA_VERSION, port: value.port, activeProjectFolder, recentProjects};
+}
+
 function readSettings() {
   const fallback = defaultSettings();
   if (!fs.existsSync(settingsPath)) return fallback;
   try {
-    const parsed = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)
-      || (parsed.schemaVersion !== undefined && parsed.schemaVersion !== 1)
-      || !validPort(parsed.port)
-      || typeof parsed.activeProjectFolder !== 'string'
-      || !path.isAbsolute(parsed.activeProjectFolder)) {
-      throw new Error('settings schema is invalid');
-    }
-    return {schemaVersion: 1, port: parsed.port, activeProjectFolder: path.resolve(parsed.activeProjectFolder)};
+    return validateStoredSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8')));
   } catch (error) {
     settingsNeedsRepair = true;
     writeLog('ERROR', '設定檔需要修復；已使用預設設定', error);
@@ -99,7 +161,59 @@ function readSettings() {
   }
 }
 
+function writeSettings(value) {
+  const temporaryPath = `${settingsPath}.tmp-${process.pid}-${Date.now()}`;
+  fs.mkdirSync(path.dirname(settingsPath), {recursive: true});
+  try {
+    fs.writeFileSync(temporaryPath, JSON.stringify(value, null, 2) + '\n', 'utf8');
+    fs.renameSync(temporaryPath, settingsPath);
+  } catch (error) {
+    try { fs.rmSync(temporaryPath, {force: true}); } catch {}
+    throw error;
+  }
+}
+
+function ensureDirectory(value, label) {
+  if (!isAbsolutePath(value)) throw new Error(`${label} 必須是絕對路徑`);
+  fs.mkdirSync(value, {recursive: true});
+  if (!fs.statSync(value).isDirectory()) throw new Error(`${label} 不是資料夾`);
+  return path.resolve(value);
+}
+
+function recentProject(folder, value = settings) {
+  return value?.recentProjects?.find(item => pathKey(item.folder) === pathKey(folder)) || null;
+}
+
+function configuredAiWorkdir(folder = activeProjectFolder, value = settings) {
+  return recentProject(folder, value)?.aiWorkdir || null;
+}
+
+function effectiveAiWorkdir(folder = activeProjectFolder, value = settings) {
+  return configuredAiWorkdir(folder, value) || path.join(folder, 'chat-workdir');
+}
+
+function buildSettings(port, folder, aiWorkdir) {
+  const rows = (settings?.recentProjects || []).filter(item => pathKey(item.folder) !== pathKey(folder));
+  rows.unshift({folder, aiWorkdir: aiWorkdir || null, lastUsedAt: new Date().toISOString()});
+  return {schemaVersion: SETTINGS_SCHEMA_VERSION, port, activeProjectFolder: folder, recentProjects: rows.slice(0, 10)};
+}
+
+function validateSettingsInput(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('設定內容無效');
+  const port = input.port;
+  if (!validConfiguredPort(port)) throw new Error('請輸入 1024–65535 的整數');
+  if (!isAbsolutePath(input.activeProjectFolder)) throw new Error('目前專案必須是絕對路徑');
+  const folder = path.resolve(input.activeProjectFolder);
+  const aiWorkdir = input.aiWorkdir === null || input.aiWorkdir === undefined ? null : path.resolve(input.aiWorkdir);
+  if (aiWorkdir && !isAbsolutePath(input.aiWorkdir)) throw new Error('AI 工作資料夾必須是絕對路徑');
+  if (aiWorkdir && pathKey(aiWorkdir) === pathKey(path.join(folder, 'wall.db'))) {
+    throw new Error('AI 工作資料夾不能是 wall.db');
+  }
+  return {port, folder, aiWorkdir};
+}
+
 function state() {
+  const current = recentProject(activeProjectFolder);
   return {
     status: serviceStatus,
     message: serviceMessage,
@@ -111,6 +225,12 @@ function state() {
     dbPath: databasePath,
     settingsPath,
     settingsNeedsRepair,
+    settings: structuredClone(settings),
+    recentProjects: structuredClone(settings?.recentProjects || []),
+    aiWorkdir: current?.aiWorkdir || null,
+    effectiveAiWorkdir: effectiveAiWorkdir(),
+    defaultProjectFolder,
+    chatActive: Boolean(server?.hasActiveChats?.()),
     logPath,
     logs: readLogTail(),
     nodeVersion: process.versions.node,
@@ -123,6 +243,7 @@ function updateTrayMenu() {
   const running = serviceStatus === 'running' || serviceStatus === 'starting' || serviceStatus === 'stopping';
   tray.setContextMenu(Menu.buildFromTemplate([
     {label: '顯示 CaseGraph', click: showWindow},
+    {label: '設定…', enabled: !isQuitting, click: () => { void requestSettings(); }},
     {label: '重新啟動服務', enabled: !isQuitting, click: () => serviceAction('restart')},
     {label: running ? '停止服務' : '啟動服務', enabled: !isQuitting, click: () => serviceAction(running ? 'stop' : 'start')},
     {label: '開啟紀錄資料夾', click: () => { void shell.openPath(logDir).catch(error => writeLog('ERROR', '無法開啟紀錄資料夾', error)); }},
@@ -166,7 +287,8 @@ function notifyHidden() {
 async function loadStatusPage() {
   if (!mainWindow || mainWindow.isDestroyed()) return;
   try { await mainWindow.loadFile(path.join(__dirname, 'status.html')); } catch (error) {
-    writeLog('ERROR', '狀態頁載入失敗', error);
+    // ERR_ABORTED only means a newer navigation (often the next status update) replaced this one.
+    if (error?.code !== 'ERR_ABORTED') writeLog('ERROR', '狀態頁載入失敗', error);
   }
 }
 
@@ -174,10 +296,16 @@ async function closeWallServer(value) {
   if (!value) return;
   try { await value.stopChats?.(); } catch (error) { writeLog('ERROR', '停止聊天 CLI 失敗', error); }
   if (value.listening) {
-    await new Promise(resolve => value.close(error => {
-      if (error && error.code !== 'ERR_SERVER_NOT_RUNNING') writeLog('ERROR', '停止服務失敗', error);
-      resolve();
-    }));
+    await new Promise(resolve => {
+      // The wall keeps reusing its keep-alive socket, so close() alone can wait forever;
+      // in-flight requests (a save) get a short grace period before the sockets are cut.
+      const force = setTimeout(() => value.closeAllConnections(), 2000);
+      value.close(error => {
+        clearTimeout(force);
+        if (error && error.code !== 'ERR_SERVER_NOT_RUNNING') writeLog('ERROR', '停止服務失敗', error);
+        resolve();
+      });
+    });
   }
   try { value.db?.close(); } catch (error) { writeLog('ERROR', '關閉 SQLite 失敗', error); }
 }
@@ -200,15 +328,15 @@ function startPort(override) {
     if (!validPort(override)) throw new Error('port must be an integer from 0 to 65535');
     return override;
   }
-  if (process.env.WALL_PORT !== undefined && process.env.WALL_PORT !== '') {
-    const port = Number(process.env.WALL_PORT);
+  if (envPortOverride !== null) {
+    const port = envPortOverride;
     if (!validPort(port)) throw new Error('WALL_PORT must be an integer from 0 to 65535');
     return port;
   }
   return configuredPort;
 }
 
-async function performStop() {
+async function performStop({showStatus = true} = {}) {
   const value = server;
   server = null;
   effectivePort = null;
@@ -220,11 +348,11 @@ async function performStop() {
   await closeWallServer(value);
   writeLog('INFO', '服務已停止');
   setState('stopped', '服務已停止');
-  if (!isQuitting) await loadStatusPage();
+  if (showStatus && !isQuitting) await loadStatusPage();
   return state();
 }
 
-async function performStart() {
+async function performStart({showStatus = true, touchSettings = true} = {}) {
   if (server?.listening) return state();
   let port;
   try { port = startPort(runtimePortOverride); } catch (error) {
@@ -236,11 +364,14 @@ async function performStart() {
   }
   databasePath = path.join(activeProjectFolder, 'wall.db');
   setState('starting', `${settingsNeedsRepair ? '設定檔需要修復；' : ''}正在啟動本機服務（埠 ${port}）…`);
-  await loadStatusPage();
+  if (showStatus) await loadStatusPage();
   let candidate;
   try {
     fs.mkdirSync(activeProjectFolder, {recursive: true});
-    candidate = createWallServer({dbPath: databasePath, port});
+    const options = {dbPath: databasePath, port};
+    const aiWorkdir = configuredAiWorkdir();
+    if (aiWorkdir) options.chatWorkDir = aiWorkdir;
+    candidate = createWallServer(options);
     await waitForListening(candidate);
   } catch (error) {
     await closeWallServer(candidate);
@@ -253,6 +384,11 @@ async function performStart() {
   }
   server = candidate;
   effectivePort = candidate.address().port;
+  if (touchSettings && !settingsNeedsRepair) {
+    const current = recentProject(activeProjectFolder);
+    settings = buildSettings(configuredPort, activeProjectFolder, current?.aiWorkdir || null);
+    try { writeSettings(settings); } catch (error) { writeLog('ERROR', '最近專案時間無法保存', error); }
+  }
   writeLog('INFO', `服務已啟動，埠 ${effectivePort}，DB ${databasePath}`);
   setState('running', `服務已就緒，埠 ${effectivePort}`);
   if (mainWindow && !mainWindow.isDestroyed()) {
@@ -288,10 +424,101 @@ function serviceAction(action) {
   });
 }
 
+function restorePreviousSettings(previous) {
+  settings = previous.settings;
+  settingsNeedsRepair = previous.settingsNeedsRepair;
+  activeProjectFolder = previous.activeProjectFolder;
+  databasePath = previous.databasePath;
+  configuredPort = previous.configuredPort;
+  runtimePortOverride = previous.runtimePortOverride;
+  envPortOverride = previous.envPortOverride;
+}
+
+async function applySettings(input) {
+  const next = validateSettingsInput(input);
+  const currentAiWorkdir = configuredAiWorkdir();
+  const projectChanged = pathKey(next.folder) !== pathKey(activeProjectFolder);
+  const changed = projectChanged || next.port !== configuredPort || pathKey(next.aiWorkdir || '') !== pathKey(currentAiWorkdir || '');
+  if (!changed && !settingsNeedsRepair) return state();
+
+  const previous = {
+    settings: structuredClone(settings),
+    settingsNeedsRepair,
+    activeProjectFolder,
+    databasePath,
+    configuredPort,
+    runtimePortOverride,
+    envPortOverride,
+    running: Boolean(server?.listening),
+  };
+  const nextSettings = buildSettings(next.port, next.folder, next.aiWorkdir);
+
+  try {
+    if (changed && server?.listening) await performStop({showStatus: false});
+    next.folder = ensureDirectory(next.folder, '目前專案');
+    if (next.aiWorkdir) next.aiWorkdir = ensureDirectory(next.aiWorkdir, 'AI 工作資料夾');
+    settings = nextSettings;
+    settingsNeedsRepair = false;
+    activeProjectFolder = next.folder;
+    // WALL_PORT holds for every restart until the user picks a port in settings.
+    if (next.port !== configuredPort) envPortOverride = null;
+    configuredPort = next.port;
+    databasePath = path.join(activeProjectFolder, 'wall.db');
+    runtimePortOverride = null;
+    if (changed || !server?.listening) {
+      const result = await performStart({showStatus: false, touchSettings: false});
+      if (result.status !== 'running') throw new Error(result.message || '服務無法啟動');
+    }
+    writeSettings(settings);
+    publishState();
+    return state();
+  } catch (error) {
+    const failedMessage = errorText(error);
+    if (server?.listening && changed) {
+      await performStop({showStatus: false});
+    }
+    restorePreviousSettings(previous);
+    if (previous.running && !server?.listening) {
+      const restored = await performStart({showStatus: false, touchSettings: false});
+      if (restored.status !== 'running') writeLog('ERROR', '設定失敗後無法恢復原服務', restored.error || restored.message);
+    }
+    publishState();
+    throw new Error(`設定套用失敗：${failedMessage}`);
+  }
+}
+
+function openSettingsInRenderer() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  try { mainWindow.webContents.send('casegraph:open-settings'); } catch {}
+}
+
+async function requestSettings() {
+  if (settingsRequestQueued) return state();
+  settingsRequestQueued = true;
+  try {
+    return await queueService(async () => {
+      if (!server?.listening) {
+        if (serviceStatus === 'port-occupied') runtimePortOverride = 0;
+        const result = await performStart({showStatus: false, touchSettings: false});
+        if (result.status !== 'running') return result;
+      }
+      const wallUrl = `http://127.0.0.1:${effectivePort}/`;
+      if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents.getURL() !== wallUrl) {
+        await mainWindow.loadURL(wallUrl);
+      }
+      showWindow();
+      openSettingsInRenderer();
+      return state();
+    });
+  } finally {
+    settingsRequestQueued = false;
+  }
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: APP_TITLE,
-    icon: path.join(__dirname, '..', 'assets', 'icon', 'icon.ico'),
+    icon: ICON_PATHS.window,
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -321,7 +548,7 @@ function createWindow() {
 }
 
 function createTray() {
-  const image = nativeImage.createFromPath(path.join(__dirname, '..', 'assets', 'icon', 'icon-16.png'));
+  const image = nativeImage.createFromPath(ICON_PATHS.tray);
   tray = new Tray(image);
   tray.setToolTip(APP_TITLE);
   tray.on('double-click', showWindow);
@@ -342,6 +569,29 @@ function registerIpc() {
     validSender(event);
     if (typeof action !== 'string' || !SERVICE_ACTIONS.has(action)) throw new Error('invalid service action');
     return serviceAction(action);
+  });
+  ipcMain.handle('casegraph:save-settings', (event, input) => {
+    validSender(event);
+    return queueService(() => applySettings(input));
+  });
+  ipcMain.handle('casegraph:pick-directory', async (event, kind) => {
+    validSender(event);
+    if (kind !== 'project' && kind !== 'aiWorkdir') throw new Error('invalid directory kind');
+    const current = kind === 'project' ? activeProjectFolder : effectiveAiWorkdir();
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: kind === 'project' ? '選擇 CaseGraph 專案資料夾' : '選擇 AI 工作資料夾',
+      defaultPath: current,
+      properties: ['openDirectory', 'createDirectory'],
+    });
+    return {canceled: result.canceled, path: result.canceled ? null : result.filePaths[0] || null};
+  });
+  ipcMain.handle('casegraph:open-log-folder', event => {
+    validSender(event);
+    return shell.openPath(logDir);
+  });
+  ipcMain.handle('casegraph:open-settings', event => {
+    validSender(event);
+    return requestSettings();
   });
 }
 
@@ -372,6 +622,8 @@ function main() {
     void shutdown();
   });
   app.whenReady().then(() => {
+    app.setAppUserModelId('CaseGraph');
+    Menu.setApplicationMenu(null);
     caseGraphDir = path.join(app.getPath('userData'), 'CaseGraph');
     settingsPath = path.join(caseGraphDir, 'settings.json');
     defaultProjectFolder = path.join(caseGraphDir, 'projects', 'default');

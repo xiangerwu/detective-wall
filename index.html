@@ -557,6 +557,37 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 .im-row del{color:var(--ui-danger)}
 .im-row ins{color:var(--ui-success);text-decoration:none}
 #importer .row{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:6px}
+dialog#launcher-settings-dialog{width:min(720px,calc(100vw - 28px));max-height:min(88vh,760px);padding:0;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 18px 60px var(--ui-shadow)}
+dialog#launcher-settings-dialog::backdrop{background:var(--ui-backdrop)}
+#launcher-settings-dialog form{display:flex;flex-direction:column;gap:0;padding:20px 22px}
+#launcher-settings-dialog h2{margin:0;font-size:20px}
+#launcher-settings-dialog h3{margin:0 0 8px;font-size:14px;color:var(--ui-text)}
+#launcher-settings-dialog section{padding:14px 0 10px;border-top:1px solid var(--ui-border)}
+#launcher-settings-dialog label{display:flex;flex-direction:column;gap:4px;min-width:0;color:var(--ui-muted);font-size:12px}
+#launcher-settings-dialog :is(input,.settings-path){box-sizing:border-box;width:100%;min-height:32px;padding:6px 9px;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-border);border-radius:var(--radius-sm)}
+#launcher-settings-dialog input{font:inherit}
+#launcher-settings-dialog .settings-path{display:block;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,SFMono-Regular,Consolas,"Noto Sans Mono",monospace}
+#launcher-settings-dialog .settings-port{width:96px}
+#launcher-settings-dialog .settings-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+#launcher-settings-dialog button{min-height:32px;padding:5px 12px;font:inherit;font-size:var(--control-font);color:var(--ui-text);background:var(--ui-raised);border:1px solid var(--ui-border);border-radius:var(--radius-sm);cursor:pointer}
+#launcher-settings-dialog button:hover{border-color:var(--ui-accent)}
+#launcher-settings-dialog #launcher-apply{color:var(--ui-input);background:var(--ui-accent);border-color:var(--ui-accent);font-weight:700}
+#launcher-settings-dialog .settings-help{margin:6px 0 0;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
+#launcher-settings-dialog .settings-help .settings-path,#launcher-settings-dialog #launcher-db-path{display:inline;padding:0;border:0;background:none;font:inherit}
+#launcher-settings-dialog .settings-error{min-height:0;margin:4px 0 0;color:var(--ui-danger);font-size:12px}
+#launcher-settings-dialog .settings-error:empty{display:none}
+#launcher-settings-dialog .settings-message{min-height:1.4em;margin:2px 0 8px;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
+#launcher-settings-dialog .settings-message.error{color:var(--ui-danger)}
+#launcher-settings-dialog .settings-message.success{color:var(--ui-success)}
+#launcher-settings-dialog .recent-projects{display:flex;flex-direction:column;gap:4px;margin-top:8px;max-height:150px;overflow:auto}
+#launcher-settings-dialog .recent-project{display:flex;align-items:center;gap:8px;width:100%;padding:5px 8px;background:transparent;text-align:left}
+#launcher-settings-dialog .recent-project::before{content:'●';color:var(--ui-accent);font-size:10px}
+#launcher-settings-dialog .recent-project span{min-width:0}
+#launcher-settings-dialog .recent-project strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+#launcher-settings-dialog .recent-project small{display:block;color:var(--ui-muted)}
+#launcher-settings-dialog .settings-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--ui-border)}
+#launcher-settings-dialog .right{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:600px){#launcher-settings-dialog .settings-grid{grid-template-columns:1fr}#launcher-settings-dialog .settings-grid button{justify-self:start}}
 
 #proposal-review{position:fixed;z-index:44;right:14px;bottom:14px;width:min(560px,calc(100vw - 28px));height:min(760px,calc(100vh - 28px));display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 18px 48px var(--ui-shadow-soft)}
 #proposal-review[hidden]{display:none}
@@ -980,6 +1011,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <button id="redo" title="重做（Ctrl+Y）" aria-label="重做" disabled>↷</button>
     <span id="wall-notice" role="status" aria-live="polite"></span>
     <span id="save-state" role="status">未保存的變更</span>
+    <button id="launcher-settings" type="button" hidden>啟動器設定</button>
     <div id="canvas-islands" aria-label="畫布工具">
       <div id="layout-wall-control">
         <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">✣</span><span class="rail-label">推開重疊</span></button>
@@ -1345,6 +1377,50 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <h2 id="backups-title">備份</h2>
   <div id="backup-list"></div>
   <button id="backups-close">關閉</button>
+</dialog>
+
+<dialog id="launcher-settings-dialog" aria-labelledby="launcher-settings-title">
+  <form id="launcher-settings-form">
+    <h2 id="launcher-settings-title">CaseGraph 啟動器設定</h2>
+    <p id="launcher-settings-message" class="settings-message" role="status" aria-live="polite"></p>
+    <section>
+      <h3>服務</h3>
+      <div class="settings-grid">
+        <label for="launcher-port">服務埠<input id="launcher-port" type="number" inputmode="numeric" min="1024" max="65535" step="1"></label>
+        <label class="settings-port">目前實際埠<span id="launcher-effective-port" class="settings-path">-</span></label>
+      </div>
+      <p id="launcher-port-error" class="settings-error" aria-live="polite"></p>
+      <p class="settings-help">預設 3000；可用範圍 1024–65535。套用埠變更會重新啟動服務。</p>
+    </section>
+    <section>
+      <h3>目前專案</h3>
+      <div class="settings-grid">
+        <label>資料夾<span class="settings-path" id="launcher-project-folder">-</span></label>
+        <button id="launcher-project-pick" type="button">切換專案…</button>
+      </div>
+      <p class="settings-help">wall.db：<span id="launcher-db-path">-</span></p>
+      <p id="launcher-project-error" class="settings-error" aria-live="polite"></p>
+      <p class="settings-help">一個專案資料夾對應一個 SQLite 檔案。牆、備份、聊天紀錄都留在這個專案資料夾。</p>
+      <div id="launcher-recent-projects" class="recent-projects" aria-label="最近專案"></div>
+    </section>
+    <section>
+      <h3>AI 工作資料夾</h3>
+      <div class="settings-grid">
+        <label>路徑<span class="settings-path" id="launcher-ai-workdir">-</span></label>
+        <div class="right"><button id="launcher-ai-pick" type="button">選擇資料夾…</button><button id="launcher-ai-clear" type="button">使用預設</button></div>
+      </div>
+      <p id="launcher-ai-error" class="settings-error" aria-live="polite"></p>
+      <p class="settings-help">這是 Claude／codex CLI 的工作目錄，不等於 MCP 的授權資料夾；要讓 MCP 讀取，請到「資料夾」面板明確加入。</p>
+    </section>
+    <section>
+      <h3>紀錄</h3>
+      <button id="launcher-open-logs" type="button">開啟紀錄資料夾</button>
+    </section>
+    <div class="settings-actions">
+      <button id="launcher-reset" type="button">重設為預設</button>
+      <div class="right"><button id="launcher-cancel" type="button">取消</button><button id="launcher-apply" class="on" type="button">套用</button></div>
+    </div>
+  </form>
 </dialog>
 
 <script>
@@ -6179,6 +6255,146 @@ const disarmDeleteWall = twoClick($('#delete-wall'), '再按一次刪除牆', ()
   else await refreshWalls();
   await saveTabs();
 }));
+
+const launcherButton = $('#launcher-settings'), launcherDialog = $('#launcher-settings-dialog'), launcherPort = $('#launcher-port');
+let launcherState = null, launcherDraft = null, launcherBusy = false;
+const absoluteLauncherPath = value => /^(?:[A-Za-z]:[\\/]|\\\\|\/)/.test(String(value || ''));
+const launcherById = id => document.getElementById(id);
+function launcherError(id, text = '') { launcherById(id).textContent = text; }
+function launcherMessage(text = '', kind = '') {
+  const node = launcherById('launcher-settings-message');
+  node.textContent = text;
+  node.className = 'settings-message' + (kind ? ' ' + kind : '');
+}
+function launcherRecent(folder) {
+  return (launcherState?.recentProjects || []).find(item => String(item.folder).toLowerCase() === String(folder).toLowerCase());
+}
+function renderLauncherSettings() {
+  if (!launcherDraft || !launcherState) return;
+  launcherPort.value = launcherDraft.port ?? '';
+  launcherById('launcher-effective-port').textContent = launcherState.effectivePort ?? '-';
+  launcherById('launcher-project-folder').textContent = launcherDraft.activeProjectFolder || '-';
+  launcherById('launcher-db-path').textContent = launcherDraft.activeProjectFolder ? launcherDraft.activeProjectFolder.replace(/[\\/]$/, '') + '/wall.db' : '-';
+  launcherById('launcher-ai-workdir').textContent = launcherDraft.aiWorkdir || `${launcherState.effectiveAiWorkdir || '-'}（預設）`;
+  const list = launcherById('launcher-recent-projects');
+  list.replaceChildren();
+  for (const item of launcherState.recentProjects || []) {
+    const button = mk('button', 'recent-project'), body = document.createElement('span'), path = document.createElement('strong'), at = document.createElement('small');
+    button.type = 'button';
+    path.textContent = item.folder;
+    at.textContent = item.lastUsedAt ? new Date(item.lastUsedAt).toLocaleString('zh-TW') : '';
+    body.append(path, at);
+    button.append(body);
+    button.onclick = () => {
+      launcherDraft.activeProjectFolder = item.folder;
+      launcherDraft.aiWorkdir = item.aiWorkdir || null;
+      launcherError('launcher-project-error'); launcherError('launcher-ai-error'); launcherMessage();
+      renderLauncherSettings();
+    };
+    list.append(button);
+  }
+  if (!list.children.length) list.append(mk('p', 'settings-help', '尚無最近專案'));
+}
+async function openLauncherSettings() {
+  if (!window.caseGraph || launcherBusy) return;
+  try {
+    launcherState = await window.caseGraph.getState();
+    const current = launcherRecent(launcherState.activeProjectFolder);
+    launcherDraft = {
+      port: launcherState.settings?.port ?? launcherState.configuredPort,
+      activeProjectFolder: launcherState.activeProjectFolder,
+      aiWorkdir: launcherState.aiWorkdir ?? current?.aiWorkdir ?? null,
+    };
+    launcherError('launcher-port-error'); launcherError('launcher-project-error'); launcherError('launcher-ai-error');
+    launcherMessage(launcherState.settingsNeedsRepair ? '設定檔需要修復；檢查後按「套用」才會寫回。' : '');
+    renderLauncherSettings();
+    if (!launcherDialog.open) launcherDialog.showModal();
+  } catch (error) {
+    launcherMessage(error.message || String(error), 'error');
+  }
+}
+function validateLauncherSettings() {
+  const rawPort = String(launcherPort.value || '').trim();
+  if (!/^\d+$/.test(rawPort) || !Number.isInteger(Number(rawPort)) || Number(rawPort) < 1024 || Number(rawPort) > 65535) {
+    launcherError('launcher-port-error', '請輸入 1024–65535 的整數');
+    return false;
+  }
+  launcherDraft.port = Number(rawPort);
+  if (!absoluteLauncherPath(launcherDraft.activeProjectFolder)) {
+    launcherError('launcher-project-error', '請選擇專案資料夾');
+    return false;
+  }
+  if (launcherDraft.aiWorkdir !== null && !absoluteLauncherPath(launcherDraft.aiWorkdir)) {
+    launcherError('launcher-ai-error', 'AI 工作資料夾必須是絕對路徑');
+    return false;
+  }
+  launcherError('launcher-port-error'); launcherError('launcher-project-error'); launcherError('launcher-ai-error');
+  return true;
+}
+async function applyLauncherSettings() {
+  if (launcherBusy || !validateLauncherSettings()) return;
+  const changed = launcherDraft.port !== launcherState.configuredPort
+    || launcherDraft.activeProjectFolder.toLowerCase() !== String(launcherState.activeProjectFolder).toLowerCase()
+    || String(launcherDraft.aiWorkdir || '').toLowerCase() !== String(launcherState.aiWorkdir || '').toLowerCase();
+  if (changed && (chatBusy || launcherState.chatActive)
+    && !window.confirm('重新啟動服務會停止目前的 AI 回覆，是否繼續？')) return;
+  launcherBusy = true;
+  launcherMessage('正在重新啟動本機服務…');
+  launcherById('launcher-apply').disabled = true;
+  try {
+    // The wall reloads from the restarted service, so queued edits must reach the current project first.
+    if (changed) await store.flushWrites();
+    launcherState = await window.caseGraph.saveSettings(launcherDraft);
+    launcherDialog.close();
+  } catch (error) {
+    const text = error.message || String(error);
+    if (text.includes('1024')) launcherError('launcher-port-error', text);
+    else if (text.includes('AI')) launcherError('launcher-ai-error', text);
+    else if (text.includes('專案')) launcherError('launcher-project-error', text);
+    launcherMessage(text, 'error');
+  } finally {
+    launcherBusy = false;
+    launcherById('launcher-apply').disabled = false;
+  }
+}
+launcherButton.hidden = !window.caseGraph;
+if (window.caseGraph) {
+  launcherButton.onclick = () => { void openLauncherSettings(); };
+  launcherById('launcher-project-pick').onclick = async () => {
+    try {
+      const result = await window.caseGraph.pickDirectory('project');
+      if (!result.canceled && result.path) {
+        launcherDraft.activeProjectFolder = result.path;
+        launcherDraft.aiWorkdir = launcherRecent(result.path)?.aiWorkdir || null;
+        renderLauncherSettings();
+      }
+    } catch (error) { launcherError('launcher-project-error', error.message || String(error)); }
+  };
+  launcherById('launcher-ai-pick').onclick = async () => {
+    try {
+      const result = await window.caseGraph.pickDirectory('aiWorkdir');
+      if (!result.canceled && result.path) { launcherDraft.aiWorkdir = result.path; renderLauncherSettings(); }
+    } catch (error) { launcherError('launcher-ai-error', error.message || String(error)); }
+  };
+  launcherById('launcher-ai-clear').onclick = () => { launcherDraft.aiWorkdir = null; renderLauncherSettings(); };
+  launcherById('launcher-open-logs').onclick = () => window.caseGraph.openLogFolder().catch(error => launcherMessage(error.message || String(error), 'error'));
+  launcherById('launcher-cancel').onclick = () => launcherDialog.close();
+  launcherById('launcher-apply').onclick = () => { void applyLauncherSettings(); };
+  launcherById('launcher-reset').onclick = () => {
+    launcherDraft.port = 3000;
+    launcherDraft.activeProjectFolder = launcherState.defaultProjectFolder;
+    launcherDraft.aiWorkdir = null;
+    launcherError('launcher-port-error'); launcherError('launcher-project-error'); launcherError('launcher-ai-error');
+    launcherMessage('已重設畫面上的值；按「套用」後才會保存。');
+    renderLauncherSettings();
+  };
+  window.caseGraph.onOpenSettings(() => { void openLauncherSettings(); });
+  window.caseGraph.onStateChanged(value => {
+    launcherState = value;
+    if (!launcherDialog.open && launcherButton.hidden === false) launcherButton.title = value.message || '';
+    if (launcherDialog.open && !launcherBusy) launcherById('launcher-effective-port').textContent = value.effectivePort ?? '-';
+  });
+}
 
 async function start() {
   buildTypeButtons();

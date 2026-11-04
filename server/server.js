@@ -490,16 +490,19 @@ function sanitizeDataLinks(data) {
   return copy;
 }
 
-function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir, '..', 'data', 'wall.db'), port = Number(process.env.WALL_PORT || 3000)} = {}) {
+function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir, '..', 'data', 'wall.db'), port = Number(process.env.WALL_PORT || 3000), chatWorkDir} = {}) {
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('WALL_PORT must be an integer from 0 to 65535');
-  const databasePath = path.resolve(dbPath);
-  const store = createDatabase(databasePath);
-  const sourceRoot = path.dirname(databasePath);
-  const chatWorkDir = path.join(sourceRoot, 'chat-workdir');
-  if (fs.existsSync(chatWorkDir) && !fs.statSync(chatWorkDir).isDirectory()) {
-    throw new Error(`chat workdir is not a directory: ${chatWorkDir}`);
+  if (chatWorkDir !== undefined && chatWorkDir !== null && (typeof chatWorkDir !== 'string' || !chatWorkDir.trim())) {
+    throw new Error('chatWorkDir must be a non-empty path');
   }
-  fs.mkdirSync(chatWorkDir, {recursive: true});
+  const databasePath = path.resolve(dbPath);
+  const sourceRoot = path.dirname(databasePath);
+  const resolvedChatWorkDir = chatWorkDir == null ? path.join(sourceRoot, 'chat-workdir') : path.resolve(chatWorkDir);
+  if (fs.existsSync(resolvedChatWorkDir) && !fs.statSync(resolvedChatWorkDir).isDirectory()) {
+    throw new Error(`chat workdir is not a directory: ${resolvedChatWorkDir}`);
+  }
+  fs.mkdirSync(resolvedChatWorkDir, {recursive: true});
+  const store = createDatabase(databasePath);
   const chatBusy = new Set();
   const chatJobs = new Map();
   const chatChannels = new Map();
@@ -630,7 +633,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
           const args = client === 'claude'
             ? claudeArgs(wall, databasePath, server.address().port, sessionId)
             : codexArgs(wall, databasePath, server.address().port, sessionId);
-          const run = runCli(command, args, input.message, chatWorkDir, cliTimeout(), {onEvent: event => {
+          const run = runCli(command, args, input.message, resolvedChatWorkDir, cliTimeout(), {onEvent: event => {
             const text = progressText(event);
             if (text) emitChat(wallId, 'progress', {text, at: Date.now()});
           }});
@@ -862,6 +865,8 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
     }
   });
   server.db = store;
+  server.chatWorkDir = resolvedChatWorkDir;
+  server.hasActiveChats = () => chatJobs.size > 0 || chatBusy.size > 0;
   server.stopChats = async () => {
     await Promise.all([...chatJobs.values()].map(job => job.stop?.()));
   };
