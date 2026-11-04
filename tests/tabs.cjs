@@ -80,6 +80,24 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(JSON.stringify(await ids()) === JSON.stringify([a]) && await current() === a, 'deleting the current tab switches to its neighbour');
     await reload(page);
     ok(JSON.stringify(await ids()) === JSON.stringify([a]) && await page.evaluate(async () => (await store.getMeta('tabs')).colors && !Object.keys((await store.getMeta('tabs')).colors).length), 'deletions persist and drop stale colors');
+    ok(await page.locator('#wall-list').isHidden(), 'the wall list button stays hidden while every tab fits');
+    for (let i = 0; i < 16; i++) { await page.click('#add-wall'); await settled(page); }
+    const firstVisible = () => page.locator(`.wall-tab[data-id="${a}"]`).evaluate(el => {
+      const tab = el.getBoundingClientRect(), bar = el.parentElement.getBoundingClientRect();
+      return tab.left >= bar.left - 1 && tab.right <= bar.right + 1;
+    });
+    ok(await page.locator('#wall-list').isVisible() && !(await firstVisible()), 'overflowing tabs show the wall list button and hide the first tab');
+    const strip = await page.locator('#wall-tabs').boundingBox();
+    await page.mouse.move(strip.x + strip.width / 2, strip.y + strip.height / 2);
+    const scrolledBefore = await page.locator('#wall-tabs').evaluate(el => el.scrollLeft);
+    for (let i = 0; i < 20; i++) await page.mouse.wheel(0, -200);
+    await page.waitForFunction(() => document.querySelector('#wall-tabs').scrollLeft === 0);
+    ok(scrolledBefore > 0 && await firstVisible(), 'the mouse wheel scrolls the tab strip back to the first tab');
+    await page.click('#wall-list');
+    ok(await page.locator('#wall-list-menu [role=menuitem]').count() === 17, 'the wall list names every wall');
+    await page.screenshot({ path: path.join(OUT, 'wall-list.png'), clip: { x: 0, y: 0, width: 1400, height: 500 } });
+    await page.locator('#wall-list-menu [role=menuitem]').first().click(); await settled(page);
+    ok(await current() === a && await page.locator('#wall-list-menu').isHidden() && await firstVisible(), 'choosing from the wall list switches to that wall and shows its tab');
     ok(errs.length === 0, 'no page errors ' + errs.join('; '));
   } finally {
     await browser.close();

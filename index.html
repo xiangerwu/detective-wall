@@ -88,10 +88,9 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #layout-wall-control > button{padding:5px 7px;border:0;border-radius:var(--radius-md);background:var(--ui-active);font-size:12px}
 #layout-wall-control > button:hover{background:var(--ui-hover)}
 #layout-wall-control > #layout-wall-arrow{min-width:24px;padding:5px 3px;border-left:1px solid var(--ui-border);border-radius:var(--radius-md)}
-#layout-wall-menu{position:absolute;z-index:41;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:2px;min-width:126px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
-#layout-wall-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
-#layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true]{background:var(--ui-hover)}
-/* Wall tabs are rounded pills in the hybrid shell. */
+#layout-wall-menu,#wall-list-menu{position:absolute;z-index:41;top:calc(100% + 4px);left:0;display:flex;flex-direction:column;gap:2px;min-width:126px;padding:4px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:6px;box-shadow:0 12px 40px var(--ui-shadow)}
+#layout-wall-menu button,#wall-list-menu button{width:100%;border:0;background:transparent;text-align:left;white-space:nowrap}
+#layout-wall-menu button:hover,#layout-wall-menu button:focus-visible,#layout-wall-menu button[aria-current=true],#wall-list-menu button:hover,#wall-list-menu button:focus-visible,#wall-list-menu button[aria-current=true]{background:var(--ui-hover)}/* Wall tabs are rounded pills in the hybrid shell. */
 #tabrow{display:flex;align-items:center;gap:8px;min-width:0;min-height:38px;flex-wrap:nowrap;white-space:nowrap}
 #wall-tabs{display:flex;flex:0 1 auto;width:max-content;max-width:100%;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;touch-action:none}
 #wall-tabs::-webkit-scrollbar{display:none}
@@ -101,6 +100,10 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 .wall-tab.dragging{opacity:.6;cursor:grabbing}
 .wall-tab input{width:140px;font:inherit;color:var(--ui-text);background:var(--ui-input);border:1px solid var(--ui-accent);border-radius:3px;padding:0 4px}
 #add-wall{flex:none;padding:3px 10px;border-radius:var(--pill-radius)}
+#wall-list-control{position:relative;flex:none}
+#wall-list{padding:3px 8px;border-radius:var(--pill-radius)}
+#wall-list-menu{max-height:min(60vh,420px);max-width:280px;overflow-y:auto}
+#wall-list-menu button{overflow:hidden;text-overflow:ellipsis}
 #storage-warning{align-self:center;margin-left:auto;color:var(--ui-warning)}
 #save-state{flex:none;align-self:center;color:var(--ui-muted);font-size:12px}
 #wall-notice{flex:0 1 240px;align-self:center;min-width:0;color:var(--ui-warning);font-size:12px;max-width:min(360px,30vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -975,6 +978,10 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   <div id="tabrow">
     <div id="wall-tabs" role="tablist" aria-label="牆（點兩下改名、右鍵換顏色或刪除、拖曳排序）"></div>
     <button id="add-wall" title="新增一面牆" aria-label="新增一面牆">＋</button>
+    <div id="wall-list-control" hidden>
+      <button id="wall-list" type="button" title="所有牆" aria-label="所有牆" aria-haspopup="menu" aria-expanded="false" aria-controls="wall-list-menu">▾</button>
+      <div id="wall-list-menu" role="menu" aria-label="所有牆" hidden></div>
+    </div>
     <div class="search-area">
       <input id="wall-search" type="search" autocomplete="off" placeholder="搜尋所有牆" aria-label="搜尋所有牆">
       <div id="search-results" role="listbox" hidden></div>
@@ -5902,7 +5909,45 @@ function renderTabs() {
   });
   if (tabs.some((t, i) => t !== old[i]) || old.length !== tabs.length) bar.replaceChildren(...tabs);
   bar.querySelector('[aria-selected=true]')?.scrollIntoView({block: 'nearest', inline: 'nearest'});
+  updateWallListButton();
 }
+// The tab strip hides its scrollbar, so once tabs overflow the ▾ list is the way back to walls scrolled out of view.
+function updateWallListButton() {
+  const bar = $('#wall-tabs');
+  $('#wall-list-control').hidden = bar.scrollWidth <= bar.clientWidth;
+  if ($('#wall-list-control').hidden) closeWallList();
+}
+function closeWallList(focus = false) {
+  $('#wall-list-menu').hidden = true;
+  $('#wall-list').setAttribute('aria-expanded', 'false');
+  if (focus) $('#wall-list').focus();
+}
+$('#wall-list').onclick = () => {
+  const menu = $('#wall-list-menu');
+  if (!menu.hidden) return closeWallList();
+  menu.replaceChildren(...walls.map(w => {
+    const item = mk('button', '', w.name);
+    item.type = 'button';
+    item.title = w.name;
+    item.setAttribute('role', 'menuitem');
+    item.setAttribute('aria-current', String(w.id === currentWall.id));
+    item.onclick = () => { closeWallList(); if (w.id !== currentWall.id) changeWall(() => switchWall(w.id)); };
+    return item;
+  }));
+  menu.hidden = false;
+  $('#wall-list').setAttribute('aria-expanded', 'true');
+  menu.querySelector('[aria-current=true]')?.focus();
+};
+$('#wall-list-menu').onkeydown = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); closeWallList(true); } };
+document.addEventListener('pointerdown', ev => { if (!ev.target.closest('#wall-list-control')) closeWallList(); }, true);
+new ResizeObserver(updateWallListButton).observe($('#wall-tabs'));
+// A plain mouse wheel scrolls the tab strip sideways, as in browser tab bars.
+$('#wall-tabs').addEventListener('wheel', ev => {
+  const bar = ev.currentTarget;
+  if (bar.scrollWidth <= bar.clientWidth || Math.abs(ev.deltaX) >= Math.abs(ev.deltaY)) return;
+  ev.preventDefault();
+  bar.scrollLeft += ev.deltaY * (ev.deltaMode === 1 ? 40 : 1);
+}, {passive: false});
 function saveTabs() {
   tabMeta.order = [...$('#wall-tabs').children].map(t => t.dataset.id);
   tabMeta = normalizeTabMeta(tabMeta);
