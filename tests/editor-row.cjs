@@ -30,6 +30,12 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         if (panel.right > innerWidth || panel.bottom > innerHeight) out.push('editor does not fit the window');
         const levels = [...document.querySelectorAll('#f-level button')].map(el => el.getBoundingClientRect());
         if (levels.some((r, i) => i && r.left - levels[i - 1].right < 6)) out.push('anchor level buttons touch each other');
+        // Every option control shares one look: same height, corner radius and background.
+        const controls = [...document.querySelectorAll('#f-mount button, #f-level button, #f-size-reset, #f-del, #panel .editor-options-row > .check')];
+        const looks = new Set(controls.map(el => { const s = getComputedStyle(el); return [Math.round(el.getBoundingClientRect().height), s.borderTopLeftRadius].join(' '); }));
+        if (looks.size > 1) out.push('option controls differ in height or radius: ' + [...looks].join(' | '));
+        const plain = controls.filter(el => !el.matches('.on') && !el.matches('.check:has(input:checked)'));
+        if (new Set(plain.map(el => getComputedStyle(el).backgroundColor)).size > 1) out.push('unselected option controls use different backgrounds');
         return out;
       });
       ok(problems.length === 0, `${width}x${height}: editor options stay one readable row ${problems.join('; ')}`);

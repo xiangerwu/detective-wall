@@ -74,7 +74,6 @@ button:hover{border-color:var(--ui-accent);background:var(--ui-hover)}
 #topbar button:not(.on):not(.wall-tab):hover{border-color:var(--ui-border);background:var(--ui-hover)}
 /* the tab menu lives inside header but is a popup panel, so its buttons keep their frames and swatch colours */
 #tabmenu button:not(.swatch){background:var(--ui-raised);border-color:var(--ui-border)}
-#tabmenu button.swatch{background:var(--c-bg);border-color:var(--c-top)}
 /* The frameless top-strip rule is more specific, so keep colour swatches visible in the popup. */
 #topbar #tabmenu button.swatch{background:var(--c-bg);border-color:var(--c-top)}
 button:disabled{opacity:.4;cursor:default}
@@ -312,7 +311,7 @@ body.rail-hidden #rail-panel{display:none}
 .dim{opacity:.15}
 #f-color{display:flex;flex-wrap:wrap;gap:4px}
 button.swatch,button.swatch.on{width:28px;height:28px;padding:0;background:var(--c-bg);border:2px solid var(--c-top);border-radius:50%}
-button.swatch.custom-swatch{background:conic-gradient(var(--builds),var(--question),var(--uses),var(--builds))}  /* a colour wheel: the word 自訂 did not fit a 22px swatch */
+button.swatch.custom-swatch,#topbar #tabmenu button.custom-swatch:not(.has-color){background:conic-gradient(var(--builds),var(--question),var(--uses),var(--builds))}  /* a colour wheel: the word 自訂 did not fit a 22px swatch */
 button.swatch.custom-swatch.has-color{background:var(--c-bg)}
 #f-custom-color{position:absolute;width:1px;height:1px;padding:0;border:0;opacity:0;pointer-events:none}
 button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
@@ -330,8 +329,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #card-menu button{border:0;background:transparent;text-align:left}
 #card-menu button:hover,#card-menu button:focus-visible{background:var(--ui-hover)}
 #f-mount,#f-level{display:flex;gap:var(--space-2)}
-#f-mount button{flex:1}
-#f-mount button.on{border-color:var(--ui-accent);background:var(--ui-active)}
+#f-mount button,#f-level button{flex:1}
 /* --inv cancels the wall zoom so the popup keeps its screen size */
 #edgepop,#bandpop{position:absolute;z-index:6;display:flex;gap:4px;padding:6px;background:var(--ui-surface);border:1px solid var(--ui-border);white-space:nowrap;
   transform-origin:0 0;transform:scale(var(--inv,1)) translate(-50%,-130%)}
@@ -360,7 +358,7 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 #panel .editor-options-row #f-del{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
 #panel .editor-options-row .size-field button{width:100%;padding-left:4px;padding-right:4px;white-space:normal;line-height:1.2}
 /* One left-to-right row: 顏色, 大小選項, 折疊, 刪除卡片. */
-#panel .editor-options-row{grid-template-columns:auto auto auto auto;justify-content:space-between;align-items:center;gap:8px}
+#panel .editor-options-row{grid-template-columns:auto auto auto auto;justify-content:space-between;align-items:end;gap:8px}
 #panel .editor-options-row #f-color{flex-wrap:nowrap;gap:3px}
 #panel .editor-options-row #f-color > *{width:22px;height:22px;min-width:22px;padding:0;flex:none}
 #panel .editor-options-row > .check,#panel .editor-options-row #f-del,#panel .editor-options-row .size-field button{white-space:nowrap;width:auto}
@@ -847,9 +845,15 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 .anchor-badge.anchor-source{border-radius:5px;color:#7a1e2a;background:#ffd9dc}
 .anchor-badge.anchor-key{border-radius:5px;color:#624711;background:#ffe8a7}
 
-/* The reset action stays readable even when the editor is over the brown themes. */
-#f-size-reset{color:#2b180c;background:#e5c27f;border-color:#9d7138}
-#f-size-reset:hover,#f-size-reset:focus-visible{color:#2b180c;background:#f0d59d;border-color:#6f4a20}
+/* Every option control in the editor shares one shape, height and selected state. */
+#panel :is(#f-mount,#f-level) button,#panel #f-size-reset,#panel #f-del,#panel .editor-options-row > .check{
+  min-height:32px;padding:5px 12px;border:1px solid var(--ui-border);border-radius:var(--radius-sm);font-size:var(--control-font);color:var(--ui-text);background:var(--ui-raised)
+}
+#panel #f-del{color:var(--ui-danger)}
+#panel :is(#f-mount,#f-level) button.on,#panel .editor-options-row > .check:has(input:checked){border-color:var(--ui-accent);background:var(--ui-active)}
+#panel :is(#f-mount,#f-level,.editor-options-row) :is(button,.check):hover{border-color:var(--ui-accent)}
+#panel .editor-options-row > .check{flex-direction:row;align-items:center;gap:6px;cursor:pointer}
+#panel .editor-options-row > .check input{accent-color:var(--ui-accent)}
 
 /* Penco-like clipboard: dark recycled hardboard, one centred metal clip, and real file-folder tabs. */
 #case-folder{--clipboard-board:#4b2f21;--clipboard-board-deep:#382116;--clipboard-paper:#fff3d6;--clipboard-ink:#342117;--clipboard-muted:#6a4c37;position:relative;width:100%;height:100%;overflow:visible;background:linear-gradient(135deg,var(--clipboard-board),var(--clipboard-board-deep));border:1px solid #2d1a10;border-radius:12px;box-shadow:0 10px 24px rgba(37,18,7,.42);color:#fff3d6}
@@ -2530,7 +2534,7 @@ function renderCards() {
     const photo = typeof c.image === 'string' && !(c.note || '').trim();
     const curl = shouldCurlNote(c);
     const el = document.createElement('div');
-    el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
+    el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) && !c.fold ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
       + (curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
       + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
     applyCardColorStyle(el, c);
@@ -2539,7 +2543,8 @@ function renderCards() {
     el.style.left = c.x + 'px';
     el.style.top = c.y + 'px';
     el.style.width = cardW(c) + 'px';
-    if (Number.isFinite(c.h)) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
+    // A folded card shows only its title strip; the stored height comes back when it unfolds.
+    if (Number.isFinite(c.h) && !c.fold) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
     el.style.setProperty('--tilt', (photo ? photoTilt(c.id) : tilt(c.id)) + 'deg');
     if (!photo && !c.fold) {
       const sheet = mk('div', 'card-sheet');

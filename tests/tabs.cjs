@@ -46,7 +46,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
 
     await openTabMenu(page, c);
     ok(await page.isVisible('#tabmenu') && await page.locator('#tab-colors .swatch').count() === 8, 'right-click opens the menu with no-color, six presets, and 自訂');
-    ok(await page.evaluate(() => [...document.querySelectorAll('#tab-colors .swatch:not(.no-color):not(.on)')].every(el => {
+    ok(await page.locator('#tab-colors .custom-swatch').evaluate(el => getComputedStyle(el).backgroundImage.includes('conic-gradient')),
+      'an unset 自訂 swatch shows the same colour wheel as the card editor');
+    ok(await page.evaluate(() => [...document.querySelectorAll('#tab-colors .swatch:not(.no-color):not(.on):not(.custom-swatch)')].every(el => {
       const style = getComputedStyle(el);
       return style.borderTopColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'rgba(0, 0, 0, 0)';
     })), 'every colour swatch shows its fill and ring');

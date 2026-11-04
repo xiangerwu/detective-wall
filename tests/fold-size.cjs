@@ -69,6 +69,14 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.mouse.move(resize.x + resize.width / 2, resize.y + resize.height / 2);
     await page.mouse.down(); await page.mouse.move(resize.x + 84, resize.y + 52, {steps: 5}); await page.mouse.up();
     ok(await page.evaluate(id => Number.isInteger(byId(id).w) && Number.isInteger(byId(id).h) && byId(id).w >= 120 && byId(id).h >= 60, id), 'resize handle stores integer width and height');
+    // A resized card keeps its stored height, but folding must still shrink it to the title strip.
+    await page.evaluate(id => { byId(id).h = 420; render(); }, id);
+    const tall = await height();
+    await page.check('#f-fold');
+    const foldedTall = await height();
+    await page.uncheck('#f-fold');
+    ok(tall >= 400 && foldedTall < 140 && await height() === tall && await page.evaluate(id => byId(id).h === 420, id),
+      `folding a resized card shrinks it to the title strip and unfolding restores its size (${tall} → ${foldedTall})`);
     await page.click('#f-size-reset');
     ok(await page.evaluate(id => !('w' in byId(id)) && !('h' in byId(id)), id), 'editor reset restores the default width and content height');
     await page.selectOption('#f-kind', 'note');
