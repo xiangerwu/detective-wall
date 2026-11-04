@@ -127,6 +127,43 @@ for (const client of ['claude', 'codex']) {
     assert.ok((await page.locator('#mascot-image .rig').evaluate(rig => rig.getAnimations({subtree: true}).length)) > 0);
     console.log('PASS mascot state images, status bubbles, animation under reduced motion, and generated asset limits');
 
+    // Clicking the pet: a line in its voice and a different idle pose for a moment, back to the chat state afterwards.
+    await page.emulateMedia({reducedMotion: 'no-preference'});
+    await page.evaluate(() => {
+      chatBusy = false; $('#chat-progress').hidden = true; chatMessages = [{role: 'user', text: 'x'}];
+      updateChatMascot(); showClipboard(false); showMascotBubble('');
+    });
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'idle');
+    const pet = await page.locator('#mascot-image').boundingBox();
+    const pokeAt = () => page.mouse.click(pet.x + pet.width / 2, pet.y + pet.height / 2);
+    const lineShown = () => page.waitForFunction(() => MASCOT_LINES.claude.includes(document.querySelector('#mascot-bubble').textContent)
+      && document.querySelector('#mascot-bubble').classList.contains('show'));
+    await pokeAt();
+    await lineShown();
+    await page.waitForFunction(() => {
+      const rig = document.querySelector('#mascot-image .rig');
+      return ['sit', 'read', 'magnify'].includes(rig?.dataset.mood) && rig.dataset.ready === 'true';
+    });
+    assert.equal(await page.locator('#sidebar').getAttribute('aria-expanded'), 'true', 'a click opens the AI case folder');
+    const firstLine = await page.locator('#mascot-bubble').textContent();
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('#mascot-bubble')).opacity === '1');
+    await page.screenshot({path: path.join(out, 'mascot-poke.png')});
+    await pokeAt();
+    await lineShown();
+    assert.notEqual(await page.locator('#mascot-bubble').textContent(), firstLine, 'the next click says a different line');
+    assert.equal(await page.locator('#sidebar').getAttribute('aria-expanded'), 'true', 'a click keeps an open case folder open');
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'idle', null, {timeout: 8000});
+
+    await setState('thinking');
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'thinking'
+      && !document.querySelector('#mascot')?.classList.contains('transitioning'));
+    const thinkingPet = await page.locator('#mascot-image').boundingBox();
+    await page.mouse.click(thinkingPet.x + thinkingPet.width / 2, thinkingPet.y + thinkingPet.height / 2);
+    await lineShown();
+    await page.waitForTimeout(400);
+    assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'thinking', 'while the AI works the pet only talks');
+    console.log('PASS clicking the pet shows its lines, switches pose, and keeps the thinking pose while the AI works');
+
     await page.click('#zoom-fit');
     await page.evaluate(() => showMascotBubble(''));
     const cardPoint = await page.evaluate(() => {

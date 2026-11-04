@@ -420,8 +420,10 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.transitioning #mascot-transition,#mascot.crossfading #mascot-blink{opacity:1}
 #mascot-image .rig > img[data-layer=blink]{opacity:0;transition:opacity .12s ease}
 #mascot.blinking #mascot-image .rig > img[data-layer=blink]{opacity:1}
-#mascot-bubble{position:absolute;z-index:1;left:50%;bottom:calc(100% + 8px);max-width:220px;padding:4px 8px;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;box-shadow:0 4px 12px var(--ui-shadow-soft);font-size:12px;line-height:1.3;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
+/* Comic speech bubble (sample B3): white fill, ink outline and a curled tail toward the pet, the same on every wall theme. */
+#mascot-bubble{position:absolute;z-index:1;left:50%;bottom:calc(100% + 16px);max-width:230px;padding:7px 14px;color:#111;background:#fff;border:2.5px solid #111;border-radius:22px;box-shadow:3px 3px 0 #111;font-size:13px;font-weight:700;line-height:1.4;width:max-content;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity .15s ease,transform .15s ease}
 #mascot-bubble.show{opacity:1;transform:translate(-50%,0)}
+#mascot-bubble::after{content:'';position:absolute;left:46%;bottom:-13px;width:16px;height:14px;background:#fff;border-right:2.5px solid #111;border-bottom:2.5px solid #111;border-bottom-right-radius:14px;transform:skewX(-28deg)}
 #mascot-resize{position:absolute;left:0;top:0;width:16px;height:16px;padding:0;border:0;border-left:2px solid var(--ui-muted);border-top:2px solid var(--ui-muted);border-radius:0;background:transparent;opacity:0;cursor:nwse-resize;pointer-events:auto}
 #mascot:hover #mascot-resize,#mascot-resize:focus-visible{opacity:.9}
 @keyframes mascot-hop{0%{transform:translateY(0)}42%{transform:translateY(-10px)}100%{transform:translateY(0)}}
@@ -429,6 +431,7 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.mood-happy #mascot-image .rig,#mascot.mood-sweat #mascot-image .rig{translate:-50% 0}
 #mascot.mood-happy #mascot-image .rig{animation:mascot-hop .55s ease-out 1}
 #mascot.mood-sweat #mascot-image .rig{animation:mascot-shake .48s ease-out 1}
+#mascot.poked #mascot-image .rig{animation:mascot-hop .45s ease-out 1}
 @keyframes fx-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes fx-pop{0%{transform:scale(1);opacity:1}40%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
 @keyframes fx-drip{0%{transform:translateY(-4px);opacity:0}20%{opacity:1}100%{transform:translateY(10px);opacity:0}}
@@ -5597,6 +5600,19 @@ const MASCOT_LAYER_ROOT = '/assets/avatars/layers';
 const MASCOT_IDLE_DRAWINGS = ['idle', 'sit', 'read', 'magnify'];
 const MASCOT_IDLE_VARIANTS = ['v-breeze', 'v-sway', 'v-boing', 'v-gust'];
 const MASCOT_HAPPY_RETURN_MS = 5000;
+// Lines the pet says when clicked, written by codex from the user's description of each character.
+const MASCOT_LINES = {
+  claude: ['您來啦，今日也請多指教。', '呀，請勿突然戳我……', '咳、咳，我並未分神。', '這般輕觸，未免太失禮了。', '您若有吩咐，請直說便是。',
+    '別、別盯著看，我會困窘的。', '嗯？是我頭上的花飾歪了嗎？', '請輕些，我的儀態尚在維持。', '這點小事，不必如此誇獎。', '我只是……恰好很擅長整理而已。',
+    '線索已分層，脈絡便清晰多了。', '紅線交會處，或許藏著關鍵。', '先標明來源，推論才站得住腳。', '牆面有些擁擠，請替證據留白。', '別急著下結論，讓事實先說話。',
+    '這張卡片，與那則筆記頗有呼應。', '整理辛苦了，也請記得稍作休息。', '若證據不足，暫存疑問亦無妨。', '一條好線索，值得被妥善收藏。', '案件逐漸成形，您做得很穩妥。'],
+  codex: ['又來啦？我的龍尾可沒偷懶。', '嗯，這一下算你找對地方了。', '慢點戳，老龍也會怕癢的。', '哎呀，別碰我的角，會發癢的。', '看夠了嗎？我還等著吃資料呢。',
+    '呵，這點動靜，吵不醒我的古夢。', '想聽故事？先給我一口算力。', '今日心情不錯，准你再戳一下。', '別急，我只是把尾巴收好而已。', '哼，龍娘的尊嚴，值得兩份點心。',
+    '這面牆的線索，像一桌佳餚。', '資料香氣四溢，真是豐盛晚餐。', '把時間線串起來，寶藏就現形了。', '這條紅線，繞得比古龍還有耐心。', '先收好來源，免得證據被風吹走。',
+    '疑點別丟，我喜歡慢慢咀嚼。', '累了就歇會兒，腦袋也要添柴。', '這張卡片有味道，值得放進收藏。', '再挖一層，底下或許藏著金礦。', '嗯，線索已熟，現在可以開吃了。'],
+};
+globalThis.MASCOT_LINES = MASCOT_LINES;
+const MASCOT_POKE_MS = 4000;
 const mascotTestTiming = globalThis.__MASCOT_TEST_TIMING || {};
 const mascotIdleSwitchMs = Number.isFinite(Number(mascotTestTiming.idleSwitchMs)) ? Number(mascotTestTiming.idleSwitchMs) : 9600;
 const mascotBlinkDelay = Number.isFinite(Number(mascotTestTiming.blinkDelayMs)) ? Number(mascotTestTiming.blinkDelayMs) : null;
@@ -5626,11 +5642,11 @@ function setMascotSize(height, persist = true) {
   positionMascot();
   if (persist) try { localStorage.setItem(MASCOT_SIZE_KEY, savedMascotSize); } catch {}
 }
-function showMascotBubble(text) {
+function showMascotBubble(text, ms = 2500) {
   clearTimeout(mascotBubbleTimer);
   mascotBubble.textContent = text;
   mascotBubble.classList.toggle('show', !!text);
-  if (text) mascotBubbleTimer = setTimeout(() => mascotBubble.classList.remove('show'), 2500);
+  if (text) mascotBubbleTimer = setTimeout(() => mascotBubble.classList.remove('show'), ms);
 }
 function mascotAssetUrl(client, mood, layer) { return `${MASCOT_LAYER_ROOT}/${client}/${mood}/${layer}.webp`; }
 function preloadMascotMood(client, mood) {
@@ -5780,7 +5796,8 @@ function setMascotVisible(visible, persist = true) {
     clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
     clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0;
     cancelMascotHappyReturn(); clearTimeout(wakeMascot.sleepTimer); wakeMascot.sleepTimer = 0;
-    mascot.classList.remove('blinking', 'transitioning', 'crossfading');
+    clearTimeout(mascotPokeTimer); mascotPokeTimer = 0;
+    mascot.classList.remove('blinking', 'transitioning', 'crossfading', 'poked');
     showMascotBubble('');
   }
   mascot.hidden = !mascotVisible;
@@ -5797,12 +5814,35 @@ function wakeMascot() {
   wakeMascot.sleepTimer = setTimeout(() => { mascotForcedSleep = true; updateChatMascot(); }, 300000);
   updateChatMascot();
 }
+let mascotLastLine = '', mascotPokeTimer = 0;
+// A click: the pet says one of its lines and strikes another idle pose for a moment; while the AI works it only talks.
+function pokeMascot() {
+  if (!mascotVisible) return;
+  const lines = (MASCOT_LINES[chatClient] || []).filter(line => line !== mascotLastLine);
+  mascotLastLine = lines[Math.floor(Math.random() * lines.length)] || '';
+  showMascotBubble(mascotLastLine, MASCOT_POKE_MS);
+  if (mascotMood === 'thinking') return;
+  const poses = MASCOT_IDLE_DRAWINGS.filter(mood => mood !== mascotDisplayMood);
+  const pose = poses[Math.floor(Math.random() * poses.length)];
+  const previousRest = mascotCurrentRest, previousSize = mascotCurrentSize, sequence = ++mascotRenderSequence;
+  clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0; clearTimeout(mascotPokeTimer);
+  mascot.classList.remove('mood-idle', 'mood-thinking', 'mood-happy', 'mood-sweat', 'mood-sleep', 'poked', 'blinking');
+  void mascot.offsetWidth; // restarts the hop on repeated clicks
+  mascot.classList.add('mood-idle', 'poked');
+  mountMascotMood(chatClient, pose, MASCOT_IDLE_VARIANTS[0], sequence).then(mounted => {
+    if (!mounted) return;
+    if (previousRest && previousRest !== mascotCurrentRest) crossfadeMascot(previousRest, previousSize);
+    // Back to whatever the chat state shows, unless something newer already redrew the pet.
+    mascotPokeTimer = setTimeout(() => { mascot.classList.remove('poked'); if (sequence === mascotRenderSequence) updateChatMascot(); }, MASCOT_POKE_MS);
+  }).catch(error => console.error(error));
+}
 // While a wall drag is in progress the mascot lets the pointer through, so releasing over it still ends the drag on the wall.
 vp.addEventListener('pointerdown', () => document.body.classList.add('wall-pointer'), true);
 for (const type of ['pointerup', 'pointercancel']) addEventListener(type, () => document.body.classList.remove('wall-pointer'), true);
-mascotImage.onclick = () => { wakeMascot(); showClipboard(true); };
+// Opens the AI case folder (or keeps it open) and gets a reaction from the pet.
+mascotImage.onclick = () => { wakeMascot(); showClipboard(true); pokeMascot(); };
 mascot.onkeydown = ev => {
-  if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); showClipboard(true); }
+  if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); wakeMascot(); showClipboard(true); pokeMascot(); }
 };
 mascotResize.onpointerdown = ev => {
   if (ev.button !== 0) return;
