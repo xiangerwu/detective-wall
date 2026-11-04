@@ -713,7 +713,8 @@ function main() {
     void shutdown();
   });
   app.whenReady().then(() => {
-    app.setAppUserModelId('CaseGraph');
+    // Must equal package.json build.appId: the installer's shortcuts carry it, and Windows matches the taskbar icon by it.
+    app.setAppUserModelId('tw.casegraph.app');
     Menu.setApplicationMenu(null);
     caseGraphDir = path.join(app.getPath('userData'), 'CaseGraph');
     settingsPath = path.join(caseGraphDir, 'settings.json');

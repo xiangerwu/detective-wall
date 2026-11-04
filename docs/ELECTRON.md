@@ -1,55 +1,51 @@
-# Electron 相容性評估
+# Electron 桌面版
 
-評估日期：2026-11-02。這份文件只評估嵌入方向，不安裝 Electron，也不新增 Electron 啟動器。
+CaseGraph 的 Windows 桌面版是 Electron 45.2.1，內建 Node.js 24，不需要另外安裝 Node.js。服務在主行程以 `createWallServer` 執行，單一視窗載入 `http://127.0.0.1:<埠>/` 的牆面。
 
-## 結論
+## 開發與打包
 
-截至評估日，Electron stable 是 45.2.1，內建 Node.js 24.22.1。Node 的 `node:sqlite`／`DatabaseSync` 自 v22.5.0 提供；`database.setAuthorizer()` 自 v24.10.0 提供，因此這個 Electron stable 版本具備本專案未來可能需要的兩個 API。Node 文件仍將 SQLite 標為 release candidate，是否採用 `setAuthorizer` 仍應由日後的嵌入需求決定。
+- `npm run app`：從原始碼開啟桌面版。
+- `npm run dist`：用 electron-builder 26.18.0 產生 `dist/CaseGraph-Setup-<版本>.exe`（NSIS、目前使用者安裝、可自選資料夾）與未封裝的 `dist/win-unpacked/`。
+- `node tests/run.cjs electron-packaged`：對 `dist/win-unpacked` 做 smoke test；沒有先打包時會略過。
 
-- [Electron stable releases](https://releases.electronjs.org/?channel=stable)
-- [Node.js SQLite API](https://nodejs.org/download/release/latest-v24.x/docs/api/sqlite.html)
+`build.appId`（`tw.casegraph.app`）必須和 `electron/main.js` 的 `app.setAppUserModelId` 相同：安裝檔建立的捷徑帶著這個 ID，Windows 用它對應工作列圖示。從原始碼執行時，工作列顯示的是 electron.exe 的圖示，打包後才是 CaseGraph 的圖示。
 
-## 主行程嵌入方式
+## 資料位置
 
-目前 `server/server.js` 已輸出可程式化使用的 `createWallServer`，支援 `port: 0`，並將靜態檔案基準固定在伺服器檔案位置，不依賴 `process.cwd()`。日後主行程可採用下列模式：
+所有可寫資料都在 `app.getPath('userData')` 底下的 `CaseGraph/`，不寫進安裝資料夾或 `app.asar`：
 
-```js
-const path = require('node:path');
-const { app } = require('electron');
-const { createWallServer } = require('./server/server.js');
+- `settings.json`：服務埠、目前專案、最近專案與各專案的 AI 工作資料夾。
+- `projects/default/wall.db`：預設專案。每個專案資料夾放一個 `wall.db`，以及它的 WAL／SHM 與 `chat-workdir`。
+- `logs/main.log`：主行程紀錄。
+- `runtime/`：開啟 CLI 時產生的 `claude-mcp.json` 與 `open-<client>.ps1`。
 
-app.whenReady().then(() => {
-  const dbPath = path.join(app.getPath('userData'), 'casegraph', 'wall.db');
-  const server = createWallServer({dbPath, port: 0});
-  server.once('listening', () => {
-    const {port} = server.address();
-    // BrowserWindow 載入 http://127.0.0.1:${port}/
-  });
-});
-```
+`userData` 的根目錄：
+- 安裝版：`%APPDATA%\CaseGraph`；
+- 從原始碼執行：`%APPDATA%\detective-wall`。
 
-`createDatabase` 會建立資料庫父目錄；資料庫、SQLite WAL/SHM 與聊天工作目錄都應留在 `userData`，不要寫入唯讀的 ASAR。現有程式也接受 `WALL_DB`，所以另一種做法是在建立服務前設定絕對路徑的 `process.env.WALL_DB`。
+測試可以用 `CASEGRAPH_USER_DATA` 指定暫存目錄，用 `WALL_PORT=0` 要求空閒埠。
 
-靜態檔案仍需在打包時把專案根目錄與 `server/` 放進應用程式內容；Electron 的 ASAR 可由 Node 檔案 API 讀取，但打包工具的檔案清單仍須包含 `index.html`、`server/layout.js` 與既有素材。
+## CLI 與 MCP
 
-## E1 開發執行方式
+聊天與「開啟 CLI」都會使用外部的 `claude`／`codex` CLI，使用者必須自行安裝並登入；也可以用 `WALL_CLAUDE_BIN`／`WALL_CODEX_BIN` 指定路徑。
 
-在專案根目錄執行 `npm run app`。Electron 的 `app.getPath('userData')` 是本機使用者資料根目錄；E1 會在其下使用 `CaseGraph/settings.json`、`CaseGraph/projects/default/wall.db` 與 `CaseGraph/logs/main.log`。測試可用 `CASEGRAPH_USER_DATA` 指定暫存 userData，並用 `WALL_PORT=0` 要求本次啟動使用空閒埠。
+MCP 服務以桌面版自己的執行檔加上 `ELECTRON_RUN_AS_NODE=1` 執行 `server/mcp.js`，打包後直接從 `app.asar` 讀取。在 Electron 裡執行 CLI 的 Node 入口時（例如 `codex.js`），會用 `-r server/hidden-console.js` 預載，讓它啟動的主控台程式不跳出終端機視窗。
 
-## 聊天 CLI
+## 實測大小（0.1.0，2026-11-04）
 
-聊天功能不是 Electron 內建模型：服務會啟動外部 `claude` 或 `codex` CLI。打包後必須確認使用者已安裝並登入 CLI，或由 `WALL_CLAUDE_BIN`／`WALL_CODEX_BIN` 提供絕對路徑；僅把 CaseGraph 打包成桌面程式不會自動帶入 CLI、登入狀態或訂閱額度。若產品要免 CLI 執行，需另行決定模型整合方式，本次不實作。
+| 項目 | 大小 |
+|---|---|
+| 安裝檔 `CaseGraph-Setup-0.1.0.exe` | 122.4 MB |
+| 安裝後（`win-unpacked`） | 375.4 MB |
+| `app.asar` | 18.6 MB |
+| `app.asar` 內的正式執行套件 | 12.7 MB |
 
-## 打包大小與簽章
+`app.asar` 不含 `data/`、`tests/` 或 `test-results/`。
 
-Electron 發行物會攜帶平台專用的 Chromium、Node.js 與應用程式內容，實際大小取決於平台、素材、依賴與是否使用 ASAR；本次未安裝 Electron，因此沒有可報告的實測大小。應在選定 Electron Forge 或其他打包流程後，對 Windows、macOS、Linux 分別量測安裝檔與解壓後大小。
+## 簽章與更新
 
-正式發行應簽章：Windows 的安裝程式／發行物需要 Windows 程式碼簽章，macOS 需要程式碼簽章並進一步 notarize。憑證、CI 簽章方式與自動更新尚未決定，留待桌面產品方案確認後處理。
+第一版不簽章，也不做自動更新，公開發佈前再決定。
 
 - [Electron application distribution](https://www.electronjs.org/docs/latest/tutorial/application-distribution)
 - [Electron ASAR archives](https://www.electronjs.org/docs/latest/tutorial/asar-archives)
 - [Electron code signing](https://www.electronjs.org/docs/latest/tutorial/code-signing)
-
-## P16-2 範圍
-
-本次已完成伺服器預設路徑不依賴目前工作目錄，以及 `createWallServer({dbPath, port: 0})` 所需的基礎；沒有加入 Electron 依賴、主行程檔案、BrowserWindow、打包設定或 CLI 安裝流程。

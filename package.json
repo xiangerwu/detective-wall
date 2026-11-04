@@ -1,6 +1,6 @@
 {
   "name": "detective-wall",
-  "version": "0.0.0-transfer",
+  "version": "0.1.0",
   "main": "electron/main.js",
   "description": "Local clue wall with an MCP server for proposing reviewed changes.",
   "license": "MIT",
@@ -12,15 +12,45 @@
     "start": "node server/server.js",
     "mcp": "node server/mcp.js",
     "test": "node tests/run.cjs",
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "dist": "electron-builder --win"
   },
   "devDependencies": {
     "electron": "45.2.1",
+    "electron-builder": "26.18.0",
     "playwright-core": "1.60.0",
     "typescript": "5.5.2"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.2",
     "zod": "4.6.7"
+  },
+  "build": {
+    "appId": "tw.casegraph.app",
+    "productName": "CaseGraph",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**",
+      "server/**",
+      "index.html",
+      "assets/**",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CaseGraph 案件圖譜",
+      "artifactName": "CaseGraph-Setup-${version}.${ext}"
+    }
   }
 }

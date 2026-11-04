@@ -10,6 +10,27 @@ A relationship whiteboard for personal research. Organize clues with cards, ques
 
 ## Installation
 
+### Windows desktop app
+
+Run `CaseGraph-Setup-0.1.0.exe`. Build it with `npm run dist`; the installer is written to `dist/`. The desktop app bundles its own runtime, so it does not need Node.js.
+
+- It installs for the current user without administrator rights. You can choose the folder, and it creates Start Menu and desktop shortcuts.
+- The first version is unsigned, so Windows SmartScreen may warn. It also has no automatic updates; download and install new versions by hand.
+- Data, settings and logs live in `%APPDATA%\CaseGraph\CaseGraph\`:
+  - `settings.json`: the settings;
+  - `projects\default\wall.db`: the default project's database;
+  - `logs\main.log`: the log.
+- The desktop app does not read the browser version's `data/wall.db`. To carry walls over, export them from the browser version and import them in the desktop app.
+- Closing the window hides it in the system tray; to quit, right-click the tray icon and choose 結束 (Exit).
+- 啟動器設定 (Launcher settings) on the wall's top bar lets you:
+  - change the service port;
+  - switch the project folder;
+  - set the AI working folder;
+  - open the Claude or codex CLI;
+  - read the recent log.
+
+### Browser version and development
+
 Requirements:
 
 - **Node.js 24** (development and testing use v24.11.1).
@@ -17,9 +38,7 @@ Requirements:
 - **CLI (optional)**: tested with Claude Code 2.1.314 and codex-cli 0.153.4; older versions may not recognize the flags used here.
 - Optional, only needed when having AI help: a logged-in [Claude Code](https://claude.com/claude-code) or codex CLI, at least one.
 
-Quickest: on Windows double-click `start.cmd` to open the CaseGraph launcher; on macOS/Linux run `./start.sh`. The Windows launcher checks the Node version, installs packages in the background on the first run, starts the service and opens the browser.
-
-Or run it by hand:
+On macOS/Linux run `./start.sh`, or run it by hand on any platform:
 
 ```sh
 npm install
@@ -28,7 +47,7 @@ npm start
 
 After seeing `WALL_READY 3000`, open http://127.0.0.1:3000/ in Firefox. The first startup creates `data/wall.db` and adds 7 sample cards.
 
-The service listens only on the local machine (127.0.0.1). Closing the Windows launcher hides it in the system tray; its context menu can show the window, open the web app/CLI/log, stop the service, or exit. The launcher stops only services it started; it asks for confirmation before stopping or restarting an externally started CaseGraph service. The window can add a Start Menu shortcut, but does not create a desktop shortcut. Runtime logs and launcher files are in `data/launcher/`; the database remains in `data/wall.db` and is reused next time.
+The service listens only on the local machine (127.0.0.1), and the database in `data/wall.db` is reused next time. During development, `npm run app` opens the desktop app directly.
 
 ## Basic operations
 

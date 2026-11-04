@@ -14,32 +14,41 @@ CaseGraph 是一款個人研究用的關係白板，讓你用卡片記錄資料�
 
 ## 安裝
 
-### 環境需求
+### Windows 桌面版
+
+執行 `CaseGraph-Setup-0.1.0.exe` 安裝。安裝檔用 `npm run dist` 產生，輸出在 `dist/`。桌面版內含執行環境，不需要另外安裝 Node.js。
+
+- 安裝在目前使用者底下，不需要系統管理員權限；可以自選安裝位置，並建立開始功能表與桌面捷徑。
+- 第一版沒有程式碼簽章，Windows SmartScreen 可能顯示警告；也沒有自動更新，新版本需要手動下載安裝。
+- 資料、設定與紀錄都放在 `%APPDATA%\CaseGraph\CaseGraph\`：
+  - `settings.json`：設定；
+  - `projects\default\wall.db`：預設專案的資料庫；
+  - `logs\main.log`：紀錄。
+- 桌面版不會讀取瀏覽器版的 `data/wall.db`。要沿用原本的牆，請在瀏覽器版匯出，再到桌面版匯入。
+- 關閉視窗會縮到系統匣；要結束，請在系統匣圖示按右鍵選「結束」。
+- 牆面頂列的「啟動器設定」可以：
+  - 修改服務埠；
+  - 切換專案資料夾；
+  - 設定 AI 工作資料夾；
+  - 開啟 Claude／codex CLI；
+  - 查看最近紀錄。
+
+### 瀏覽器版與開發環境需求
 
 - **Node.js 24**（開發與測試使用 v24.11.1）。
 - **Firefox**：主要驗證的瀏覽器。
-- **AI CLI（選用）**：要使用 AI 功能，需至少安裝並登入 [Claude Code](https://claude.com/claude-code) 或 Codex CLI 其中一個。測試版本為 Claude Code 2.1.314、codex-cli 0.153.4；較舊版本可能不支援本專案使用的旗標。
+- **AI CLI（選用）**：要使用 AI 功能，需至少安裝並登入 [Claude Code](https://claude.com/claude-code) 或 Codex CLI 其中一個；桌面版也一樣需要。測試版本為 Claude Code 2.1.314、codex-cli 0.153.4；較舊版本可能不支援本專案使用的旗標。
 
-### 啟動方式
+### 瀏覽器版啟動方式
 
-- **Windows**：雙擊 `start.cmd` 開啟 CaseGraph 啟動器。它會檢查 Node.js 版本、首次啟動時在背景安裝套件，接著啟動服務並開啟瀏覽器。
-- **macOS／Linux**：執行 `./start.sh`。
-
-也可以在專案目錄手動執行：
+macOS／Linux 可以執行 `./start.sh`。也可以在專案目錄手動執行（Windows 也適用）：
 
 ```sh
 npm install
 npm start
 ```
 
-看到 `WALL_READY 3000` 後，用 Firefox 開啟 [CaseGraph 本機頁面](http://127.0.0.1:3000/)。第一次啟動會建立 `data/wall.db`，並放入 7 張示例卡片；之後啟動會沿用既有資料。服務只監聽本機位址 `127.0.0.1`。
-
-### Windows 啟動器
-
-- 關閉視窗會縮到系統匣。右鍵點擊系統匣圖示，可顯示視窗、開啟網頁／CLI／紀錄、停止服務或結束啟動器。
-- 啟動器只會停止自己啟動的服務；偵測到外部服務時，重啟或停止前會先確認。
-- 視窗底部可將啟動器加入開始功能表，不會建立桌面捷徑。
-- 服務紀錄與啟動器執行期檔案位於 `data/launcher/`；資料庫位於 `data/wall.db`。
+看到 `WALL_READY 3000` 後，用 Firefox 開啟 [CaseGraph 本機頁面](http://127.0.0.1:3000/)。第一次啟動會建立 `data/wall.db`，並放入 7 張示例卡片；之後啟動會沿用既有資料。服務只監聽本機位址 `127.0.0.1`。開發時也可以用 `npm run app` 直接開啟桌面版。
 
 ## 基本操作
 
