@@ -32,6 +32,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   await page.mouse.move(b0.x + 20, b0.y + 20);
   await page.mouse.wheel(0, -300);
   await page.waitForFunction(previous => view.s > previous, v0.s);
+  // Wheel zoom redraws once per frame (scheduleView); read the screen after that frame.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const v1 = await view(), b1 = await box('eskm');
   ok(v1.s > v0.s, `wheel zoom in ${v0.s.toFixed(2)} -> ${v1.s.toFixed(2)}`);
   const wx0 = (b0.x + 20), wx1 = b1.x + 20 * v1.s / v0.s;
@@ -113,7 +115,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
   for (let i = 0; i < 6; i++) await page.click('#zoom-out');
   await page.waitForFunction(() => view.s < 1);
   const farBefore = await view();
-  await page.mouse.move(vp.x + 30, vp.y + 30); await page.mouse.down(); await page.mouse.move(vp.x + 30 + 600, vp.y + 30 + 400, { steps: 5 }); await page.mouse.up();
+  await page.mouse.move(vp.x + 80, vp.y + 30); await page.mouse.down(); await page.mouse.move(vp.x + 80 + 600, vp.y + 30 + 400, { steps: 5 }); await page.mouse.up();
   await page.waitForFunction(({x, y}) => Math.abs(view.x - x) > 1 || Math.abs(view.y - y) > 1, farBefore);
   const cover = await page.evaluate(({x, y, width, height}) => {
     const v = {left: x, top: y, width, height}, b = document.querySelector('#bg').getBoundingClientRect();

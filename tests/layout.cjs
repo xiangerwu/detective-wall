@@ -9,13 +9,14 @@ const base = process.env.WALL_TEST_URL;
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(base); await ready(page);
-    const icons = page.locator('#rail .rail-activity');
+    const icons = page.locator('#rail .rail-activity[data-panel]');
     assert.equal(await icons.count(), 8);
     for (let i = 0; i < 8; i++) {
       assert.ok(await icons.nth(i).getAttribute('title'));
       assert.ok(await icons.nth(i).getAttribute('aria-label'));
       assert.equal(await icons.nth(i).locator('svg').count(), 1);
     }
+    await page.click('#activity-toggle');
     await page.click('#activity-files');
     await page.click('#activity-history');
     assert.equal(await page.isVisible('#files-section'), false);
@@ -30,24 +31,16 @@ const base = process.env.WALL_TEST_URL;
     console.log('PASS activity icons open and collapse with Enter and Space');
 
     await openActivity(page, 'files');
-    const before = await page.evaluate(() => rail.offsetWidth);
-    await page.locator('#rail-resize').press('ArrowRight');
-    await page.waitForTimeout(260);
-    const widened = await page.evaluate(() => rail.offsetWidth);
-    assert.equal(widened, 232);
+    await page.evaluate(() => showActivity(null));
     await reload(page);
-    assert.equal(await page.evaluate(() => rail.offsetWidth), widened);
+    assert.equal(await page.locator('#rail-resize').count(), 0, 'rail panel has no resize handle');
     await openActivity(page, 'files');
     await openSidebar(page);
     assert.deepEqual(await page.locator('#case-folder-tabs [role=tab]').allTextContents(), ['對話', '提案', '紀錄', '模型']);
     assert.ok((await page.locator('#case-folder-header').textContent()).includes('AI 案件夾'));
     assert.equal(await page.locator('#sidebar .theme-picker, #sidebar #theme').count(), 0);
-    assert.ok(await page.isVisible('#rail-resize') && !(await page.locator('#sidebar-resize').count()));
-    assert.equal(await page.evaluate(() => {
-      return vp.clientWidth + rail.offsetWidth + activityPanel.offsetWidth + railResizer.offsetWidth
-        ;
-    }), 1400);
-    console.log('PASS rail handle resizes independently and the floating clipboard leaves the viewport full width');
+    assert.equal(await page.evaluate(() => vp.clientWidth), 1400, 'floating rail leaves the viewport full width');
+    console.log('PASS floating rail has no resize handle and the clipboard leaves the viewport full width');
 
     const clickCard = async () => {
       const point = await page.evaluate(() => {

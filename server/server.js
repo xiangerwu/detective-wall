@@ -4,6 +4,8 @@ const process = /** @type {any} */ (globalThis).process;
 /** @type {any} */
 const Buffer = /** @type {any} */ (globalThis).Buffer;
 // @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
+const crypto = require('node:crypto');
+// @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const fs = require('node:fs');
 // @ts-ignore Node's built-in declarations are intentionally not an extra dependency in this app.
 const http = require('node:http');
@@ -228,6 +230,22 @@ function cliTimeout() {
 }
 
 // A CLI's Node entry run by the app's own runtime; under Electron on Windows its console children must stay hidden.
+function contentTag(buffer) {
+  return `"${crypto.createHash('sha1').update(buffer).digest('base64url')}"`;
+}
+
+// The page and its script may be cached but must be revalidated: an unchanged file answers 304 with no body,
+// and an updated app is picked up at once.
+function sendRevalidated(req, res, body, type, tag) {
+  if (req.headers['if-none-match'] === tag) {
+    res.writeHead(304, {etag: tag, 'cache-control': 'no-cache'});
+    res.end();
+    return;
+  }
+  res.writeHead(200, {'content-type': type, 'content-length': body.length, etag: tag, 'cache-control': 'no-cache'});
+  res.end(body);
+}
+
 function nodeEntry(script, args) {
   const hide = process.versions.electron && process.platform === 'win32' ? ['-r', path.join(projectDir, 'hidden-console.js')] : [];
   return {command: process.execPath, args: [...hide, script, ...args], shell: false};
@@ -557,6 +575,7 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
   let pickBusy = false;
   const html = fs.readFileSync(path.join(projectDir, '..', 'index.html'));
   const layoutScript = fs.readFileSync(path.join(projectDir, 'layout.js'));
+  const htmlTag = contentTag(html), layoutTag = contentTag(layoutScript);
   const corkImage = fs.readFileSync(path.join(projectDir, '..', 'assets', 'cork.jpg'));
   const paperGrain = fs.readFileSync(path.join(projectDir, '..', 'assets', 'paper-grain.png'));
   // Character art and the app icon are small fixed files, read once and served from memory.
@@ -849,14 +868,12 @@ function createWallServer({dbPath = process.env.WALL_DB || path.join(projectDir,
       const url = new URL(req.url, expectedOrigin);
       if (url.pathname === '/' || url.pathname === '/index.html') {
         if (req.method !== 'GET') throw new RequestError(405, 'method not allowed');
-        res.writeHead(200, {'content-type': 'text/html; charset=utf-8', 'content-length': Buffer.byteLength(html)});
-        res.end(html);
+        sendRevalidated(req, res, html, 'text/html; charset=utf-8', htmlTag);
         return;
       }
       if (url.pathname === '/layout.js') {
         if (req.method !== 'GET') throw new RequestError(405, 'method not allowed');
-        res.writeHead(200, {'content-type': 'application/javascript; charset=utf-8', 'content-length': layoutScript.length});
-        res.end(layoutScript);
+        sendRevalidated(req, res, layoutScript, 'application/javascript; charset=utf-8', layoutTag);
         return;
       }
       if (url.pathname === '/assets/cork.jpg') {

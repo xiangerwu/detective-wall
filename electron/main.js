@@ -77,19 +77,35 @@ function writeLog(level, message, error) {
   }
 }
 
+// Last 200 lines from the final 64 KiB only: the log is never truncated, and every state update calls this.
 function readLogTail() {
+  let fd;
   try {
-    return fs.readFileSync(logPath, 'utf8').split(/\r?\n/).filter(Boolean).slice(-200);
+    fd = fs.openSync(logPath, 'r');
+    const size = fs.fstatSync(fd).size, length = Math.min(size, 64 * 1024), buffer = Buffer.alloc(length);
+    fs.readSync(fd, buffer, 0, length, size - length);
+    const lines = buffer.toString('utf8').split(/\r?\n/);
+    if (length < size) lines.shift();  // starts mid-line
+    return lines.filter(Boolean).slice(-200);
   } catch {
     return [];
+  } finally {
+    if (fd !== undefined) fs.closeSync(fd);
   }
 }
 
+// Scanning PATH costs milliseconds per client and state() runs on every status change; a CLI installed while
+// the app runs shows up within 30 s (opening a CLI always looks it up afresh).
+let clientCache = null, clientCacheAt = 0;
 function clientState() {
-  return Object.fromEntries(['claude', 'codex'].map(client => {
-    const pathname = cliPath(client);
-    return [client, {available: Boolean(pathname), path: pathname}];
-  }));
+  if (!clientCache || Date.now() - clientCacheAt > 30000) {
+    clientCache = Object.fromEntries(['claude', 'codex'].map(client => {
+      const pathname = cliPath(client);
+      return [client, {available: Boolean(pathname), path: pathname}];
+    }));
+    clientCacheAt = Date.now();
+  }
+  return clientCache;
 }
 
 function defaultSettings() {

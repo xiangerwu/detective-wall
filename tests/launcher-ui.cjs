@@ -10,7 +10,7 @@ const base = process.env.WALL_TEST_URL;
     await page.goto(base);
     await page.waitForFunction(() => window.wallReady === true);
     assert.equal(await page.evaluate(() => window.caseGraph), undefined);
-    assert.equal(await page.locator('#launcher-settings').isHidden(), true);
+    assert.equal(await page.locator('#activity-launcher-settings').isHidden(), true);
     console.log('PASS the launcher settings entry stays hidden in a normal browser');
   } finally {
     await browser.close();

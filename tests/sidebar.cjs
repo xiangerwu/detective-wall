@@ -30,8 +30,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     }
     await page.click('#ai-tab-chat');
     ok(await page.locator('#mascot').isVisible() && await page.locator('#mascot').evaluate(el => getComputedStyle(el).position === 'fixed'), 'the character is a fixed mascot outside the clipboard');
-    ok(await page.locator('#rail .rail-activity').count() === 8 && await page.locator('#rail .rail-activity[title][aria-label]').count() === 8
-      && await page.locator('#rail .rail-activity svg').count() === 8, 'rail has eight titled, labelled inline SVG icons');
+    ok(await page.locator('#rail .rail-activity[data-panel]').count() === 8 && await page.locator('#rail .rail-activity[data-panel][title][aria-label]').count() === 8
+      && await page.locator('#rail .rail-activity[data-panel] svg').count() === 8, 'rail has eight titled, labelled inline SVG icons');
 
     const openWidth = await page.evaluate(() => vp.clientWidth);
     await page.click('#clipboard-close');
@@ -41,7 +41,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await page.getAttribute('#sidebar', 'aria-expanded') === 'true', 'the focusable peek opens the clipboard');
 
     await openActivity(page, 'files');
-    ok(await page.evaluate(() => activityPanel.offsetWidth === 300), 'rail panel keeps its fixed shell width');
+    ok(await page.evaluate(() => activityPanel.getBoundingClientRect().width > 0), 'rail panel opens as a floating window');
     await page.click('#activity-history');
     ok(await page.isVisible('#history-section') && !(await page.isVisible('#files-section')) && await page.getAttribute('#activity-history', 'aria-pressed') === 'true', 'activity icons keep only the active panel open');
     await page.click('#activity-history');

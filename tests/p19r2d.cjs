@@ -8,7 +8,6 @@ const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p19r2d');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1400, 900], [1280, 720]];
-const RAILS = ['hidden', 'icon', 'full'];
 const failures = [];
 const check = (condition, message) => {
   if (condition) console.log('PASS ' + message);
@@ -67,11 +66,11 @@ function hit(a, b) {
     const shellWidths = {};
     for (const [width, height] of SIZES) {
       await page.setViewportSize({width, height});
-      for (const theme of THEMES) for (const rail of RAILS) for (const open of [false, true]) {
-        await page.evaluate(({theme, rail}) => {
-          setTheme(theme); setCardStyle('tech'); setRailState(rail, false); showActivity(null); closePanel();
+      for (const theme of THEMES) for (const open of [false, true]) {
+        await page.evaluate(({theme}) => {
+          setTheme(theme); setCardStyle('tech'); showActivity(null); closePanel();
           showMascotBubble('');
-        }, {theme, rail});
+        }, {theme});
         await setClipboard(page, open);
         const result = await page.evaluate(() => {
           const visible = selector => {
@@ -82,7 +81,7 @@ function hit(a, b) {
             };
           };
           const shell = [
-            ['rail', '#rail'], ['rail-panel', '#rail-panel'], ['rail-resize', '#rail-resize'],
+            ['rail', '#rail'], ['rail-panel', '#rail-panel'],
             ['wall-tabs', '#wall-tabs'], ['islands', '#topbar #canvas-islands'], ['clipboard', '#sidebar'],
           ].map(([name, selector]) => ({name, rect: visible(selector)})).filter(row => row.rect);
           const vpRect = visible('#viewport');
@@ -94,30 +93,30 @@ function hit(a, b) {
           };
         });
         check(result.boardClass && result.expanded === String(open) && result.bodyOpen === open,
-          `${theme}/${width}x${height}/${rail}/${open ? 'open' : 'docked'}: clipboard state is floating and explicit`);
+          `${theme}/${width}x${height}/${open ? 'open' : 'docked'}: clipboard state is floating and explicit`);
         const board = result.shell.find(row => row.name === 'clipboard')?.rect;
         const vp = result.viewport;
         const boardInViewport = open
           ? !!board && board.left >= -2 && board.right <= width + 2 && board.bottom <= height + 2 && board.top >= 48
           : !!board && board.left < width && board.right > width - 54 && board.bottom <= height + 2 && board.top >= 48;
         check(boardInViewport,
-          `${theme}/${width}x${height}/${rail}/${open ? 'open' : 'docked'}: board or its peek stays in the viewport`);
+          `${theme}/${width}x${height}/${open ? 'open' : 'docked'}: board or its peek stays in the viewport`);
         const overlaps = [];
         for (let i = 0; i < result.shell.length; i++) for (let j = i + 1; j < result.shell.length; j++) {
           const a = result.shell[i], b = result.shell[j];
           if (a.name === 'clipboard' || b.name === 'clipboard') {
             const other = a.name === 'clipboard' ? b.name : a;
-            if (other.name === 'rail' || other.name === 'rail-panel' || other.name === 'rail-resize' || other.name === 'wall-tabs' || other.name === 'islands') {
+            if (other.name === 'rail' || other.name === 'rail-panel' || other.name === 'wall-tabs' || other.name === 'islands') {
               if (hit(a.rect, b.rect)) overlaps.push(`${a.name}/${b.name}`);
             }
           }
         }
-        check(overlaps.length === 0, `${theme}/${width}x${height}/${rail}/${open ? 'open' : 'docked'}: clipboard avoids rail, wall tabs and islands${overlaps.length ? ' (' + overlaps.join(', ') + ')' : ''}`);
-        if (theme === 'cork' && rail === 'icon') {
+        check(overlaps.length === 0, `${theme}/${width}x${height}/${open ? 'open' : 'docked'}: clipboard avoids rail, wall tabs and islands${overlaps.length ? ' (' + overlaps.join(', ') + ')' : ''}`);
+        if (theme === 'cork') {
           shellWidths[open ? 'open' : 'docked'] = vp?.width;
           await page.screenshot({path: path.join(OUT, `clipboard-${open ? 'open' : 'docked'}-cork-${width}x${height}.png`)});
         }
-        if (theme === 'moon' && rail === 'icon') {
+        if (theme === 'moon') {
           await page.screenshot({path: path.join(OUT, `clipboard-${open ? 'open' : 'docked'}-moon-${width}x${height}.png`)});
         }
       }
@@ -126,7 +125,7 @@ function hit(a, b) {
       'docked and open clipboard leave the wall at the same full width');
 
     await page.setViewportSize({width: 1400, height: 900});
-    await page.evaluate(() => { setTheme('cork'); setRailState('icon', false); showActivity(null); });
+    await page.evaluate(() => { setTheme('cork'); showActivity(null); });
     await setClipboard(page, false);
     const peek = page.locator('#clipboard-peek');
     check(await peek.count() === 1 && await peek.getAttribute('aria-label') === '開啟 AI 案件夾', 'docked clipboard exposes a focusable peek');

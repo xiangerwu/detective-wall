@@ -219,6 +219,8 @@ async function tourPanels(page, combo) {
 }
 
 async function tourCardEditor(page, combo) {
+  // The panel steps leave the view wherever they scrolled it; paper cards can end up below the window edge.
+  await page.evaluate(() => jumpToCard('shoup'));
   await page.click('.card[data-id="shoup"]');
   await page.waitForSelector('#panel:not([hidden])');
   const tag = await page.evaluate(() => data.tags[0]?.name || 'P15');
@@ -333,7 +335,7 @@ async function tourCardMenu(page, combo) {
 }
 
 async function tourBandAndAnchor(page, combo) {
-  await page.evaluate(() => { setRailState('full'); render(); });
+  await page.evaluate(() => { showActivity('navigation'); render(); });
   await page.click('#rail-band-list button[data-band-id="thesis"]');
   await page.waitForFunction(() => Math.abs(view.y - (24 - 1020 * view.s)) < 1);
   check(await page.locator('#rail-band-list button[aria-current="true"]').getAttribute('data-band-id') === 'thesis', '分層清單可跳到指定分層', combo.key);

@@ -68,6 +68,7 @@ for (const client of ['claude', 'codex']) {
       'fixed mascot position follows the clipboard after reload');
 
     await page.evaluate(() => showClipboard(false));
+    await page.waitForTimeout(650);  // the pet slides with the docking case folder (.56s)
     const clickBox = await page.locator('#mascot-image').boundingBox();
     await page.mouse.click(clickBox.x + clickBox.width / 2, clickBox.y + clickBox.height / 2);
     await page.waitForFunction(() => document.querySelector('#sidebar')?.getAttribute('aria-expanded') === 'true'
@@ -134,8 +135,12 @@ for (const client of ['claude', 'codex']) {
       updateChatMascot(); showClipboard(false); showMascotBubble('');
     });
     await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'idle');
-    const pet = await page.locator('#mascot-image').boundingBox();
-    const pokeAt = () => page.mouse.click(pet.x + pet.width / 2, pet.y + pet.height / 2);
+    // The pet slides with the case folder (.56s) whenever a click opens or docks it; measure after it stops.
+    const pokeAt = async () => {
+      await page.waitForTimeout(650);
+      const pet = await page.locator('#mascot-image').boundingBox();
+      await page.mouse.click(pet.x + pet.width / 2, pet.y + pet.height / 2);
+    };
     const lineShown = () => page.waitForFunction(() => MASCOT_LINES.claude.includes(document.querySelector('#mascot-bubble').textContent)
       && document.querySelector('#mascot-bubble').classList.contains('show'));
     await pokeAt();
@@ -157,12 +162,26 @@ for (const client of ['claude', 'codex']) {
     await setState('thinking');
     await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'thinking'
       && !document.querySelector('#mascot')?.classList.contains('transitioning'));
-    const thinkingPet = await page.locator('#mascot-image').boundingBox();
-    await page.mouse.click(thinkingPet.x + thinkingPet.width / 2, thinkingPet.y + thinkingPet.height / 2);
+    await pokeAt();
     await lineShown();
     await page.waitForTimeout(400);
     assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'thinking', 'while the AI works the pet only talks');
     console.log('PASS clicking the pet shows its lines, switches pose, and keeps the thinking pose while the AI works');
+
+    // Reduce motion: an idle page with the pet showing runs no animations at all (remote desktops repaint less).
+    await page.evaluate(() => { chatBusy = false; $('#chat-progress').hidden = true; chatMessages = [{role: 'user', text: 'x'}]; updateChatMascot(); });
+    await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.mood === 'idle');
+    await page.waitForFunction(() => document.getAnimations().some(a => a.playState === 'running'));
+    await page.evaluate(() => setReduceMotion(true));
+    await page.waitForTimeout(700);
+    ok(await page.evaluate(() => !document.getAnimations().some(a => a.playState === 'running') && !mascotIdleTimer && !mascotBlinkTimer),
+      'reduce motion leaves an idle page with the pet showing free of running animations and pet timers');
+    await page.reload(); await ready(page);
+    ok(await page.evaluate(() => reduceMotion && document.documentElement.classList.contains('reduce-motion') && $('#reduce-motion').checked),
+      'reduce motion is remembered across reloads');
+    await page.evaluate(() => { setReduceMotion(false); chatBusy = false; chatMessages = [{role: 'user', text: 'x'}]; updateChatMascot(); });
+    await page.waitForFunction(() => document.getAnimations().some(a => a.playState === 'running'));
+    console.log('PASS reduce motion stops the pet animations and is remembered');
 
     await page.click('#zoom-fit');
     await page.evaluate(() => showMascotBubble(''));

@@ -179,6 +179,16 @@ async function inspect(page, ids) {
 
     await page.evaluate(() => { view = {s: 1, x: 0, y: 0}; applyView(); render(); });
     await page.waitForTimeout(120);
+
+    // A wide, fixed-height curled note with little text must not scroll just because of the curl spacer.
+    await setFixture(page, {bands: [], tags: [], edges: [], cards: [
+      {id: ids.curled, kind: 'note', x: 40, y: 70, title: '短標題', note: '短內容', links: [], color: 'amber', tags: ['論文', '待思考'], w: 420, h: 300},
+    ]});
+    const overflow = await page.evaluate(id => {
+      const body = document.querySelector(`.card[data-id="${id}"] > .card-body`);
+      return body ? {curl: body.parentElement.classList.contains('curl'), scroll: body.scrollHeight, client: body.clientHeight} : null;
+    }, ids.curled);
+    check(overflow?.curl && overflow.scroll <= overflow.client, `a short wide curled note shows no scrollbar (${JSON.stringify(overflow)})`);
     await page.evaluate(() => { setTheme('cork'); setCardStyle('paper', false); });
     const shots = await screenshotIds(page);
     await setFixture(page, screenshotFixture(shots));

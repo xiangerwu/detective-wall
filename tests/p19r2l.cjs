@@ -7,7 +7,6 @@ const {ready, reload} = require('./wall-ready.cjs');
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p19r2l');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
-const RAILS = ['hidden', 'icon', 'full'];
 const SIZES = [[1400, 900], [1280, 720]];
 const GAP_MIN = 6, GAP_MAX = 12, BOTTOM_TOLERANCE = 2;
 const failures = [];
@@ -74,7 +73,7 @@ async function setMascotState(page, state) {
     await page.goto(PAGE); await ready(page);
     await page.waitForFunction(() => document.querySelector('#mascot-image .rig')?.dataset.ready === 'true');
 
-    await page.evaluate(() => { setTheme('cork'); setRailState('icon', false); showMascotBubble(''); });
+    await page.evaluate(() => { setTheme('cork'); showMascotBubble(''); });
     await setClipboard(page, true);
     await page.screenshot({path: path.join(OUT, 'mascot-clipboard-open-cork-1400x900.png')});
     await setClipboard(page, false);
@@ -116,21 +115,21 @@ async function setMascotState(page, state) {
 
     for (const [width, height] of SIZES) {
       await page.setViewportSize({width, height});
-      for (const theme of THEMES) for (const rail of RAILS) for (const open of [true, false]) {
-        await page.evaluate(({theme: nextTheme, rail: nextRail}) => {
-          setTheme(nextTheme); setRailState(nextRail, false); showMascotBubble('');
-        }, {theme, rail});
+      for (const theme of THEMES) for (const open of [true, false]) {
+        await page.evaluate(({theme: nextTheme}) => {
+          setTheme(nextTheme); showMascotBubble('');
+        }, {theme});
         await setClipboard(page, open);
         const value = await geometry(page);
-        check(mascotGeometryOk(value), `${theme}/${rail}/${width}x${height}/${open ? 'open' : 'docked'}: mascot follows board geometry (${JSON.stringify(value)})`);
-        if ((theme === 'cork' || theme === 'moon') && rail === 'icon') {
+        check(mascotGeometryOk(value), `${theme}/${width}x${height}/${open ? 'open' : 'docked'}: mascot follows board geometry (${JSON.stringify(value)})`);
+        if (theme === 'cork' || theme === 'moon') {
           await page.screenshot({path: path.join(OUT, `mascot-clipboard-${open ? 'open' : 'docked'}-${theme}-${width}x${height}.png`)});
         }
       }
     }
 
     await page.setViewportSize({width: 1400, height: 900});
-    await page.evaluate(() => { setTheme('cork'); setRailState('icon', false); });
+    await page.evaluate(() => { setTheme('cork'); });
     await setClipboard(page, false);
     const docked = await geometry(page);
     await page.evaluate(() => showClipboard(true));

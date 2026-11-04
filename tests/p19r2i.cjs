@@ -175,7 +175,7 @@ async function anchorOrder(page) {
     await tabGeometry(page, 'remove');
 
     await setFixture(page);
-    await page.evaluate(() => { setRailState('full'); showActivity(null); anchorNavOpen = true; render(); });
+    await page.evaluate(() => { showActivity('navigation'); anchorNavOpen = true; render(); });
     ok(await page.locator('#rail-anchor-list [data-anchor-card]').count() === 3, 'rail keeps only the three explicitly marked anchors');
     await page.screenshot({path: path.join(OUT, 'anchor-panel.png')});
 
@@ -193,7 +193,7 @@ async function anchorOrder(page) {
     const draggedOrder = await anchorOrder(page);
     ok(JSON.stringify(draggedOrder) === JSON.stringify(['anchor-b', 'anchor-a', 'anchor-c']), 'pointer drag reorders the marked anchor list');
     await reload(page);
-    await page.evaluate(() => { setRailState('full'); showActivity(null); anchorNavOpen = true; render(); });
+    await page.evaluate(() => { showActivity('navigation'); anchorNavOpen = true; render(); });
     ok(JSON.stringify(await anchorOrder(page)) === JSON.stringify(['anchor-b', 'anchor-a', 'anchor-c']), 'pointer anchor order survives reload');
 
     await page.locator('#rail-anchor-list [data-anchor-card="anchor-c"]').focus();
@@ -201,7 +201,7 @@ async function anchorOrder(page) {
     const keyboardOrder = await anchorOrder(page);
     ok(JSON.stringify(keyboardOrder) === JSON.stringify(['anchor-b', 'anchor-c', 'anchor-a']), 'keyboard Alt+ArrowUp reorders anchors');
     await reload(page);
-    await page.evaluate(() => { setRailState('full'); showActivity(null); anchorNavOpen = true; render(); });
+    await page.evaluate(() => { showActivity('navigation'); anchorNavOpen = true; render(); });
     ok(JSON.stringify(await anchorOrder(page)) === JSON.stringify(['anchor-b', 'anchor-c', 'anchor-a']), 'keyboard anchor order survives reload');
 
     const backup = await page.evaluate(async () => {

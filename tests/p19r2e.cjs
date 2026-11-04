@@ -9,7 +9,6 @@ const ROOT = path.resolve(__dirname, '..');
 const OUT = process.env.WALL_TEST_OUT || path.join(ROOT, 'test-results', 'p19r2e');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1280, 720], [1400, 900]];
-const RAILS = ['hidden', 'icon', 'full'];
 const failures = [];
 const check = (condition, message) => {
   if (condition) console.log('PASS ' + message);
@@ -22,16 +21,16 @@ function hit(a, b) {
 
 async function settled(page) { await page.waitForTimeout(700); }
 
-async function productState(page, theme, width, height, rail) {
+async function productState(page, theme, width, height) {
   await page.setViewportSize({width, height});
-  await page.evaluate(({theme, rail}) => {
-    setTheme(theme); setRailState(rail, false); showActivity(null); showClipboard(false, false); closePanel();
+  await page.evaluate(({theme}) => {
+    setTheme(theme); showActivity(null); showClipboard(false, false); closePanel();
     closeLayoutMenu();
-  }, {theme, rail});
+  }, {theme});
   await settled(page);
 }
 
-async function shellChecks(page, theme, width, height, rail) {
+async function shellChecks(page, theme, width, height) {
   const result = await page.evaluate(() => {
     const visible = selector => {
       const el = document.querySelector(selector); if (!el) return null;
@@ -64,7 +63,7 @@ async function shellChecks(page, theme, width, height, rail) {
       canvasTop: viewport && islands ? islands.bottom <= viewport.top + 1 : false,
     };
   });
-  const label = `${theme}/${width}x${height}/${rail}`;
+  const label = `${theme}/${width}x${height}`;
   check(result.islandInTopbar && !result.islandInViewport,
     `${label}: layout and zoom island moved from canvas into topbar`);
   check(result.islands && result.insideTopbar && result.rowSpread < 12 && result.pairOverlaps.length === 0,
@@ -73,7 +72,7 @@ async function shellChecks(page, theme, width, height, rail) {
     `${label}: canvas has no floating island at its top centre`);
 }
 
-async function menuChecks(page, theme, width, height, rail) {
+async function menuChecks(page, theme, width, height) {
   await page.click('#layout-wall-arrow');
   await settled(page);
   const result = await page.evaluate(() => {
@@ -91,7 +90,7 @@ async function menuChecks(page, theme, width, height, rail) {
       expanded: document.querySelector('#layout-wall-arrow')?.getAttribute('aria-expanded'),
     };
   });
-  const label = `${theme}/${width}x${height}/${rail}`;
+  const label = `${theme}/${width}x${height}`;
   check(result.menuInTopbar && result.belowButton && result.belowTopbar,
     `${label}: layout menu opens below its topbar button`);
   check(result.insideViewport && result.modes === 3 && result.expanded === 'true',
@@ -106,13 +105,13 @@ async function menuChecks(page, theme, width, height, rail) {
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(PAGE); await ready(page);
-    for (const theme of THEMES) for (const [width, height] of SIZES) for (const rail of RAILS) {
-      await productState(page, theme, width, height, rail);
-      await shellChecks(page, theme, width, height, rail);
-      await menuChecks(page, theme, width, height, rail);
+    for (const theme of THEMES) for (const [width, height] of SIZES) {
+      await productState(page, theme, width, height);
+      await shellChecks(page, theme, width, height);
+      await menuChecks(page, theme, width, height);
     }
     for (const theme of ['cork', 'moon']) for (const [width, height] of SIZES) {
-      await productState(page, theme, width, height, 'icon');
+      await productState(page, theme, width, height);
       await page.click('#layout-wall-arrow'); await settled(page);
       await page.screenshot({path: path.join(OUT, `topbar-${theme}-${width}x${height}-menu.png`)});
       await page.keyboard.press('Escape');

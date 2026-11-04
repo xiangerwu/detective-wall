@@ -73,6 +73,16 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     assert.equal(response.status, 409, 'stale base version is rejected');
     console.log('PASS 409 version conflict');
 
+    // The 400 KB page is revalidated, not re-sent: an unchanged copy answers 304 with no body.
+    response = await request(server.url, '/');
+    assert.equal(response.status, 200);
+    assert.equal(response.headers['cache-control'], 'no-cache');
+    assert.ok(response.headers.etag);
+    const revalidated = await request(server.url, '/', 'GET', undefined, {'if-none-match': response.headers.etag});
+    assert.equal(revalidated.status, 304);
+    assert.equal(revalidated.body, '');
+    console.log('PASS index.html carries an ETag and answers 304 when unchanged');
+
     const port = new URL(server.url).port;
     response = await request(server.url, '/api/health');
     assert.equal(response.status, 200);

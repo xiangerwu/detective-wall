@@ -168,7 +168,10 @@ async function seedProject(folder, wallId, title) {
 
 async function openSettings(page) {
   // Opening a CLI keeps the modal open to show its result.
-  if (!await page.locator('#launcher-settings-dialog[open]').count()) await page.locator('#launcher-settings').click();
+  if (!await page.locator('#launcher-settings-dialog[open]').count()) {
+    if (await page.getAttribute('#activity-toggle', 'aria-expanded') !== 'true') await page.locator('#activity-toggle').click();
+    await page.locator('#activity-launcher-settings').click();
+  }
   await page.locator('#launcher-settings-dialog[open]').waitFor();
 }
 
@@ -179,7 +182,8 @@ async function testMenuIconsAndSettingsInput() {
     const page = await firstWindow(application);
     await waitForWall(page);
     assert.equal(await application.evaluate(({Menu}) => Menu.getApplicationMenu()), null);
-    assert.equal(await page.locator('#launcher-settings').isHidden(), false);
+    if (await page.getAttribute('#activity-toggle', 'aria-expanded') !== 'true') await page.locator('#activity-toggle').click();
+    assert.equal(await page.locator('#activity-launcher-settings').isHidden(), false);
 
     await openSettings(page);
     const input = page.locator('#launcher-port');

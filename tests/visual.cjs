@@ -94,8 +94,8 @@ async function themeStyles(page, theme) {
   const same = (a, b) => a.every((value, index) => Math.abs(value - b[index]) < 1);
   assert.ok(same(result.backgrounds.body, result.tokens['--ui-bg']), `${theme}: body background is not --ui-bg`);
   assert.ok(same(result.backgrounds.header, result.tokens['--ui-panel']), `${theme}: header is not --ui-panel`);
-  assert.ok(same(result.backgrounds.rail, result.tokens['--ui-bar']), `${theme}: rail is not --ui-bar`);
-  assert.ok(same(result.backgrounds.railPanel, result.tokens['--ui-panel']), `${theme}: rail panel is not --ui-panel`);
+  assert.equal(result.backgrounds.rail[3], 0, `${theme}: rail keeps the wall visible instead of painting a sidebar strip`);
+  assert.ok(same(result.backgrounds.railPanel, result.tokens['--ui-surface']), `${theme}: floating rail panel is not --ui-surface`);
     assert.ok(result.backgrounds.clipboardBoard.includes('linear-gradient'), `${theme}: clipboard keeps its hardboard surface`);
   assert.ok(same(result.backgrounds.panel, result.tokens['--ui-surface']), `${theme}: editor is not --ui-surface`);
   assert.ok(same(result.backgrounds.input, result.tokens['--ui-input']), `${theme}: input is not --ui-input`);

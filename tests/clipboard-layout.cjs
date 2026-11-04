@@ -7,20 +7,18 @@ const {ready} = require('./wall-ready.cjs');
 const ROOT = path.resolve(__dirname, '..');
 const SCREENSHOTS = path.join(ROOT, 'test-results', 'p19r2g');
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
-const RAILS = ['hidden', 'icon', 'full'];
 const SIZES = [[1400, 900], [1280, 720]];
 const TAB_NAMES = ['chat', 'proposals', 'audit', 'model'];
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) process.exitCode = 1; };
 const waitPaint = page => page.waitForTimeout(700);
 
-async function setState(page, theme, rail, open, width, height) {
+async function setState(page, theme, open, width, height) {
   await page.setViewportSize({width, height});
-  await page.evaluate(({theme, rail, open}) => {
+  await page.evaluate(({theme, open}) => {
     setTheme(theme);
-    setRailState(rail, false);
     showAiTab('chat');
     showClipboard(open, false);
-  }, {theme, rail, open});
+  }, {theme, open});
   await waitPaint(page);
 }
 
@@ -31,8 +29,8 @@ async function setState(page, theme, rail, open, width, height) {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(process.env.WALL_TEST_URL); await ready(page);
 
-    for (const theme of THEMES) for (const rail of RAILS) for (const [width, height] of SIZES) for (const open of [false, true]) {
-      await setState(page, theme, rail, open, width, height);
+    for (const theme of THEMES) for (const [width, height] of SIZES) for (const open of [false, true]) {
+      await setState(page, theme, open, width, height);
       const problems = await page.evaluate(() => {
         const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
         const shown = el => {
@@ -89,18 +87,18 @@ async function setState(page, theme, rail, open, width, height) {
         }
         return out;
       });
-      ok(problems.length === 0, `${theme}/${rail}/${width}x${height}/${open ? 'open' : 'docked'}: left vertical tabs are reachable and attached${problems.length ? ' (' + problems.join('; ') + ')' : ''}`);
+      ok(problems.length === 0, `${theme}/${width}x${height}/${open ? 'open' : 'docked'}: left vertical tabs are reachable and attached${problems.length ? ' (' + problems.join('; ') + ')' : ''}`);
 
-      if (rail === 'icon' && (theme === 'cork' || theme === 'moon')) {
+      if (theme === 'cork' || theme === 'moon') {
         await page.screenshot({path: path.join(SCREENSHOTS, `clipboard-${open ? 'open' : 'docked'}-${theme}-${width}x${height}.png`)});
       }
     }
 
-    await setState(page, 'cork', 'icon', true, 1400, 900);
+    await setState(page, 'cork', true, 1400, 900);
     await page.locator('#case-folder-tabs').screenshot({path: path.join(SCREENSHOTS, 'tabs-close-up.png')});
 
     for (const name of TAB_NAMES.slice(1)) {
-      await setState(page, 'cork', 'icon', false, 1400, 900);
+      await setState(page, 'cork', false, 1400, 900);
       await page.click(`#ai-tab-${name}`);
       await waitPaint(page);
       const result = await page.evaluate(expected => ({
@@ -111,7 +109,7 @@ async function setState(page, theme, rail, open, width, height) {
       ok(result.open && result.selected === name && result.paneVisible, `docked tab click opens the board on ${name}`);
     }
 
-    await setState(page, 'cork', 'icon', true, 1400, 900);
+    await setState(page, 'cork', true, 1400, 900);
     await page.focus('#ai-tab-chat');
     for (const [key, expected] of [['ArrowDown', 'proposals'], ['ArrowUp', 'chat'], ['ArrowRight', 'proposals'], ['ArrowLeft', 'chat']]) {
       await page.keyboard.press(key);
@@ -122,7 +120,7 @@ async function setState(page, theme, rail, open, width, height) {
       ok(result.selected === expected && result.focused === expected, `${key} moves AI sheet focus and selection to ${expected}`);
     }
 
-    await setState(page, 'cork', 'icon', true, 1400, 900);
+    await setState(page, 'cork', true, 1400, 900);
     const clipProblems = await page.evaluate(() => {
       const hit = (a, b) => a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1;
       const shown = el => {

@@ -58,6 +58,7 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok(await card('shoup').locator('.tag-chip').count() === 1, 'unknown tag ids are ignored on cards');
 
     await openActivity(page, 'tags');
+    await page.locator('#tag-filter').scrollIntoViewIfNeeded();
     await chip(witness.id).locator('.tag-toggle').click();
     ok(await card('shoup').evaluate(el => !el.classList.contains('dim')) && await card('dt').evaluate(el => !el.classList.contains('dim')) && await card('pss').evaluate(el => el.classList.contains('dim') && getComputedStyle(el).opacity === '0.15'), 'filter dims only cards without active tags');
     ok(await page.locator('.hit[data-id="e1"]').evaluate(el => !el.previousElementSibling.classList.contains('dim')) && await page.locator('.hit[data-id="e2"]').evaluate(el => el.previousElementSibling.classList.contains('dim')) && await page.locator('.str-label[data-id="e2"]').evaluate(el => el.classList.contains('dim') && getComputedStyle(el).opacity === '0.15'), 'strings and labels dim when either end is dimmed');

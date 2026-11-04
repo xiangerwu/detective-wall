@@ -11,7 +11,7 @@
 <script src="/layout.js"></script>
 <style>
 :root{--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;
-  --radius-sm:5px;--radius-md:6px;--radius-lg:8px;--pill-radius:999px;--rail-icon-w:78px;--rail-full-w:232px;--rail-panel-w:300px;
+  --radius-sm:5px;--radius-md:6px;--radius-lg:8px;--pill-radius:999px;
   --font-xs:12px;--font-sm:13px;--font-body:14px;--font-title:16px;
   --control-font:var(--font-sm);--control-pad-y:5px;--control-pad-x:8px;--popup-shadow:0 12px 40px var(--ui-shadow);
   --paper-shadow-top:var(--ui-shadow-soft);--paper-shadow-near:var(--ui-shadow-soft);--paper-shadow-bottom:var(--ui-shadow);--paper-shadow-drag:var(--ui-shadow);
@@ -21,7 +21,7 @@
   --ui-danger:#ffadb5;--ui-danger-strong:#e5484d;--ui-danger-soft:#32171c;--ui-success:#8ff0b6;--ui-warning:#e6b450;
   --ui-shadow:rgba(0,0,0,.58);--ui-shadow-soft:rgba(0,0,0,.42);--ui-backdrop:rgba(0,0,0,.65);--ui-selection:#9cc4ff;
   --ui-pin-light:#ff9aa4;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-bg:linear-gradient(#121a23 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#121a23 1px,transparent 1px) 0 0/18px 18px,#0b1016;
   --wall-color:#0b1016;--wall-label-bg:#1b2530;--band:#8fb8de;--band-line:#2b3c50;--band-label-bg:#1b2530;--band-label-ink:#e3ecf3;--builds:#e5484d;--uses:#4cc3ff;--question:#e6b450;--glow-r:2px}
 [data-theme=whiteboard]{--wall-bg:linear-gradient(#e2e7eb 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,#e2e7eb 1px,transparent 1px) 0 0/18px 18px,#f7f9fa;
@@ -30,7 +30,7 @@
   --ui-danger:#ffccd1;--ui-danger-strong:#d32f2f;--ui-danger-soft:#4b2025;--ui-success:#a8e5bd;--ui-warning:#e08e0b;
   --ui-shadow:rgba(35,45,52,.32);--ui-shadow-soft:rgba(35,45,52,.2);--ui-backdrop:rgba(34,42,48,.45);--ui-selection:#8bc4ef;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#f7f9fa;--wall-label-bg:#ffffff;--band:#2e3a44;--band-line:#b4c0cb;--band-label-bg:#f7f9fa;--band-label-ink:#2e3a44;--builds:#d32f2f;--uses:#1565c0;--question:#e08e0b;--glow-r:0px}
 [data-theme=wood]{--wall-bg:linear-gradient(90deg,rgba(0,0,0,.09) 2px,transparent 2px) 0 0/14px 100%,#6b4a2f;
   --ui-bg:#2a1d14;--ui-panel:#33231a;--ui-bar:#21160f;--ui-surface:#493124;--ui-raised:#5f422f;--ui-input:#241910;
@@ -38,7 +38,7 @@
   --ui-danger:#ffb8ad;--ui-danger-strong:#e0303f;--ui-danger-soft:#5a2524;--ui-success:#b9efc7;--ui-warning:#e8d29a;
   --ui-shadow:rgba(20,10,4,.56);--ui-shadow-soft:rgba(20,10,4,.36);--ui-backdrop:rgba(20,10,4,.62);--ui-selection:#b8e4ff;
   --ui-pin-light:#ffb7bd;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#6b4a2f;--wall-label-bg:#f2e6d0;--band:#e8d29a;--band-line:rgba(255,230,190,.35);--band-label-bg:#2a1d14;--band-label-ink:#f2e6d0;--builds:#e0303f;--uses:#7fc4e8;--question:#e8d29a;--uses-ink:#1d5a80;--question-ink:#7a5a12;--glow-r:1px}
 [data-theme=paper]{--wall-bg:linear-gradient(rgba(150,110,40,.18) 1px,transparent 1px) 0 0/100% 18px,#f1e4bf;
   --ui-bg:#3b2a1e;--ui-panel:#493527;--ui-bar:#2e2118;--ui-surface:#594331;--ui-raised:#6d5139;--ui-input:#2b1f17;
@@ -46,7 +46,7 @@
   --ui-danger:#ffccd1;--ui-danger-strong:#b3202a;--ui-danger-soft:#5a2026;--ui-success:#b5e5bc;--ui-warning:#e6c275;
   --ui-shadow:rgba(63,45,20,.34);--ui-shadow-soft:rgba(63,45,20,.22);--ui-backdrop:rgba(63,45,20,.5);--ui-selection:#8db7d8;
   --ui-pin-light:#ff9aa4;--ui-pin:#c21d32;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#f1e4bf;--wall-label-bg:#fbf7ee;--band:#7a5c2e;--band-line:#c4a766;--band-label-bg:#fbf7ee;--band-label-ink:#3b2a1e;--builds:#b3202a;--uses:#2a5d8f;--question:#7a6a4f;--glow-r:0px}
 [data-theme=cork]{--wall-bg:url('/assets/cork.jpg') repeat;
   --ui-bg:#33241a;--ui-panel:#3f2d21;--ui-bar:#271a12;--ui-surface:#513820;--ui-raised:#69482b;--ui-input:#2d1f16;
@@ -54,7 +54,7 @@
   --ui-danger:#ffbaa9;--ui-danger-strong:#b3101f;--ui-danger-soft:#5d2925;--ui-success:#b7edc5;--ui-warning:#ffd27b;
   --ui-shadow:rgba(35,16,5,.56);--ui-shadow-soft:rgba(35,16,5,.36);--ui-backdrop:rgba(35,16,5,.62);--ui-selection:#b9e7ff;
   --ui-pin-light:#ffb7bd;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#a8713f;--wall-label-bg:#fff0d5;--band:#4a2a0e;--band-line:rgba(58,34,16,.45);--band-label-bg:#fff0d5;--band-label-ink:#6e3f00;--builds:#b3101f;--uses:#0a4f78;--question:#f3e2b8;--question-ink:#6e3f00;--glow-r:0px}
 [data-theme=cyber]{--wall-bg:linear-gradient(rgba(58,209,255,.13) 1px,transparent 1px) 0 0/18px 18px,linear-gradient(90deg,rgba(58,209,255,.13) 1px,transparent 1px) 0 0/18px 18px,#04122a;
   --ui-bg:#143b5d;--ui-panel:#071b33;--ui-bar:#05182c;--ui-surface:#10375a;--ui-raised:#1b476b;--ui-input:#061a30;
@@ -62,7 +62,7 @@
   --ui-danger:#ff9bb3;--ui-danger-strong:#ff3d7f;--ui-danger-soft:#41152a;--ui-success:#8ff0b6;--ui-warning:#ffd23d;
   --ui-shadow:rgba(0,0,0,.62);--ui-shadow-soft:rgba(0,0,0,.44);--ui-backdrop:rgba(0,0,0,.68);--ui-selection:#80dfff;
   --ui-pin-light:#ff9aa4;--ui-pin:#d0182c;--ui-pin-dark:#6b0712;--focus-ring:0 0 0 3px color-mix(in srgb,var(--ui-accent) 38%,transparent);
-  --rail-bg:var(--ui-bar);--rail-panel-bg:var(--ui-panel);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
+  --rail-bg:var(--ui-bar);--folder-bg:var(--ui-surface);--folder-tab-bg:var(--ui-raised);--shell-shadow:var(--ui-shadow-soft);
   --wall-color:#04122a;--wall-label-bg:#071b33;--band:#3ad1ff;--band-line:rgba(58,209,255,.4);--band-label-bg:#071b33;--band-label-ink:#e5fbff;--builds:#ff3d7f;--uses:#3ad1ff;--question:#ffd23d;--glow-r:2px}
 /* The pet's comic speech bubble keeps the same ink and paper on every wall theme. */
 :root{--comic-ink:#111;--comic-paper:#fff}
@@ -121,53 +121,40 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #zoom button:hover{border-color:transparent;background:var(--ui-hover)}
 #zoom-pct{min-width:58px}
 #main{position:relative;flex:1;min-height:0;display:flex}
-#rail-toggle{position:absolute;top:10px;left:10px;z-index:31;width:34px;height:34px;padding:0;border:1px solid var(--ui-border);border-radius:var(--radius-lg);color:var(--ui-text);background:var(--ui-raised);box-shadow:0 4px 10px var(--shell-shadow)}
-#rail-toggle:hover{background:var(--ui-hover)}
-#rail{flex:none;width:var(--rail-w,var(--rail-icon-w));display:flex;flex-direction:column;min-width:0;overflow:hidden;padding:52px 10px 10px;background:var(--rail-bg);border-right:1px solid var(--ui-border);transition:width .18s ease,box-shadow .18s ease}
-#rail .rail-scroll{display:flex;flex:1;flex-direction:column;gap:8px;min-width:0;min-height:0;overflow:auto;padding-bottom:10px}
-#rail .rail-stack{display:flex;flex-direction:column;gap:4px;min-width:0}
-#rail .rail-control{width:100%;display:flex;align-items:center;gap:8px;min-height:36px;padding:7px 9px;color:var(--ui-text);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
-#rail .rail-control:hover,#rail .rail-control:focus-visible{background:var(--ui-hover);border-color:var(--ui-border)}
-#rail .rail-control.on{background:var(--ui-active);border-color:var(--ui-accent)}
-#rail .rail-control svg{flex:none;width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* Above #rail-panel (50): a hover-widened bubble draws over the floating window next to it instead of slipping under it. */
+#rail{position:absolute;z-index:55;inset:0 auto 0 0;width:52px;overflow:visible;pointer-events:none}
+#rail .rail-scroll{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;overflow:visible;padding:16px 6px;pointer-events:none}
+#rail .rail-stack{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;pointer-events:none}
+#rail .rail-control,#rail .rail-activity,#rail .rail-gear{position:relative;display:flex;align-items:center;flex:none;width:40px;height:40px;min-height:40px;gap:8px;padding:7px;color:var(--ui-text);background:color-mix(in srgb,var(--ui-surface) 70%,transparent);border:1px solid color-mix(in srgb,var(--ui-accent) 48%,var(--ui-border));border-radius:var(--pill-radius);box-shadow:0 5px 14px var(--ui-shadow-soft);backdrop-filter:blur(8px);overflow:hidden;text-align:left;white-space:nowrap;pointer-events:auto;transition:width .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .22s ease,opacity .18s ease,visibility 0s linear .22s}
+#rail .rail-control:hover,#rail .rail-control:focus-visible,#rail .rail-activity:hover,#rail .rail-activity:focus-visible,#rail .rail-gear:hover,#rail .rail-gear:focus-visible{width:136px;background:color-mix(in srgb,var(--ui-surface) 88%,var(--ui-accent));border-color:var(--ui-accent);box-shadow:0 7px 18px var(--ui-shadow-soft)}
+#rail .rail-control:focus-visible,#rail .rail-activity:focus-visible,#rail .rail-gear:focus-visible{outline:0;box-shadow:var(--focus-ring),0 7px 18px var(--ui-shadow-soft)}
+#rail .rail-control.on,#rail .rail-activity.on{border-color:var(--ui-accent);background:var(--ui-active)}
 #rail .rail-icon{display:inline-flex;flex:none;width:24px;height:24px;align-items:center;justify-content:center;color:currentColor;font-size:22px;font-weight:800;line-height:1;text-align:center}
-#rail .rail-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#rail .rail-bottom{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto;padding-top:10px;border-top:1px solid var(--ui-border)}
-#rail .rail-activity{width:100%;min-width:0;min-height:36px;display:flex;align-items:center;gap:6px;padding:6px;color:var(--ui-muted);background:transparent;border-color:transparent;border-radius:var(--radius-lg);text-align:left}
-#rail .rail-activity:hover,#rail .rail-activity:focus-visible{color:var(--ui-text);background:var(--ui-hover);border-color:var(--ui-border)}
-#rail .rail-activity.on{color:var(--ui-accent);background:var(--ui-active);box-shadow:inset 3px 0 0 var(--ui-accent)}
-#rail .rail-activity svg{display:block;flex:none;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-body.rail-icon #rail{padding-left:10px;padding-right:10px}
-body.rail-icon #rail .rail-control{justify-content:center;padding-left:6px;padding-right:6px}
-body.rail-icon #rail .rail-label{display:none}
-body.rail-icon #rail .rail-bottom{grid-template-columns:1fr}
-body.rail-icon #rail .rail-activity{justify-content:center}
-body.rail-full #rail #activity-navigation{display:none}
-/* The expanded rail keeps the navigation card readable at the shorter test viewport. */
-body.rail-full #rail .rail-scroll{gap:8px}
-body.rail-full #rail .rail-stack{gap:3px}
-body.rail-full #rail .rail-control{min-height:30px;padding-top:4px;padding-bottom:4px}
-body.rail-full #rail-navigation{gap:5px;padding:6px}
-body.rail-full #rail-navigation-content{gap:5px}
-body.rail-full #rail-band-list{gap:2px}
-body.rail-full #rail-band-list button,body.rail-full #rail-anchor-list button{padding-top:4px;padding-bottom:4px;font-size:11px}
-body.rail-full #rail-anchor-list{gap:4px;padding-top:5px}
-body.rail-full #rail-anchor-filters{gap:3px}
-body.rail-full #rail-anchor-filters button{padding:3px 5px;font-size:11px}
-body.rail-full .rail-anchor-group{gap:2px}
-body.rail-full .rail-anchor-group h3{margin-top:1px;font-size:10px}
-body.rail-resizing #rail{transition:none}
-body.rail-hidden #rail,body.rail-hidden #rail-resize{display:none}
-body.rail-hidden #rail-panel{display:none}
-#rail-panel{flex:none;width:var(--rail-panel-w);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:52px 14px 12px;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
+#rail .rail-control svg,#rail .rail-activity svg,#rail .rail-gear svg{display:block;flex:none;width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+#rail .rail-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity .14s ease,transform .18s ease}
+#rail .rail-control:hover .rail-label,#rail .rail-control:focus-visible .rail-label,#rail .rail-activity:hover .rail-label,#rail .rail-activity:focus-visible .rail-label,#rail .rail-gear:hover .rail-label,#rail .rail-gear:focus-visible .rail-label{opacity:1;transform:none}
+#rail .rail-bottom{position:absolute;left:6px;bottom:16px;width:40px;height:40px;margin:0;padding:0;border:0;pointer-events:none}
+#rail .rail-gear{position:absolute;left:0;bottom:0;z-index:2;justify-content:flex-start;transform-origin:center}
+#rail .rail-gear.on{border-color:var(--ui-accent);background:var(--ui-active);transform:rotate(18deg)}
+#rail .rail-activity{position:absolute;left:0;bottom:0;z-index:1;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(0) scale(.78);transition-delay:0s}
+#rail .rail-bottom[data-expanded=true] .rail-activity[aria-hidden=false]{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(calc(-1 * var(--activity-index) * 48px)) scale(1);transition-delay:0s}
+/* A clicked bubble goes back to a circle (its window shows the name) until the pointer leaves it. */
+#rail .rail-activity.settled{width:40px}
+#rail .rail-activity.settled .rail-label{opacity:0;transform:translateX(-4px)}
+#rail .rail-activity.on{box-shadow:0 0 0 2px color-mix(in srgb,var(--ui-accent) 34%,transparent),0 7px 18px var(--ui-shadow-soft)}
+#rail .rail-activity[hidden]{display:none}
+#rail-panel{position:fixed;z-index:50;width:min(320px,calc(100vw - 72px));max-width:calc(100vw - 16px);max-height:calc(100vh - 24px);overflow:auto;display:flex;flex-direction:column;gap:16px;padding:14px;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:var(--radius-lg);box-shadow:0 18px 48px var(--ui-shadow-soft)}
+#rail-panel:focus{outline:0;box-shadow:var(--focus-ring),0 18px 48px var(--ui-shadow-soft)}
+#rail-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px solid var(--ui-border)}
+#rail-panel-title{font-size:var(--font-title);font-weight:650}
+#rail-panel [data-activity-panel] > h2:first-child{display:none}
+#rail-panel-close{flex:none;width:28px;height:28px;padding:0;border:0;border-radius:var(--radius-md);color:var(--ui-muted);background:transparent;font-size:20px;line-height:1}
+#rail-panel-close:hover,#rail-panel-close:focus-visible{color:var(--ui-text);background:var(--ui-hover)}
 #rail-panel h2{margin:0 0 6px;font-size:var(--font-title);font-weight:650;color:var(--ui-text)}
 #rail-panel h3{margin:10px 0 4px;font-size:13px;color:var(--ui-text)}
 #rail-panel .row{display:flex;flex-wrap:wrap;gap:6px}
-#rail-resize{flex:none;width:6px;cursor:ew-resize;touch-action:none;background:var(--rail-panel-bg);border-right:1px solid var(--ui-border)}
-#rail-resize:hover,#rail-resize:focus-visible{background:var(--ui-accent)}
-#rail-panel[hidden],#rail-resize[hidden]{display:none}
-#rail-navigation-slot,#rail-navigation-flyout-slot{min-width:0}
-#rail-navigation{display:flex;flex-direction:column;gap:8px;min-width:0;margin-top:2px;padding:8px;background:color-mix(in srgb,var(--rail-bg) 72%,var(--ui-surface));border:1px solid var(--ui-border);border-radius:var(--radius-lg)}
+#rail-panel[hidden]{display:none}
+#rail-navigation{display:flex;flex-direction:column;gap:8px;min-width:0;margin-top:2px;padding:8px;background:color-mix(in srgb,var(--ui-surface) 76%,var(--ui-raised));border:1px solid var(--ui-border);border-radius:var(--radius-lg)}
 #rail-navigation[hidden]{display:none}
 #rail-navigation-title{display:flex;align-items:center;justify-content:space-between;width:100%;padding:6px 7px;color:var(--ui-text);background:transparent;border:0;border-radius:var(--radius-md);font-weight:700;text-align:left}
 #rail-navigation-title:hover,#rail-navigation-title:focus-visible{background:var(--ui-hover)}
@@ -191,6 +178,10 @@ body.rail-hidden #rail-panel{display:none}
 #rail-anchor-list [data-anchor-card].dragging{opacity:.55;cursor:grabbing}
 #rail-anchor-list [data-anchor-card].drop-before{box-shadow:0 -3px 0 var(--ui-accent),0 0 0 2px color-mix(in srgb,var(--ui-accent) 22%,transparent)}
 #rail-anchor-list [data-anchor-card].drop-after{box-shadow:0 3px 0 var(--ui-accent),0 0 0 2px color-mix(in srgb,var(--ui-accent) 22%,transparent)}
+@media (prefers-reduced-motion: reduce){
+  #rail .rail-control,#rail .rail-activity,#rail .rail-gear,#rail .rail-label{transition-duration:.01ms}
+  #rail .rail-activity{transition-property:opacity,visibility;transition-duration:.14s}
+}
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
 #sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(440px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 78px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
 #sidebar.is-open{transform:none}
@@ -206,7 +197,8 @@ body.rail-hidden #rail-panel{display:none}
 #wall{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
 #bg{position:absolute;background:var(--wall-bg)}
 .band{position:absolute;border-top:1px dashed var(--band-line);pointer-events:none}
-.band-label{position:absolute;left:14px;top:12px;font-size:16px;font-weight:700;line-height:1.35;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 30%,transparent);border-radius:4px;padding:2px 8px;transition:none;white-space:nowrap;pointer-events:auto;cursor:ns-resize;user-select:none;transform-origin:0 0;transform:scale(var(--inv,1))}
+/* left clears the floating rail bubbles (#rail is 52px wide); --inv turns screen pixels into wall units. */
+.band-label{position:absolute;left:calc(60px * var(--inv,1));top:12px;font-size:16px;font-weight:700;line-height:1.35;color:var(--band-label-ink);background:color-mix(in srgb,var(--band-label-bg) 88%,transparent);border:1px solid color-mix(in srgb,var(--band-label-ink) 30%,transparent);border-radius:4px;padding:2px 8px;transition:none;white-space:nowrap;pointer-events:auto;cursor:ns-resize;user-select:none;transform-origin:0 0;transform:scale(var(--inv,1))}
 #strings,#strings-live{position:absolute;z-index:1;pointer-events:none;overflow:visible}
 #string-ends{position:absolute;z-index:3;pointer-events:none;overflow:visible;will-change:transform}
 #string-ends .string-pin{fill:url(#string-pin-gradient);stroke:var(--ui-pin-dark);stroke-width:1.35;pointer-events:none}  /* no SVG filter: 2000 filtered pins made dragging 4x slower in Firefox */
@@ -434,6 +426,9 @@ body.wall-pointer #mascot *{pointer-events:none!important}
 #mascot.mood-happy #mascot-image .rig{animation:mascot-hop .55s ease-out 1}
 #mascot.mood-sweat #mascot-image .rig{animation:mascot-shake .48s ease-out 1}
 #mascot.poked #mascot-image .rig{animation:mascot-hop .45s ease-out 1}
+/* Reduce motion (setReduceMotion): no continuous or decorative movement, so an idle wall stops repainting. */
+.reduce-motion #mascot,.reduce-motion #mascot *{animation:none !important;transition:none !important}
+.reduce-motion #sidebar,.reduce-motion #rail *,.reduce-motion #rail-panel{transition:none !important}
 @keyframes fx-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes fx-pop{0%{transform:scale(1);opacity:1}40%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
 @keyframes fx-drip{0%{transform:translateY(-4px);opacity:0}20%{opacity:1}100%{transform:translateY(10px);opacity:0}}
@@ -933,8 +928,10 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
   background:linear-gradient(180deg,transparent,rgba(255,255,255,.22) 48%,rgba(255,255,255,.19) 52%,transparent);
   pointer-events:none;
 }
+/* The white sheen reads as glue on light paper but as a stray white band on the dark tech cards (user's call, 2026-11-05). */
+[data-card-style=tech] .card:not(.photo-card) > .card-sheet .adhesive-highlight{display:none}
 .card:not(.photo-card) > :is(h3,.card-body,.md,p,.tags,.links){position:relative;z-index:3}
-.card.fixed-size > .card-body{flex:1 1 auto;min-width:0;min-height:0;overflow:auto;overflow-x:hidden}
+.card.fixed-size > .card-body{flex:1 1 auto;min-width:0;min-height:0;overflow:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--c-border) 70%,transparent) transparent}
 .card.curl:not(.folded):not(.photo-card){pointer-events:none}
 .card.curl:not(.folded):not(.photo-card) > .card-sheet{
   pointer-events:auto;clip-path:polygon(0 0,100% 0,100% 78%,78% 100%,0 100%);
@@ -1019,7 +1016,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     <button id="redo" title="重做（Ctrl+Y）" aria-label="重做" disabled>↷</button>
     <span id="wall-notice" role="status" aria-live="polite"></span>
     <span id="save-state" role="status">未保存的變更</span>
-    <button id="launcher-settings" type="button" hidden>啟動器設定</button>
     <div id="canvas-islands" aria-label="畫布工具">
       <div id="layout-wall-control">
         <button id="layout-wall" type="button" title="套用目前的整理版面模式" aria-label="整理版面" aria-haspopup="menu" aria-controls="layout-wall-menu"><span class="rail-icon" aria-hidden="true">✣</span><span class="rail-label">推開重疊</span></button>
@@ -1056,8 +1052,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 </header>
 
 <div id="main">
-<button id="rail-toggle" type="button" aria-controls="rail" aria-expanded="true" aria-label="收起側邊欄" title="收起側邊欄">‹</button>
-<nav id="rail" data-state="icon" aria-label="案件工具側邊欄">
+<nav id="rail" aria-label="案件工具泡泡工具列">
   <div class="rail-scroll">
     <div class="rail-stack">
       <button id="add-card" class="rail-control" type="button" title="新增線索卡" aria-label="新增線索卡"><span class="rail-icon" aria-hidden="true">＋</span><span class="rail-label">線索卡</span></button>
@@ -1065,47 +1060,51 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
       <button id="add-image" class="rail-control" type="button" title="上傳圖片並建立拍立得照片" aria-label="新增圖片"><span class="rail-icon" aria-hidden="true">▧</span><span class="rail-label">圖片</span></button>
       <button id="add-band" class="rail-control" type="button" title="新增分層" aria-label="新增分層"><span class="rail-icon" aria-hidden="true">≋</span><span class="rail-label">分層</span></button>
     </div>
-    <div id="rail-navigation-slot">
-      <section id="rail-navigation" aria-label="分層／錨點" hidden>
-        <button id="rail-navigation-title" type="button" aria-expanded="true">分層／錨點</button>
-        <div id="rail-navigation-content">
-          <div id="rail-band-list" aria-label="分層清單"></div>
-          <div id="rail-anchor-list" aria-label="錨點清單"></div>
-        </div>
-      </section>
-    </div>
-  <div class="rail-bottom" role="toolbar" aria-label="功能面板">
-  <button id="activity-navigation" class="rail-activity" type="button" data-panel="navigation" title="分層／錨點" aria-label="分層／錨點" aria-pressed="false">
+  <div id="rail-bottom" class="rail-bottom" role="toolbar" aria-label="功能面板" data-expanded="false">
+  <button id="activity-toggle" class="rail-gear" type="button" aria-label="展開功能" aria-expanded="false" aria-controls="activity-launcher-settings activity-navigation activity-files activity-history activity-templates activity-sources activity-tags activity-theme activity-help">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.9 3.6h4.2l.7 2.1a7.1 7.1 0 0 1 1.5.9l2.1-.7 2.1 3.6-1.5 1.5c.1.5.1 1 0 1.9l1.5 1.5-2.1 3.6-2.1-.7a7.1 7.1 0 0 1-1.5.9l-.7 2.1H9.9l-.7-2.1a7.1 7.1 0 0 1-1.5-.9l-2.1.7-2.1-3.6L5 12.9a7.1 7.1 0 0 1 0-1.9L3.5 9.5l2.1-3.6 2.1.7a7.1 7.1 0 0 1 1.5-.9z"/><circle cx="12" cy="12" r="2.8"/></svg><span class="rail-label">功能</span>
+  </button>
+  <button id="activity-launcher-settings" class="rail-activity" type="button" hidden inert aria-hidden="true" data-launcher-settings title="啟動器設定" aria-label="啟動器設定" style="--activity-index:1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="1.8" fill="currentColor"/><circle cx="15" cy="12" r="1.8" fill="currentColor"/><circle cx="11" cy="17" r="1.8" fill="currentColor"/></svg><span class="rail-label">啟動器設定</span>
+  </button>
+  <button id="activity-navigation" class="rail-activity" type="button" data-panel="navigation" title="分層／錨點" aria-label="分層／錨點" aria-pressed="false" aria-hidden="true" inert style="--activity-index:2">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v5H5zM5 14h14v5H5z" fill="currentColor" fill-opacity=".18"/><path d="M5 5h14v5H5zM5 14h14v5H5zM8 10v4M16 10v4"/></svg><span class="rail-label">分層／錨點</span>
   </button>
-  <button id="activity-files" class="rail-activity" type="button" data-panel="files" title="檔案" aria-label="檔案" aria-pressed="false">
+  <button id="activity-files" class="rail-activity" type="button" data-panel="files" title="檔案" aria-label="檔案" aria-pressed="false" aria-hidden="true" inert style="--activity-index:3">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7z" fill="currentColor" fill-opacity=".18"/><path d="M3.5 6.5h6l2 2h9v9.3a1.7 1.7 0 0 1-1.7 1.7H5.2a1.7 1.7 0 0 1-1.7-1.7zM3.5 9h17"/></svg><span class="rail-label">檔案</span>
   </button>
-  <button id="activity-history" class="rail-activity" type="button" data-panel="history" title="版本" aria-label="版本" aria-pressed="false">
+  <button id="activity-history" class="rail-activity" type="button" data-panel="history" title="版本" aria-label="版本" aria-pressed="false" aria-hidden="true" inert style="--activity-index:4">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5h12M4 11h12M4 15.5h7" stroke-opacity=".8"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2" fill="currentColor" fill-opacity=".18"/><path d="M16.5 14.5v5m0 0 2-2m-2 2-2-2"/></svg><span class="rail-label">版本</span>
   </button>
-  <button id="activity-templates" class="rail-activity" type="button" data-panel="templates" title="範本" aria-label="範本" aria-pressed="false">
+  <button id="activity-templates" class="rail-activity" type="button" data-panel="templates" title="範本" aria-label="範本" aria-pressed="false" aria-hidden="true" inert style="--activity-index:5">
     <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3" fill="currentColor" fill-opacity=".18"/><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 7h8M8 11h8M8 15h5"/></svg><span class="rail-label">範本</span>
   </button>
-  <button id="activity-sources" class="rail-activity" type="button" data-panel="sources" title="資料夾" aria-label="資料夾" aria-pressed="false">
+  <button id="activity-sources" class="rail-activity" type="button" data-panel="sources" title="資料夾" aria-label="資料夾" aria-pressed="false" aria-hidden="true" inert style="--activity-index:6">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="12" r="4.5" fill="currentColor" fill-opacity=".18"/><circle cx="8" cy="12" r="4.5"/><path d="M12.5 12H21M18 12v3M21 12v2"/></svg><span class="rail-label">資料夾</span>
   </button>
-  <button id="activity-tags" class="rail-activity" type="button" data-panel="tags" title="標籤" aria-label="標籤" aria-pressed="false">
+  <button id="activity-tags" class="rail-activity" type="button" data-panel="tags" title="標籤" aria-label="標籤" aria-pressed="false" aria-hidden="true" inert style="--activity-index:7">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 5 8-1 8 8-8 8-8-8z" fill="currentColor" fill-opacity=".18"/><path d="m4 5 8-1 8 8-8 8-8-8z"/><circle cx="8.5" cy="8.5" r="1.35" fill="currentColor"/></svg><span class="rail-label">標籤</span>
   </button>
-  <button id="activity-theme" class="rail-activity" type="button" data-panel="theme" title="外觀" aria-label="外觀" aria-pressed="false">
+  <button id="activity-theme" class="rail-activity" type="button" data-panel="theme" title="外觀" aria-label="外觀" aria-pressed="false" aria-hidden="true" inert style="--activity-index:8">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="8.5"/><path d="M8 10h.1M12 7h.1M16 10h.1M9 15c1.8 1.5 4.2 1.5 6 0"/></svg><span class="rail-label">外觀</span>
   </button>
-  <button id="activity-help" class="rail-activity" type="button" data-panel="help" title="說明" aria-label="說明" aria-pressed="false">
+  <button id="activity-help" class="rail-activity" type="button" data-panel="help" title="說明" aria-label="說明" aria-pressed="false" aria-hidden="true" inert style="--activity-index:9">
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="currentColor" fill-opacity=".18"/><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.4 2.4 0 1 1 4.1 1.7c-1.2 1.1-1.8 1.4-1.8 2.8M12 17h.1"/></svg><span class="rail-label">說明</span>
   </button>
   </div>
   </div>
 </nav>
 
-<aside id="rail-panel" aria-label="功能面板" hidden>
+<aside id="rail-panel" role="dialog" aria-modal="false" aria-labelledby="rail-panel-title" aria-label="功能面板" tabindex="-1" hidden>
+  <div id="rail-panel-head"><span id="rail-panel-title">功能面板</span><button id="rail-panel-close" type="button" aria-label="關閉功能面板" title="關閉">×</button></div>
   <section id="rail-navigation-panel" data-activity-panel="navigation">
-    <div id="rail-navigation-flyout-slot"></div>
+    <div id="rail-navigation" aria-label="分層／錨點" hidden>
+      <button id="rail-navigation-title" type="button" aria-expanded="true">分層／錨點</button>
+      <div id="rail-navigation-content">
+        <div id="rail-band-list" aria-label="分層清單"></div>
+        <div id="rail-anchor-list" aria-label="錨點清單"></div>
+      </div>
+    </div>
   </section>
   <section id="files-section" data-activity-panel="files">
     <h2>檔案</h2>
@@ -1187,6 +1186,8 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
         <option value="paper">擬真便利貼</option>
       </select>
     </label>
+    <label class="check"><input id="reduce-motion" type="checkbox">減少動畫</label>
+    <p class="section-help">桌寵改為靜止圖，面板滑動改為立即切換。遠端連線時建議開啟。</p>
   </section>
   <section id="help-section" data-activity-panel="help">
     <h2>操作說明</h2>
@@ -1204,8 +1205,6 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
     </ul>
   </section>
 </aside>
-
-<div id="rail-resize" role="separator" aria-orientation="vertical" aria-controls="rail" aria-label="調整側邊欄寬度（左右鍵切換圖示欄與完整欄）" aria-valuemin="78" aria-valuemax="232" aria-valuenow="78" tabindex="0"></div>
 
 <div id="viewport" tabindex="0" aria-label="案件圖譜畫布">
   <div id="wall">
@@ -1454,6 +1453,7 @@ const store = (() => {
   const memory = {walls: new Map(), meta: new Map(), backups: new Map(), images: new Map()};
   const pendingWalls = new Map(), pendingImages = new Map(), pendingMeta = new Map(), pendingBackups = [];
   const pendingDeletes = new Set(), pendingDeleteBackups = new Set();
+  const queuedPuts = new Map();  // wall id -> {name, data, result} for a PUT still waiting in the write queue
   let pendingProject = null;
   const FALLBACK_RESULT = Symbol('fallback result');
   const pathFor = (...parts) => '/api/' + parts.map(encodeURIComponent).join('/');
@@ -1644,8 +1644,17 @@ const store = (() => {
       return publicWall(record);
     },
     putWall(id, name, data) {
-      const value = structuredClone(data);
-      return enqueue(async () => {
+      // Writes run one after another. While this wall's PUT is still waiting its turn, newer saves replace its
+      // payload instead of queuing another full-wall PUT (the card editor saves on every keystroke); the snapshot
+      // is taken when the write starts, so the latest state always wins.
+      const waiting = queuedPuts.get(id);
+      if (waiting) { waiting.name = name; waiting.data = data; return waiting.result; }
+      const entry = {name, data};
+      queuedPuts.set(id, entry);
+      return entry.result = enqueue(async () => {
+        queuedPuts.delete(id);
+        const value = structuredClone(entry.data);
+        name = entry.name;
         const baseVersion = pendingWalls.get(id)?.baseVersion ?? versions.get(id) ?? null;
         try {
           const response = responseOf(await api(pathFor('walls', id), json({id, name, data: value, version: baseVersion}, {method: 'PUT'}), () => {
@@ -1906,7 +1915,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', RAIL_KEY = 'thesis-detective-wall-rail', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size', MASCOT_VISIBLE_KEY = 'thesis-detective-wall-mascot-visible';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size', MASCOT_VISIBLE_KEY = 'thesis-detective-wall-mascot-visible';
 const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
 let layoutMode = 'overlap';
 try {
@@ -2106,7 +2115,7 @@ const BUILTIN_TEMPLATES = [
 ];
 
 const $ = s => document.querySelector(s);
-const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), canvasIslands = $('#canvas-islands'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), railNavigation = $('#rail-navigation'), railNavigationSlot = $('#rail-navigation-slot'), railNavigationFlyoutSlot = $('#rail-navigation-flyout-slot'), railNavigationTitle = $('#rail-navigation-title'), railNavigationContent = $('#rail-navigation-content'), railBandList = $('#rail-band-list'), railAnchorList = $('#rail-anchor-list'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
+const wall = $('#wall'), bg = $('#bg'), svg = $('#strings'), liveSvg = $('#strings-live'), endsSvg = $('#string-ends'), edgeHandles = $('#edge-handles'), ghostSvg = $('#proposal-ghost-strings'), ghostLayer = $('#proposal-ghosts'), vp = $('#viewport'), canvasIslands = $('#canvas-islands'), panel = $('#panel'), pop = $('#edgepop'), bandpop = $('#bandpop'), railNavigation = $('#rail-navigation'), railNavigationTitle = $('#rail-navigation-title'), railNavigationContent = $('#rail-navigation-content'), railBandList = $('#rail-band-list'), railAnchorList = $('#rail-anchor-list'), pickToolbar = $('#pick-toolbar'), pickDelete = $('#pick-delete'), pickCopy = $('#pick-copy'), cardMenu = $('#card-menu');
 const valid = d => d && Array.isArray(d.cards) && Array.isArray(d.edges);
 const validBand = b => b && typeof b.id === 'string' && typeof b.title === 'string' && b.title.length <= 60 && Number.isFinite(b.y);
 function normalizeAnchorOrder(value) {
@@ -2238,7 +2247,7 @@ function applyView() {
   Object.assign(ghostSvg.style, box);
   ghostSvg.setAttribute('viewBox', `${L} ${T} ${w} ${h}`);
   for (const b of wall.querySelectorAll('.band')) Object.assign(b.style, {left: box.left, width: box.width});
-  bandpop.style.left = L + 14 + 'px';
+  bandpop.style.left = L + 60 / view.s + 'px';  // same 60px rail clearance as .band-label
   $('#zoom-pct').textContent = Math.round(view.s * 100) + '%';
   updateRailNavigation();
   updatePickToolbar();
@@ -2254,9 +2263,7 @@ function currentBandIndex() {
 }
 function placeRailNavigation() {
   if (!railNavigation) return;
-  const state = $('#rail')?.dataset.state;
-  const open = state === 'full' || state === 'icon' && activeActivityId === 'navigation';
-  (state === 'full' ? railNavigationSlot : railNavigationFlyoutSlot).append(railNavigation);
+  const open = activeActivityId === 'navigation';
   railNavigation.hidden = !open || railNavigation.dataset.empty === 'true';
   railNavigationTitle.setAttribute('aria-expanded', String(railNavigationOpen));
   railNavigationContent.hidden = !railNavigationOpen;
@@ -2432,12 +2439,13 @@ function updatePickToolbar() {
   if (!pickDeleteArmed) pickDelete.textContent = `刪除選取（${picked.size}）`;
 }
 // (cx, cy) is a viewport point that stays under the cursor while zooming
-function zoomAt(factor, cx = vp.clientWidth / 2, cy = vp.clientHeight / 2) {
+// defer: a wheel burst redraws the view once per frame (scheduleView) instead of once per wheel event.
+function zoomAt(factor, cx = vp.clientWidth / 2, cy = vp.clientHeight / 2, defer = false) {
   const s = clamp(view.s * factor, 0.2, 3);
   view.x = cx - (cx - view.x) * s / view.s;
   view.y = cy - (cy - view.y) * s / view.s;
   view.s = s;
-  applyView();
+  if (defer) scheduleView(); else applyView();
 }
 // Fit cards and band labels; whole = also fit the height.
 function fitView(whole) {
@@ -2629,104 +2637,11 @@ function renderCards() {
   cardElements.clear(); cardSizes.clear();
   wall.querySelectorAll('.card').forEach(n => n.remove());
   for (const c of data.cards) {
-    const photo = typeof c.image === 'string' && !(c.note || '').trim();
-    const curl = shouldCurlNote(c);
-    const el = document.createElement('div');
-    el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) && !c.fold ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
-      + (curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
-      + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
-    applyCardColorStyle(el, c);
-    el.dataset.id = c.id;
-    if (c.level) el.dataset.level = c.level;
-    el.style.left = c.x + 'px';
-    el.style.top = c.y + 'px';
-    el.style.width = cardW(c) + 'px';
-    // A folded card shows only its title strip; the stored height comes back when it unfolds.
-    if (Number.isFinite(c.h) && !c.fold) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
-    el.style.setProperty('--tilt', (photo ? photoTilt(c.id) : tilt(c.id)) + 'deg');
-    if (!photo && !c.fold) {
-      const sheet = mk('div', 'card-sheet');
-      sheet.append(mk('span', 'adhesive-highlight'));
-      el.append(sheet);
-      if (curl) el.style.setProperty('--curl-flap-size', Math.round(cardW(c) * .22) + 'px');
-    }
-    const pin = document.createElement('span');
-    pin.className = 'pin';
-    pin.title = '拖到另一張卡片拉線';
-    const h = document.createElement('h3');
-    h.textContent = c.title || '（未命名）';
-    const anchor = c.level ? mk('span', 'anchor-badge anchor-' + c.level, c.level === 'source' ? '◆ 源頭' : '★ 重點') : null;
-    const resize = mk('span', 'resize-handle');
-    resize.title = '拖曳調整卡片大小；雙擊恢復內容高度';
-    resize.tabIndex = 0;
-    resize.ondblclick = ev => {
-      ev.stopPropagation();
-      if (!Object.hasOwn(c, 'h')) return;
-      delete c.h;
-      render();
-      save(true);
-    };
-    const hasBody = typeof c.image === 'string' || !!c.note || !!c.tags?.length || !!c.links?.length;
-    if (c.fold && !photo) {
-      const titleZone = mk('div', 'folded-title-zone');
-      titleZone.append(...[anchor, h].filter(Boolean));
-      el.append(pin, titleZone, mk('div', 'folded-flap'), resize);
-    } else {
-      const contents = photo ? [pin, anchor, resize] : [pin, anchor, h, resize];
-      el.append(...contents.filter(Boolean));
-      const contentParent = curl && !photo ? mk('div', 'card-body') : el;
-      if (curl && !photo) {
-        const spacer = mk('span', 'curl-spacer');
-        spacer.setAttribute('aria-hidden', 'true');
-        contentParent.append(spacer);
-        el.append(contentParent);
-      }
-      if (typeof c.image === 'string') contentParent.append(renderImage(c));
-      if (photo) contentParent.append(h);
-      if (c.note) contentParent.append(renderNote(c.note));
-      const tags = mk('div', 'tags');
-      for (const id of c.tags || []) {
-        const t = data.tags.find(t => t.id === id);
-        if (t) tags.append(mk('span', 'tag-chip c-' + t.color, t.name));
-      }
-      if (tags.childNodes.length) contentParent.append(tags);
-      if (c.links?.length) {
-        const box = document.createElement('div');
-        box.className = 'links';
-        for (const l of c.links) {
-          const link = normalizeLink(l);
-          if (!link) continue;
-          const a = document.createElement('a');
-          const missing = sourceStatuses.get(link.href) === 'missing';
-          a.href = link.href; a.target = '_blank'; a.rel = 'noopener';
-          a.textContent = `${link.label}${link.locator ? ' · ' + link.locator : ''}`;
-          if (missing) { a.className = 'source-missing'; a.title = '找不到來源檔案'; }
-          else if (link.quote) a.title = link.quote;
-          box.append(a);
-        }
-        contentParent.append(box);
-      }
-    }
-    if (hasBody) {
-      const fold = mk('button', 'fold', c.fold ? '▸' : '▾');
-      fold.title = fold.ariaLabel = c.fold ? '展開' : '收起';
-      fold.setAttribute('aria-expanded', !c.fold);
-      fold.onclick = () => {
-        c.fold = !c.fold;
-        if (c.id === selCard) f.fold.checked = c.fold;
-        render(); save();
-      };
-      el.append(fold);
-    }
+    const el = buildCardElement(c);
     wall.append(el);
     cardElements.set(c.id, el);
   }
-  for (const card of wall.querySelectorAll('.card.curl:not(.folded):not(.photo-card)')) {
-    const body = card.querySelector('.card-body'), spacer = card.querySelector('.curl-spacer');
-    if (!body || !spacer) continue;
-    // Layout units, not getBoundingClientRect: the wall is scaled by the zoom transform.
-    spacer.style.marginTop = Math.max(0, Math.ceil(card.offsetHeight * .78 - body.offsetTop)) + 'px';
-  }
+  for (const card of wall.querySelectorAll('.card.curl:not(.folded):not(.photo-card)')) fitCurlSpacer(card);
   for (const c of data.cards) {
     const el = cardElements.get(c.id);
     if (el && typeof c.image !== 'string') cardSizes.set(c.id, {width: el.offsetWidth, height: el.offsetHeight});
@@ -2737,6 +2652,126 @@ function renderCards() {
     imageURLs.delete(id);
   }
   updatePickToolbar();
+}
+// The card editor changes one card per keystroke: rebuild just that card in place (keeping its stacking order),
+// its strings and, for an anchor, the anchor list; a full render costs ~60 ms on a 300-card wall.
+function renderCard(id) {
+  const c = byId(id), old = cardElements.get(id);
+  if (!c || !old) return render();
+  const el = buildCardElement(c);
+  old.replaceWith(el);
+  cardElements.set(id, el);
+  if (el.matches('.curl:not(.folded):not(.photo-card)')) fitCurlSpacer(el);
+  if (typeof c.image !== 'string') cardSizes.set(id, {width: el.offsetWidth, height: el.offsetHeight});
+  renderStrings(new Set([id]));
+  if (c.level) renderRailNavigation();
+}
+function buildCardElement(c) {
+  const photo = typeof c.image === 'string' && !(c.note || '').trim();
+  const curl = shouldCurlNote(c);
+  const el = document.createElement('div');
+  el.className = `card ${c.kind} c-${colorKeyOf(c)} card-${cardStyle}` + (c.id === selCard ? ' sel' : '') + (isDim(c) ? ' dim' : '') + (picked.has(c.id) ? ' picked' : '') + (c.fold ? ' folded' : '') + (Number.isFinite(c.h) && !c.fold ? ' fixed-size' : '') + (c.mount === 'tape' ? ' mount-tape' : '')
+    + (curl ? ' curl' : '') + (photo ? ' photo photo-card' : '') + (c.level ? ' has-anchor anchor-' + c.level : '')
+    + (reviewMarks.has(c.id) ? ' review-mark-' + reviewMarks.get(c.id) : '') + (reviewFocus?.cardId === c.id ? ' review-focus' : '');
+  applyCardColorStyle(el, c);
+  el.dataset.id = c.id;
+  if (c.level) el.dataset.level = c.level;
+  el.style.left = c.x + 'px';
+  el.style.top = c.y + 'px';
+  el.style.width = cardW(c) + 'px';
+  // A folded card shows only its title strip; the stored height comes back when it unfolds.
+  if (Number.isFinite(c.h) && !c.fold) el.style.height = clamp(Math.round(c.h), CARD_MIN_H, CARD_MAX_H) + 'px';
+  el.style.setProperty('--tilt', (photo ? photoTilt(c.id) : tilt(c.id)) + 'deg');
+  if (!photo && !c.fold) {
+    const sheet = mk('div', 'card-sheet');
+    sheet.append(mk('span', 'adhesive-highlight'));
+    el.append(sheet);
+    if (curl) el.style.setProperty('--curl-flap-size', Math.round(cardW(c) * .22) + 'px');
+  }
+  const pin = document.createElement('span');
+  pin.className = 'pin';
+  pin.title = '拖到另一張卡片拉線';
+  const h = document.createElement('h3');
+  h.textContent = c.title || '（未命名）';
+  const anchor = c.level ? mk('span', 'anchor-badge anchor-' + c.level, c.level === 'source' ? '◆ 源頭' : '★ 重點') : null;
+  const resize = mk('span', 'resize-handle');
+  resize.title = '拖曳調整卡片大小；雙擊恢復內容高度';
+  resize.tabIndex = 0;
+  resize.ondblclick = ev => {
+    ev.stopPropagation();
+    if (!Object.hasOwn(c, 'h')) return;
+    delete c.h;
+    render();
+    save(true);
+  };
+  const hasBody = typeof c.image === 'string' || !!c.note || !!c.tags?.length || !!c.links?.length;
+  if (c.fold && !photo) {
+    const titleZone = mk('div', 'folded-title-zone');
+    titleZone.append(...[anchor, h].filter(Boolean));
+    el.append(pin, titleZone, mk('div', 'folded-flap'), resize);
+  } else {
+    const contents = photo ? [pin, anchor, resize] : [pin, anchor, h, resize];
+    el.append(...contents.filter(Boolean));
+    const contentParent = curl && !photo ? mk('div', 'card-body') : el;
+    if (curl && !photo) {
+      const spacer = mk('span', 'curl-spacer');
+      spacer.setAttribute('aria-hidden', 'true');
+      contentParent.append(spacer);
+      el.append(contentParent);
+    }
+    if (typeof c.image === 'string') contentParent.append(renderImage(c));
+    if (photo) contentParent.append(h);
+    if (c.note) contentParent.append(renderNote(c.note));
+    const tags = mk('div', 'tags');
+    for (const id of c.tags || []) {
+      const t = data.tags.find(t => t.id === id);
+      if (t) tags.append(mk('span', 'tag-chip c-' + t.color, t.name));
+    }
+    if (tags.childNodes.length) contentParent.append(tags);
+    if (c.links?.length) {
+      const box = document.createElement('div');
+      box.className = 'links';
+      for (const l of c.links) {
+        const link = normalizeLink(l);
+        if (!link) continue;
+        const a = document.createElement('a');
+        const missing = sourceStatuses.get(link.href) === 'missing';
+        a.href = link.href; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = `${link.label}${link.locator ? ' · ' + link.locator : ''}`;
+        if (missing) { a.className = 'source-missing'; a.title = '找不到來源檔案'; }
+        else if (link.quote) a.title = link.quote;
+        box.append(a);
+      }
+      contentParent.append(box);
+    }
+  }
+  if (hasBody) {
+    const fold = mk('button', 'fold', c.fold ? '▸' : '▾');
+    fold.title = fold.ariaLabel = c.fold ? '展開' : '收起';
+    fold.setAttribute('aria-expanded', !c.fold);
+    fold.onclick = () => {
+      c.fold = !c.fold;
+      if (c.id === selCard) f.fold.checked = c.fold;
+      render(); save();
+    };
+    el.append(fold);
+  }
+  return el;
+}
+function fitCurlSpacer(card) {
+  const body = card.querySelector('.card-body'), spacer = card.querySelector('.curl-spacer');
+  if (!body || !spacer) return;
+  // Layout units, not getBoundingClientRect: the wall is scaled by the zoom transform.
+  spacer.style.marginTop = Math.max(0, Math.ceil(card.offsetHeight * .78 - body.offsetTop)) + 'px';
+  // The spacer is sized from the card width; on a wide, fixed-height note it can reach past the body and make
+  // an otherwise short note scroll. Cut it off at the body's content edge, but only when that removes the
+  // scrollbar: text that really overflows keeps the full spacer so its scrolled lines still avoid the flap.
+  // Layout units again (cards are tilted); the spacer's offsetParent is the body or, in some card styles, the card.
+  if (body.scrollHeight > body.clientHeight) {
+    const top = spacer.offsetParent === body ? spacer.offsetTop : spacer.offsetTop - body.offsetTop - body.clientTop;
+    spacer.style.height = Math.max(0, Math.floor(body.clientHeight - parseFloat(getComputedStyle(body).paddingBottom) - top)) + 'px';
+    if (body.scrollHeight > body.clientHeight) spacer.style.height = '';
+  }
 }
 
 function renderBands() {
@@ -3291,6 +3326,29 @@ function addTagDefinition() {
 $('#tag-new-add').onclick = addTagDefinition;
 $('#tag-new-name').onkeydown = ev => { if (ev.key === 'Enter' && !ev.isComposing) { ev.preventDefault(); addTagDefinition(); } };
 
+// Pointer and wheel events can arrive several times per frame. The view transform and string redraws they cause
+// run at most once per frame; pointerup flushes what is pending so the final state is exact.
+let viewFrame = 0, stringsFrame = 0, pendingStringCards = null, pendingStringEdges = null, pendingStringsFull = false;
+function scheduleView() {
+  if (!viewFrame) viewFrame = requestAnimationFrame(() => { viewFrame = 0; applyView(); });
+}
+function scheduleStrings(cards, edges) {
+  if (!cards && !edges) pendingStringsFull = true;
+  if (cards) cards.forEach(id => (pendingStringCards ||= new Set()).add(id));
+  if (edges) edges.forEach(id => (pendingStringEdges ||= new Set()).add(id));
+  if (!stringsFrame) stringsFrame = requestAnimationFrame(() => { stringsFrame = 0; runPendingStrings(); });
+}
+function runPendingStrings() {
+  const full = pendingStringsFull, cards = pendingStringCards, edges = pendingStringEdges;
+  pendingStringsFull = false; pendingStringCards = pendingStringEdges = null;
+  if (full) renderStrings();
+  else if (cards || edges) renderStrings(cards, edges);
+}
+function flushPointerFrames() {
+  if (viewFrame) { cancelAnimationFrame(viewFrame); viewFrame = 0; applyView(); }
+  if (stringsFrame) { cancelAnimationFrame(stringsFrame); stringsFrame = 0; runPendingStrings(); }
+}
+
 let raf = 0;
 const kick = () => { if (!raf) raf = requestAnimationFrame(swing); };
 function swing() {
@@ -3402,7 +3460,7 @@ vp.addEventListener('pointermove', ev => {
   if (drag.mode === 'pan') {
     view.x = drag.x0 + ev.clientX - drag.sx;
     view.y = drag.y0 + ev.clientY - drag.sy;
-    return applyView();
+    return scheduleView();
   }
   if (drag.mode === 'band') {
     if (Math.abs(ev.clientY - drag.sy) > 4) drag.moved = true;
@@ -3423,7 +3481,7 @@ vp.addEventListener('pointermove', ev => {
     const next = endpointAtPointer(drag.card, p, ev.shiftKey);
     drag.at = {side: next.side, t: next.t};
     if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 4) drag.moved = true;
-    renderStrings(null, new Set([drag.edge.id]));
+    scheduleStrings(null, [drag.edge.id]);
     return;
   }
   if (drag.mode === 'resize') {
@@ -3433,7 +3491,7 @@ vp.addEventListener('pointermove', ev => {
     drag.el.style.width = drag.c.w + 'px'; drag.el.style.height = drag.c.h + 'px';
     cardSizes.set(drag.c.id, {width: drag.c.w, height: drag.c.h});
     if (Math.hypot(dx, dy) > 4) drag.moved = true;
-    renderStrings(new Set([drag.c.id]));
+    scheduleStrings([drag.c.id]);
     return;
   }
   if (drag.mode === 'move') {
@@ -3454,10 +3512,11 @@ vp.addEventListener('pointermove', ev => {
   } else {
     tempLine = curve(pinPos(byId(drag.from)), p).d;
   }
-  renderStrings(drag.ids);
+  scheduleStrings(drag.ids);  // a link drag has no ids: the whole string layer, as before
 });
 
 vp.addEventListener('pointerup', ev => {
+  flushPointerFrames();
   if (!drag) return;
   const d = drag;
   drag = null;
@@ -3569,7 +3628,7 @@ vp.addEventListener('wheel', ev => {
   ev.preventDefault();
   const r = vp.getBoundingClientRect();
   const dy = ev.deltaY * (ev.deltaMode === 1 ? 33 : ev.deltaMode === 2 ? 400 : 1);  // Firefox mice report lines
-  zoomAt(Math.exp(-dy * 0.0015), ev.clientX - r.left, ev.clientY - r.top);
+  zoomAt(Math.exp(-dy * 0.0015), ev.clientX - r.left, ev.clientY - r.top, true);
 }, {passive: false});
 $('#zoom-in').onclick = () => zoomAt(1.25);
 $('#zoom-out').onclick = () => zoomAt(0.8);
@@ -4045,7 +4104,7 @@ panel.addEventListener('input', ev => {
   if (!c) return;
   Object.assign(c, {title: f.title.value, kind: f.kind.value, note: f.note.value, links: parseLinks(f.links.value), fold: f.fold.checked});
   markColor(c);  // a card without a chosen color follows its kind's default
-  render();
+  renderCard(c.id);
   save();
   if (ev.target === f.links) scheduleSourceCheck();
 });
@@ -5308,72 +5367,140 @@ $('#card-style').onchange = ev => { savedCardStyle = ev.target.value; setCardSty
 setTheme(savedTheme ?? 'paper');
 setCardStyle(savedCardStyle || defaultCardStyle(document.documentElement.dataset.theme), false);
 
-const activityPanel = $('#rail-panel'), activityPanels = [...activityPanel.querySelectorAll('[data-activity-panel]')];
-const activityButtons = [...document.querySelectorAll('#rail [data-panel]')];
-function showActivity(id) {
+const activityPanel = $('#rail-panel'), activityPanelHead = $('#rail-panel-title'), activityPanelClose = $('#rail-panel-close'), activityBottom = $('#rail-bottom'), activityToggle = $('#activity-toggle');
+const activityPanels = [...activityPanel.querySelectorAll('[data-activity-panel]')];
+const activityItems = [...document.querySelectorAll('#rail .rail-activity')];
+const activityButtons = activityItems.filter(button => button.dataset.panel);
+let activityMenuOpen = false, activityOpener = null, pointerInActivity = false, activityCollapseTimer = 0;
+function updateActivityPositions() {
+  let index = 0;
+  for (const button of activityItems) {
+    if (button.hidden) continue;
+    button.style.setProperty('--activity-index', ++index);
+  }
+}
+function setActivityMenu(open, focus = false) {
+  activityMenuOpen = open;
+  activityBottom.dataset.expanded = String(open);
+  activityToggle.classList.toggle('on', open);
+  activityToggle.setAttribute('aria-expanded', String(open));
+  activityToggle.setAttribute('aria-label', open ? '收回功能' : '展開功能');
+  updateActivityPositions();
+  activityItems.forEach(button => {
+    const visible = open && !button.hidden;
+    button.inert = !visible;
+    button.toggleAttribute('inert', !visible);
+    button.setAttribute('aria-hidden', String(!visible));
+  });
+  if (focus) activityToggle.focus({preventScroll: true});
+}
+function positionActivityPanel(anchor = activityOpener) {
+  if (activityPanel.hidden || !anchor) return;
+  const anchorBox = anchor.getBoundingClientRect(), panelBox = activityPanel.getBoundingClientRect(), margin = 12, gap = 10;
+  const width = panelBox.width || Math.min(320, innerWidth - margin * 2), height = panelBox.height || Math.min(480, innerHeight - margin * 2);
+  // The rail column's edge, not the bubble's: a hovered bubble widens to show its label, and anchoring to that
+  // would make the window jump sideways when the pointer moves onto it.
+  let left = $('#rail').getBoundingClientRect().right + gap;
+  if (left + width > innerWidth - margin) left = Math.max(margin, innerWidth - width - margin);
+  let top = anchorBox.top;
+  if (top + height > innerHeight - margin) top = Math.max(margin, innerHeight - height - margin);
+  top = Math.max(margin, top);
+  activityPanel.style.left = Math.round(left) + 'px';
+  activityPanel.style.top = Math.round(top) + 'px';
+}
+function focusActivityPanel() {
+  activityPanelClose.focus({preventScroll: true});
+}
+function showActivity(id, focus = false, opener = null) {
   const open = activityPanels.some(section => section.dataset.activityPanel === id) ? id : null;
-  activeActivityId = open;
-  if (open === 'navigation') railNavigationOpen = true;
-  activityPanel.hidden = !open;
-  activityPanels.forEach(section => { section.hidden = section.dataset.activityPanel !== open; });
+  if (open) {
+    if (!activityMenuOpen) setActivityMenu(true);
+    activeActivityId = open;
+    activityOpener = opener || document.querySelector(`#activity-${open}`);
+    if (open === 'navigation') railNavigationOpen = true;
+    activityPanel.hidden = false;
+    // The window title takes the section's own heading (CSS hides that heading inside the window).
+    const heading = activityPanels.find(section => section.dataset.activityPanel === open)?.querySelector(':scope > h2:first-child');
+    activityPanelHead.textContent = heading?.textContent || activityOpener?.getAttribute('aria-label') || open;
+    activityPanels.forEach(section => { section.hidden = section.dataset.activityPanel !== open; });
+    activityButtons.forEach(button => {
+      const active = button.dataset.panel === open;
+      button.classList.toggle('on', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    placeRailNavigation();
+    positionActivityPanel();
+    requestAnimationFrame(() => positionActivityPanel());
+    setTimeout(() => positionActivityPanel(), 220);
+    if (focus) focusActivityPanel();
+    return;
+  }
+  const previous = activityOpener;
+  activeActivityId = null;
+  activityPanel.hidden = true;
+  activityPanels.forEach(section => { section.hidden = true; });
   activityButtons.forEach(button => {
-    const active = button.dataset.panel === open;
-    button.classList.toggle('on', active);
-    button.setAttribute('aria-pressed', active);
+    button.classList.remove('on');
+    button.setAttribute('aria-pressed', 'false');
   });
   placeRailNavigation();
+  activityOpener = null;
+  if (focus && previous) previous.focus({preventScroll: true});
+  // Closed while the pointer is elsewhere (a click on the wall): no leave event will come, so fold up now.
+  if (!pointerInActivity) scheduleActivityCollapse();
 }
+activityToggle.onclick = () => {
+  if (activityMenuOpen) {
+    showActivity(null);
+    setActivityMenu(false, true);
+  } else setActivityMenu(true, true);
+};
 activityButtons.forEach(button => {
-  button.onclick = () => showActivity(button.dataset.panel === activityPanel.querySelector('[data-activity-panel]:not([hidden])')?.dataset.activityPanel ? null : button.dataset.panel);
+  button.onclick = () => {
+    const active = button.dataset.panel === activeActivityId;
+    showActivity(active ? null : button.dataset.panel, true, button);
+  };
+});
+activityPanelClose.onclick = () => showActivity(null, true);
+// The settings bubbles fold back into the gear shortly after the pointer leaves them, unless a window is open
+// or a bubble has keyboard focus. The delay lets the pointer cross the gaps between bubbles.
+function scheduleActivityCollapse() {
+  clearTimeout(activityCollapseTimer);
+  activityCollapseTimer = setTimeout(() => {
+    if (!activityMenuOpen || pointerInActivity || !activityPanel.hidden || activityBottom.querySelector(':focus-visible')) return;
+    setActivityMenu(false);
+  }, 500);
+}
+activityBottom.addEventListener('pointerenter', () => { pointerInActivity = true; clearTimeout(activityCollapseTimer); });
+activityBottom.addEventListener('pointerleave', () => { pointerInActivity = false; scheduleActivityCollapse(); });
+activityItems.forEach(button => {
+  button.addEventListener('click', () => button.classList.add('settled'));
+  button.addEventListener('pointerleave', () => button.classList.remove('settled'));
 });
 railNavigationTitle.onclick = () => {
   railNavigationOpen = !railNavigationOpen;
   placeRailNavigation();
 };
-showActivity(null);
-const rail = $('#rail'), railToggle = $('#rail-toggle'), railResizer = $('#rail-resize');
-const railStates = {hidden: 0, icon: 78, full: 232};
-const railStateForWidth = width => width >= (railStates.icon + railStates.full) / 2 ? 'full' : 'icon';
-function setRailState(state, persist = true) {
-  state = Object.hasOwn(railStates, state) ? state : 'icon';
-  document.body.classList.remove('rail-hidden', 'rail-icon', 'rail-full');
-  document.body.classList.add('rail-' + state);
-  document.body.style.setProperty('--rail-w', railStates[state] + 'px');
-  rail.dataset.state = state;
-  railToggle.textContent = state === 'hidden' ? '›' : '‹';
-  railToggle.setAttribute('aria-expanded', String(state !== 'hidden'));
-  railToggle.setAttribute('aria-label', state === 'hidden' ? '展開側邊欄' : '收起側邊欄');
-  railToggle.title = state === 'hidden' ? '展開側邊欄' : '收起側邊欄';
-  railToggle.classList.toggle('on', state !== 'hidden');
-  railResizer.setAttribute('aria-valuenow', railStates[state]);
-  railResizer.setAttribute('aria-valuetext', state === 'full' ? '完整側邊欄' : state === 'icon' ? '圖示側邊欄' : '側邊欄隱藏');
-  placeRailNavigation();
-  if (persist) try { localStorage.setItem(RAIL_KEY, state); } catch {}
-}
-let savedRail = null;
-try { savedRail = localStorage.getItem(RAIL_KEY); } catch {}
-setRailState(savedRail || 'icon', false);
-railToggle.onclick = () => setRailState(rail.dataset.state === 'hidden' ? 'icon' : 'hidden');
-let railDrag = null;
-railResizer.onpointerdown = ev => {
-  ev.preventDefault(); railResizer.setPointerCapture(ev.pointerId);
-  railDrag = {startX: ev.clientX, startWidth: rail.offsetWidth}; document.body.classList.add('rail-resizing');
-};
-railResizer.onpointermove = ev => {
-  if (!railDrag || !railResizer.hasPointerCapture(ev.pointerId)) return;
-  const width = clamp(Math.round(railDrag.startWidth + ev.clientX - railDrag.startX), railStates.icon, railStates.full);
-  document.body.style.setProperty('--rail-w', width + 'px');
-  rail.dataset.state = railStateForWidth(width);
-  railResizer.setAttribute('aria-valuenow', width);
-};
-railResizer.onpointerup = railResizer.onpointercancel = () => {
-  if (!railDrag) return;
-  setRailState(railStateForWidth(rail.offsetWidth)); railDrag = null; document.body.classList.remove('rail-resizing');
-};
-railResizer.onkeydown = ev => {
-  const next = ev.key === 'ArrowLeft' ? 'icon' : ev.key === 'ArrowRight' ? 'full' : null;
-  if (next) { ev.preventDefault(); setRailState(next); }
-};
+document.addEventListener('pointerdown', ev => {
+  if (activityPanel.hidden || ev.target.closest('#rail-panel')) return;
+  if (ev.target.closest('#rail .rail-control')) { showActivity(null, true); return; }
+  if (ev.target.closest('#rail') || !ev.target.closest('#viewport')
+    || ev.target.closest('.card, .band-label, .hit, .str-label, .str-label-group')) return;
+  showActivity(null, true);
+}, true);
+document.addEventListener('keydown', ev => {
+  if (ev.key !== 'Escape' || document.querySelector('dialog[open]')) return;
+  if (!activityPanel.hidden || activityMenuOpen) {
+    ev.preventDefault();
+    showActivity(null);
+    if (activityMenuOpen) setActivityMenu(false, true);
+  }
+});
+setActivityMenu(false);
+window.addEventListener('resize', () => positionActivityPanel());
+if (window.ResizeObserver) new ResizeObserver(() => {
+  if (!activityPanel.hidden) positionActivityPanel();
+}).observe(activityPanel);
 
 const aiTabs = [...document.querySelectorAll('[data-ai-tab]')], aiPanes = [...document.querySelectorAll('[data-ai-pane]')];
 function showAiTab(name) {
@@ -5425,6 +5552,7 @@ function showClipboard(open, focus = true) {
   clipboardPeek.setAttribute('aria-hidden', String(open));
   positionMascot();
   try { localStorage.setItem(CLIPBOARD_KEY, open ? '1' : '0'); } catch {}
+  if (open && window.wallReady && !wallBusy) void refreshAiProposals();  // polling pauses while it is closed
   if (!focus) return;
   requestAnimationFrame(() => {
     if (open) focusClipboardSheet();
@@ -5629,7 +5757,7 @@ const mascotTransitions = {
 let mascotMood = '', mascotClient = '', mascotDisplayMood = '', mascotCurrentRest = '', mascotCurrentSize = null;
 let mascotForcedSleep = false, mascotBlinkTimer = 0, mascotTransitionTimer = 0, mascotBubbleTimer = 0, mascotIdleTimer = 0, mascotHappyReturnTimer = 0, mascotRenderSequence = 0;
 let mascotIdleVariantIndex = 0, mascotIdleDrawingIndex = 0, mascotIdleStep = 0, mascotResizeDrag = null, mascotReturnToIdle = false;
-let savedMascotSize = 180, mascotVisible = true;
+let savedMascotSize = 180, mascotVisible = true, reduceMotion = false;
 const mascotAssetCache = new Map();
 try { savedMascotSize = clamp(Number(localStorage.getItem(MASCOT_SIZE_KEY)) || 180, 96, 360); } catch {}
 try { mascotVisible = localStorage.getItem(MASCOT_VISIBLE_KEY) !== '0'; } catch {}
@@ -5721,7 +5849,7 @@ function scheduleMascotHappyReturn() {
 }
 function scheduleMascotBlink() {
   clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0;
-  if (!mascotVisible || mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
+  if (!mascotVisible || reduceMotion || mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
   mascotBlinkTimer = setTimeout(() => {
     if (mascotMood !== 'idle' || mascotDisplayMood !== 'idle') return;
     mascot.classList.add('blinking');
@@ -5731,7 +5859,7 @@ function scheduleMascotBlink() {
 function playMascotTransition(client, from, to) {
   clearInterval(mascotTransitionTimer); mascotTransitionTimer = 0; mascot.classList.remove('transitioning', 'crossfading');
   const frames = mascotTransitions[`${from}-${to}`];
-  if (!frames) return;
+  if (!frames || reduceMotion) return;
   const source = frame => `/assets/avatars/${client}-tr-${frame}.webp`;
   let index = 0;
   if (mascotCurrentSize) setMascotOverlaySize(mascotTransition, mascotCurrentSize);
@@ -5750,7 +5878,7 @@ function crossfadeMascot(source, size = mascotCurrentSize) {
 }
 function startMascotIdle(client) {
   clearMascotIdle();
-  if (!mascotVisible || mascotMood !== 'idle') return;
+  if (!mascotVisible || reduceMotion || mascotMood !== 'idle') return;
   void Promise.all(MASCOT_IDLE_DRAWINGS.map(mood => preloadMascotMood(client, mood)));
   mascotIdleTimer = setInterval(async () => {
     if (!mascotVisible || mascotMood !== 'idle' || mascotClient !== client) return clearMascotIdle();
@@ -5810,6 +5938,19 @@ function setMascotVisible(visible, persist = true) {
   if (mascotVisible) { positionMascot(); updateChatMascot(); }
 }
 mascotVisibleToggle.onchange = () => setMascotVisible(mascotVisibleToggle.checked);
+// Reduce motion (Appearance panel): a still pet and instant panels, so an idle wall stops repainting. Over a remote
+// desktop the pet's idle animation alone kept the screen updating ~60 times a second.
+const REDUCE_MOTION_KEY = 'casegraph-reduce-motion';
+function setReduceMotion(on, persist = true) {
+  reduceMotion = !!on;
+  document.documentElement.classList.toggle('reduce-motion', reduceMotion);
+  $('#reduce-motion').checked = reduceMotion;
+  if (persist) try { localStorage.setItem(REDUCE_MOTION_KEY, reduceMotion ? '1' : '0'); } catch {}
+  if (reduceMotion) { clearMascotIdle(); clearTimeout(mascotBlinkTimer); mascotBlinkTimer = 0; mascot.classList.remove('blinking'); }
+  else if (mascotVisible && mascotMood === 'idle') { startMascotIdle(mascotClient || chatClient); scheduleMascotBlink(); }
+}
+$('#reduce-motion').onchange = ev => setReduceMotion(ev.target.checked);
+try { setReduceMotion(localStorage.getItem(REDUCE_MOTION_KEY) === '1', false); } catch { setReduceMotion(false, false); }
 function wakeMascot() {
   if (!mascotVisible) return;
   mascotForcedSleep = false;
@@ -6019,7 +6160,9 @@ $('#ai-proposals-toggle').onchange = () => changeWall(async () => {
   await refreshAiProposals();
 });
 window.addEventListener('focus', () => { if (window.wallReady) { refreshAiFlag(); refreshAiProposals(); } });
-setInterval(() => { if (document.visibilityState === 'visible' && window.wallReady && !wallBusy) refreshAiProposals(); }, 10000);
+// The proposal and audit lists only show inside the AI case folder, so poll only while it is open
+// (showClipboard refreshes as soon as it opens).
+setInterval(() => { if (clipboardOpen && document.visibilityState === 'visible' && window.wallReady && !wallBusy) refreshAiProposals(); }, 10000);
 function renderTabs() {
   const bar = $('#wall-tabs'), old = [...bar.children];
   // Update in place when the order holds, so a double-click survives the switch its first click caused.
@@ -6326,7 +6469,7 @@ const disarmDeleteWall = twoClick($('#delete-wall'), '再按一次刪除牆', ()
   await saveTabs();
 }));
 
-const launcherButton = $('#launcher-settings'), launcherDialog = $('#launcher-settings-dialog'), launcherPort = $('#launcher-port');
+const launcherButton = $('#activity-launcher-settings'), launcherDialog = $('#launcher-settings-dialog'), launcherPort = $('#launcher-port');
 let launcherState = null, launcherDraft = null, launcherBusy = false;
 const absoluteLauncherPath = value => /^(?:[A-Za-z]:[\\/]|\\\\|\/)/.test(String(value || ''));
 const launcherById = id => document.getElementById(id);
@@ -6469,8 +6612,9 @@ async function openLauncherClient(client) {
   }
 }
 launcherButton.hidden = !window.caseGraph;
+setActivityMenu(activityMenuOpen);
 if (window.caseGraph) {
-  launcherButton.onclick = () => { void openLauncherSettings(); };
+  launcherButton.onclick = () => { showActivity(null); void openLauncherSettings(); };
   launcherById('launcher-project-pick').onclick = async () => {
     try {
       const result = await window.caseGraph.pickDirectory('project');
@@ -6491,7 +6635,7 @@ if (window.caseGraph) {
   launcherById('launcher-open-claude').onclick = () => { void openLauncherClient('claude'); };
   launcherById('launcher-open-codex').onclick = () => { void openLauncherClient('codex'); };
   launcherById('launcher-open-logs').onclick = () => window.caseGraph.openLogFolder().catch(error => launcherMessage(error.message || String(error), 'error'));
-  launcherDialog.addEventListener('close', () => { void window.caseGraph.clearApplyError().catch(() => {}); });
+  launcherDialog.addEventListener('close', () => { void window.caseGraph.clearApplyError().catch(() => {}); launcherButton.focus({preventScroll: true}); });
   launcherById('launcher-cancel').onclick = () => launcherDialog.close();
   launcherById('launcher-apply').onclick = () => { void applyLauncherSettings(); };
   launcherById('launcher-reset').onclick = () => {

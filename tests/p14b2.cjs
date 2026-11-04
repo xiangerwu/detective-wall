@@ -77,13 +77,13 @@ const out = artifacts('p14b2');
     console.log('PASS B2-1 normalize, Canvas round trip, and import diff fields');
 
     // The anchor list starts folded, opens from its title and remembers that across reloads.
-    await page.evaluate(() => { setRailState('full'); render(); });
+    await page.evaluate(() => { showActivity('navigation'); render(); });
     assert.equal(await page.getAttribute('#rail-anchor-list-title', 'aria-expanded'), 'false');
     assert.equal(await page.locator('#rail-anchor-filters, #rail-anchor-content [data-anchor-card]').count(), 0, 'folded anchor list hides its filters and cards');
     await page.click('#rail-anchor-list-title');
     assert.equal(await page.getAttribute('#rail-anchor-list-title', 'aria-expanded'), 'true');
     await page.reload(); await ready(page);
-    await page.evaluate(() => { setRailState('full'); render(); });
+    await page.evaluate(() => { showActivity('navigation'); render(); });
     assert.equal(await page.getAttribute('#rail-anchor-list-title', 'aria-expanded'), 'true', 'anchor list open state survives reload');
     console.log('PASS B2-3 anchor list folds by default and remembers when opened');
     const sourceFilter = page.locator('#rail-anchor-filters button[data-level="source"]');

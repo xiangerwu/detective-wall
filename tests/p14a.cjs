@@ -44,7 +44,7 @@ fs.mkdirSync(OUT, {recursive: true});
     await page.click('#ai-tab-chat');
     console.log('PASS A2 AI case-folder tabs switch model, proposals, audit, and conversation content');
 
-    await page.evaluate(() => { setRailState('full'); render(); });
+    await page.evaluate(() => { showActivity('navigation'); render(); });
     const bandCount = await page.locator('#rail-band-list button[data-band-id]').count();
     assert.equal(bandCount, await page.evaluate(() => data.bands.length), 'A3 rail band nav has one item per band');
     await page.locator('#rail-band-list button[data-band-id]').nth(1).click();

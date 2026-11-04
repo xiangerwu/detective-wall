@@ -70,6 +70,8 @@ const options = {viewport: {width: 1400, height: 900}, downloadsPath: OUT, timeo
     await page.fill('#f-title', 'B 的卡片');
     await page.fill('#f-tag', 'B tag'); await page.press('#f-tag', 'Enter');
     await page.click('#f-close');
+    // The tag filter lives in the floating 標籤 window.
+    await openActivity(page, 'tags');
     await page.locator('#tag-filter .tag-toggle').click();
     await page.locator('#tag-filter .tag-edit').click();
     await page.click('#undo');
@@ -77,6 +79,7 @@ const options = {viewport: {width: 1400, height: 900}, downloadsPath: OUT, timeo
     await page.click('#redo');
     await page.evaluate(() => { data.cards[0].note = 'Temporary edit'; save(true); undo(); });
     ok(await page.evaluate(() => past.length > 0 && future.length > 0), 'outgoing wall has both undo and redo steps');
+    await openActivity(page, 'tags');
     await page.locator('#tag-filter .tag-edit').click();
     const bData = await state();
     await choose('w-main');

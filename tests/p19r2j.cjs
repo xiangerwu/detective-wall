@@ -173,7 +173,11 @@ async function checkFixture(page, theme, style, ids) {
     check(card.pseudoCount <= 2 && card.cssFilter === 'none' && card.pseudoFilter === 'none',
       `${theme}/${style}/${id}: at most two card pseudo-elements and no CSS filter`, 'effects');
     check(card.pinAboveTitle && card.tapeBelowTitle, `${theme}/${style}/${id}: pin/tape never overlaps title`, 'mount');
-    if (card.state === 'flat' || card.state === 'curled') check(card.adhesive, `${theme}/${style}/${id}: adhesive highlight band exists`, 'adhesive');
+    // The glue sheen belongs to the paper style; on the dark tech cards it showed as a stray white band.
+    if (card.state === 'flat' || card.state === 'curled') {
+      check(style === 'paper' ? card.adhesive : !card.adhesive,
+        `${theme}/${style}/${id}: adhesive highlight band ${style === 'paper' ? 'exists' : 'stays hidden'}`, 'adhesive');
+    }
     const wanted = card.state === 'curled' && id.includes('note');
     check(card.hasCurl === wanted, `${theme}/${style}/${id}: only an unfilled note may be curled`, 'curl kind');
     if (wanted) {

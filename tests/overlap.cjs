@@ -5,7 +5,7 @@ const {ready} = require('./wall-ready.cjs');
 const PAGE = process.env.WALL_TEST_URL;
 const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'];
 const SIZES = [[1400, 900], [1280, 720]];
-const STATES = ['hidden', 'icon', 'full'];
+const STATES = ['collapsed', 'expanded'];
 const CLIPBOARD_STATES = [false, true];
 
 const fixture = {
@@ -41,8 +41,9 @@ function allowedOverlap(a, b, context = {}) {
   if (names.has('clipboard-tabs') && names.has('panel')) return '案件夾分頁與編輯器可在右側暫時相交，編輯器保持較高互動層';
   if (context.clipboardOpen && names.has('clipboard') && names.has('marquee')) return '開啟案件夾可暫時覆蓋畫布選取框';
   if (names.has('clipboard-tabs') && names.has('marquee')) return '案件夾分頁可暫時覆蓋畫布選取框，分頁仍保持可點擊';
-  if (names.has('rail') && names.has('navigation')) return '完整分層／錨點區是左欄 rail 內的內容';
-  if (names.has('rail-panel') && names.has('navigation')) return '圖示 rail 的分層／錨點區是 rail flyout 內的內容';
+  if (names.has('rail-panel') && names.has('navigation')) return '分層／錨點區是浮動面板內的內容';
+  if (names.has('rail-panel') && [...names].some(name => name.startsWith('band-label'))) return '浮動功能面板可暫時覆蓋畫布分層標籤';
+  if (names.has('navigation') && [...names].some(name => name.startsWith('band-label'))) return '分層／錨點浮動視窗可暫時覆蓋畫布分層標籤';
   if ([...names].some(name => name.startsWith('menu:')) && !names.has('rail') && !names.has('rail-panel') && !names.has('case-folder') && !names.has('top-tabs') && !names.has('clipboard-tabs')) {
     return '選單是暫時浮在畫布 chrome 上的互動層';
   }
@@ -65,9 +66,9 @@ async function prepare(page, theme, state, scenario, clipboardOpen) {
     anchorNavOpen = true;
     selCard = selEdge = drag = tempLine = null;
     view = {s: 1, x: 0, y: 0};
-    setRailState(state, false);
-    if (scenario === 'files' && state !== 'hidden') showActivity('files');
-    if (scenario === 'navigation' && state === 'icon') showActivity('navigation');
+    setActivityMenu(state === 'expanded');
+    if (scenario === 'files' && state === 'expanded') showActivity('files');
+    if (scenario === 'navigation' && state === 'expanded') showActivity('navigation');
     render();
     applyView();
     const showEditor = scenario === 'files' || scenario === 'navigation';
@@ -111,7 +112,6 @@ async function collect(page) {
         rows.push({name, selector, left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom});
       }
     };
-    add('rail', '#rail');
     add('rail-panel', '#rail-panel');
     add('top-tabs', '#wall-tabs');
     add('clipboard', '#sidebar');
@@ -177,21 +177,15 @@ async function collect(page) {
     for (const theme of THEMES) for (const [width, height] of SIZES) for (const clipboardOpen of CLIPBOARD_STATES) {
       await page.setViewportSize({width, height});
       for (const state of STATES) for (const scenario of ['base', 'files', 'navigation', 'menus']) {
-        if (scenario === 'files' && state === 'hidden') continue;
-        if (scenario === 'navigation' && state !== 'icon') continue;
+        if (scenario === 'files' && state === 'collapsed') continue;
+        if (scenario === 'navigation' && state !== 'expanded') continue;
         await prepare(page, theme, state, scenario, clipboardOpen);
         const result = await collect(page);
         for (const problem of result.topbarProblems) failures.push({theme, width, height, state, scenario, problem});
         for (const problem of result.tabProblems) failures.push({theme, width, height, state, scenario, problem});
         const rows = result.rows;
-        if (state === 'full' && scenario === 'base' && !rows.some(row => row.name === 'navigation')) {
-          failures.push({theme, width, height, state, scenario, problem: 'full rail has no visible 分層／錨點 section'});
-        }
-        if (state === 'icon' && scenario === 'navigation' && !rows.some(row => row.name === 'navigation' && row.selector === '#rail-navigation')) {
-          failures.push({theme, width, height, state, scenario, problem: 'icon rail navigation flyout is not visible'});
-        }
-        if (state === 'hidden' && rows.some(row => row.name === 'navigation' || row.name === 'navigation-overlay')) {
-          failures.push({theme, width, height, state, scenario, problem: 'hidden rail still exposes canvas navigation'});
+        if (state === 'expanded' && scenario === 'navigation' && !rows.some(row => row.name === 'navigation' && row.selector === '#rail-navigation')) {
+          failures.push({theme, width, height, state, scenario, problem: 'expanded gear menu navigation is not visible'});
         }
         for (let i = 0; i < rows.length; i++) for (let j = i + 1; j < rows.length; j++) {
           if (!intersects(rows[i], rows[j])) continue;

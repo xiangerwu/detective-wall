@@ -36,6 +36,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     ok((await bands()).length === 3, 'invalid saved bands migrate to seed');
 
     const id = seed.bands[0].id;
+    // The floating 檔案 window covers the wall's left edge, where band labels sit.
+    await page.evaluate(() => showActivity(null));
     await page.click('#zoom-fit');
     const before = (await bands())[0], scale = await page.evaluate(() => view.s);
     const box = await label(id).boundingBox();
@@ -95,9 +97,10 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
       const v = vp.getBoundingClientRect();
       return [...wall.querySelectorAll('.band')].every(b => {
         const r = b.getBoundingClientRect(), label = b.firstChild.getBoundingClientRect();
-        return Math.abs(r.left - v.left) < 1 && Math.abs(r.width - v.width) < 1 && Math.abs(label.left - v.left - 14 * view.s) < 1;
+        // Labels sit 60 screen px in, clear of the floating rail bubbles, at every zoom.
+        return Math.abs(r.left - v.left) < 1 && Math.abs(r.width - v.width) < 1 && Math.abs(label.left - v.left - 60) < 1;
       });
-    }), 'all rendered bands stretch across view and labels stay at visible left edge');
+    }), 'all rendered bands stretch across view and labels stay just right of the rail bubbles');
 
     const current = await bands(), renamed = {...current[0], title: '匯入改名', y: current[0].y + 10};
     const incoming = { cards: [], edges: [], bands: [renamed, {id: 'incoming', title: '匯入新分層', y: -200}] };

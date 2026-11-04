@@ -12,16 +12,16 @@ const profile = () => fs.mkdtempSync(path.join(artifacts('profiles'), 'wall-ffpr
 const ready = page => {
   if (/^https?:\/\/(127\.0\.0\.1|localhost):3000(\/|$)/.test(page.url()))
     throw new Error('refusing to run a test against the live service on port 3000; run it through tests/run.cjs');
-  return page.waitForFunction(() => window.wallReady === true && !window.wallBusy
-    && !document.body.inert && !document.querySelector('[inert]'));
+  return page.waitForFunction(() => window.wallReady === true && !window.wallBusy && !document.body.inert);
 };
 const reload = async page => {
   await page.evaluate(() => store.listWalls()); // Wait for the async save to commit before leaving.
   await page.reload();
   await ready(page);
 };
-const settled = page => page.waitForFunction(() => !wallBusy && !document.body.inert && !document.querySelector('[inert]'));
+const settled = page => page.waitForFunction(() => !wallBusy && !document.body.inert);
 const openActivity = async (page, id) => {
+  if (await page.getAttribute('#activity-toggle', 'aria-expanded') !== 'true') await page.click('#activity-toggle');
   const button = page.locator(`#activity-${id}`);
   if (await button.getAttribute('aria-pressed') !== 'true') await button.click();
   await page.waitForFunction(id => document.querySelector(`#activity-${id}`)?.getAttribute('aria-pressed') === 'true'
