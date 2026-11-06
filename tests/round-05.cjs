@@ -148,9 +148,14 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
     await page.fill('#f-title', title + 'ABCD!!');
     ok(await page.evaluate(() => past.length === 3), '500 ms boundary records another step');
     const beforeNative = await state();
+    // Chromium's native undo can return to the last edited field even after focus moves.
+    // Give the note its own text edit so this checks native undo, not cross-field history.
+    const note = await page.inputValue('#f-note');
+    await page.fill('#f-note', note + ' Native undo');
     await page.focus('#f-note');
     await page.keyboard.press('Control+z');
-    ok(await state() === beforeNative, 'Ctrl+Z in note textarea does not undo wall data');
+    ok(await state() === beforeNative && await page.inputValue('#f-note') === note && await page.evaluate(() => future.length === 0),
+      'Ctrl+Z in note textarea undoes native text without invoking wall history');
     for (const selector of ['#f-title', '#f-note', '#f-kind']) {
       ok(!(await keyEvent('z', {ctrlKey: true}, selector)) && await state() === beforeNative, selector + ' leaves native undo alone');
     }

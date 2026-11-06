@@ -1,56 +1,28 @@
 {
   "name": "detective-wall",
-  "version": "0.1.0",
-  "main": "electron/main.js",
-  "description": "Local clue wall with an MCP server for proposing reviewed changes.",
+  "version": "0.2.0",
+  "description": "Tauri desktop clue wall with a Rust backend and reviewed MCP proposals.",
   "license": "MIT",
   "engines": {
     "node": ">=24"
   },
   "scripts": {
-    "app": "electron .",
-    "start": "node server/server.js",
-    "mcp": "node server/mcp.js",
-    "test": "node tests/run.cjs",
-    "typecheck": "tsc -p .",
-    "dist": "electron-builder --win"
+    "app": "npm run build:helpers && tauri dev",
+    "start": "npm run build:server && cargo run --manifest-path src-tauri/Cargo.toml --no-default-features --bin casegraph-server",
+    "mcp": "cargo run --quiet --manifest-path src-tauri/Cargo.toml --no-default-features --bin casegraph-mcp",
+    "build:server": "cargo build --manifest-path src-tauri/Cargo.toml --no-default-features --bin casegraph-server --bin casegraph-mcp",
+    "build:helpers": "cargo build --manifest-path src-tauri/Cargo.toml --release --no-default-features --bin casegraph-server --bin casegraph-mcp",
+    "dist": "npm run build:helpers && tauri build",
+    "test": "npm run test:rust && npm run test:ui",
+    "test:rust": "cargo test --manifest-path src-tauri/Cargo.toml --no-default-features --lib && npm run build:server && node tests/rust-mcp.cjs && node tests/rust-http.cjs && node tests/rust-chat.cjs",
+    "test:ui": "npm run build:server && node tests/run.cjs",
+    "test:desktop": "node tests/rust-desktop.cjs",
+    "typecheck": "cargo check --manifest-path src-tauri/Cargo.toml --all-targets && tsc -p ."
   },
   "devDependencies": {
-    "electron": "45.2.1",
-    "electron-builder": "26.18.0",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "@tauri-apps/cli": "2.12.4",
     "playwright-core": "1.60.0",
     "typescript": "5.5.2"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "1.32.2",
-    "zod": "4.6.7"
-  },
-  "build": {
-    "appId": "tw.casegraph.app",
-    "productName": "CaseGraph",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "electron/**",
-      "server/**",
-      "index.html",
-      "assets/**",
-      "package.json"
-    ],
-    "asar": true,
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icon/icon.ico"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "CaseGraph 案件圖譜",
-      "artifactName": "CaseGraph-Setup-${version}.${ext}"
-    }
   }
 }

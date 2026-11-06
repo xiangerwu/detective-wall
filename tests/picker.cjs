@@ -5,6 +5,7 @@ const path = require('node:path');
 const {spawn} = require('node:child_process');
 const playwright = require('playwright-core');
 const {openActivity} = require('./wall-ready.cjs');
+const {serverBin} = require('./runtime.cjs');
 
 const out = process.env.WALL_TEST_OUT;
 const base = process.env.WALL_TEST_URL;
@@ -40,9 +41,10 @@ function sleep(ms) {
 
 function startServer(dbPath, env) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'),
       env: {...process.env, ...env, WALL_DB: dbPath, WALL_PORT: '0'},
+      windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '', timer;
@@ -81,7 +83,7 @@ async function withServer(name, env, action) {
   assert.deepEqual(response.body, {path: selectedPath});
   console.log('PASS picker endpoint returns the selected UTF-8 path from the fake picker');
 
-  const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
+  const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     await page.goto(base);

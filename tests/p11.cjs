@@ -4,6 +4,7 @@ const path = require('node:path');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
+const {mcpBin} = require('./runtime.cjs');
 const {ready, openSidebar, artifacts} = require('./wall-ready.cjs');
 
 const base = process.env.WALL_TEST_URL;
@@ -31,8 +32,8 @@ function request(pathname, method = 'GET', value) {
 
 async function connect() {
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+    command: mcpBin,
+    args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(base).port, WALL_MCP_WALLS: 'p11-wall'},
     stderr: 'pipe',
   });

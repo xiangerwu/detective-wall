@@ -5,14 +5,14 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 const { spawn } = require('node:child_process');
 const playwright = require('playwright-core');
-const { createWallServer } = require('../server/server.js');
+const {serverBin} = require('./runtime.cjs');
 
 const out = process.env.WALL_TEST_OUT || path.join(__dirname, '..', 'test-results', 'server');
 fs.mkdirSync(out, {recursive: true});
 
 function start(db) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: db, WALL_PORT: '0'},
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -136,14 +136,12 @@ function request(base, pathname, method = 'GET', value, headers = {}) {
     console.log('PASS PRAGMA journal_mode = wal');
 
     const customDb = path.join(out, 'temp', 'custom-chat', 'wall.db');
-    const customChatWorkDir = path.join(out, 'temp', 'custom-chat-workdir');
-    const custom = createWallServer({dbPath: customDb, port: 0, chatWorkDir: customChatWorkDir});
-    await new Promise((resolve, reject) => { custom.once('error', reject); custom.once('listening', resolve); });
-    assert.equal(path.resolve(custom.chatWorkDir), path.resolve(customChatWorkDir));
-    assert.equal(fs.statSync(customChatWorkDir).isDirectory(), true);
-    await custom.stopChats();
-    await new Promise(resolve => custom.close(() => { custom.db.close(); resolve(); }));
-    console.log('PASS createWallServer accepts a custom chatWorkDir and creates it');
+    const custom = await start(customDb);
+    try {
+      assert.equal(fs.statSync(path.join(path.dirname(customDb), 'chat-workdir')).isDirectory(), true);
+      assert.equal((await request(custom.url, '/api/health')).body.db, path.resolve(customDb));
+    } finally { await stop(custom); }
+    console.log('PASS Rust server creates chat-workdir beside the selected database');
 
     server = await start(db);
     const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();

@@ -5,6 +5,7 @@ const path = require('node:path');
 const {spawn} = require('node:child_process');
 const playwright = require('playwright-core');
 const {openSidebar} = require('./wall-ready.cjs');
+const {serverBin, mcpBin} = require('./runtime.cjs');
 
 const out = process.env.WALL_TEST_OUT;
 const base = process.env.WALL_TEST_URL;
@@ -51,8 +52,9 @@ function configFromArgs(args) {
 
 function startServer(dbPath, env) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'), env: {...process.env, ...env, WALL_DB: dbPath, WALL_PORT: '0'},
+      windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '', timer;
@@ -120,7 +122,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
   assert.equal(path.resolve(claudeConfig.env.WALL_DB), path.resolve(db));
   assert.equal(claudeConfig.env.WALL_PORT, new URL(base).port);
   assert.equal(claudeConfig.env.WALL_MCP_WALLS, 'chat-wall');
-  assert.match(claudeConfig.args[0], /server[\\/\\\\]mcp\.js$/);
+  assert.equal(path.resolve(claudeConfig.command), path.resolve(mcpBin));
+  assert.deepEqual(claudeConfig.args, []);
   assert.match(argValue(log.args, '--append-system-prompt'), /chat-wall/);
   assert.match(argValue(log.args, '--append-system-prompt'), /Chat wall/);
   assert.equal(log.args.includes('--fork-session'), false);
@@ -197,7 +200,7 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
   assert.equal(fs.existsSync(heartbeat) ? fs.statSync(heartbeat).size : 0, heartbeatSize);
   console.log('PASS one run per wall returns 409 and timeout kills the fake CLI process tree');
 
-  const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
+  const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
   try {
     const page = await browser.newPage({viewport: {width: 1400, height: 900}});
     const send = async () => {

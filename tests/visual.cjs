@@ -124,7 +124,7 @@ async function themeStyles(page, theme) {
     const grain = await page.context().request.get(base + '/assets/paper-grain.png');
     assert.equal(grain.status(), 200);
     assert.equal(grain.headers()['content-type'], 'image/png');
-    const traversal = await page.context().request.get(base + '/assets/../server/db.js');
+    const traversal = await page.context().request.get(base + '/assets/../src-tauri/Cargo.toml');
     assert.equal(traversal.status(), 404);
     await page.evaluate(() => setTheme('cork'));
     assert.match(await page.evaluate(() => getComputedStyle($('#bg')).backgroundImage), /cork\.jpg/);

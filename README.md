@@ -2,7 +2,7 @@
 
 **繁體中文** | [English](README.en.md)
 
-![Release 0.1.0](https://img.shields.io/badge/release-0.1.0-2EA44F) ![Windows](https://img.shields.io/badge/desktop-Windows-0078D4) ![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Release 0.2.0](https://img.shields.io/badge/release-0.2.0-2EA44F) ![Windows](https://img.shields.io/badge/desktop-Windows-0078D4) ![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 <p align="center">
   <img src="assets/icon/icon-256.png" alt="CaseGraph 案件圖譜圖示" width="128">
@@ -12,18 +12,20 @@ CaseGraph 是一款個人研究用的關係白板，讓你用卡片記錄資料�
 
 你可以自行整理，也可以讓 Claude Code 或 Codex 讀取牆面與你授權的資料夾，協助分析並提出修改。**AI 提案需經你確認才會套用，套用後也能復原。**
 
-**[下載 Windows 安裝檔](https://github.com/xiangerwu/detective-wall/releases/download/v0.1.0/CaseGraph-Setup-0.1.0.exe)** · [發布說明](https://github.com/xiangerwu/detective-wall/releases/tag/v0.1.0) · [功能與限制](docs/FEATURES.md) · [備份與搬移](docs/MIGRATION.md)
+**[下載 Windows 安裝檔](https://github.com/xiangerwu/detective-wall/releases/download/v0.2.0/CaseGraph_0.2.0_x64-setup.exe)** · [發布說明](https://github.com/xiangerwu/detective-wall/releases/tag/v0.2.0) · [功能與限制](docs/FEATURES.md) · [備份與搬移](docs/MIGRATION.md)
 
-目前發布版本為 **v0.1.0**。本文件依 2026-11-05 的儲存庫現況整理；日後主分支更新不代表已安裝的版本會自動更新。介面目前使用繁體中文。
+v0.2.0 使用 Tauri 桌面與 Rust 後端，沿用既有白板介面與 SQLite 資料格式。介面目前使用繁體中文。
 
 ## 安裝
 
+建置需求、桌面設定與隔離測試見 [桌面版說明](docs/TAURI.md)。
+
 ### Windows 桌面版
 
-從上方下載連結取得 `CaseGraph-Setup-0.1.0.exe`，執行後依安裝精靈操作。桌面版內含執行環境，不需要另外安裝 Node.js 或 Firefox。自行打包見 [桌面版開發與打包](docs/ELECTRON.md)。
+從上方下載連結取得 `CaseGraph_0.2.0_x64-setup.exe`，執行後依安裝精靈操作。桌面版使用 WebView2；缺少時安裝程式會下載其執行環境，不需要另外安裝 Node.js 或瀏覽器。自行打包見 [桌面版開發與打包](docs/TAURI.md)。
 
 - 安裝在目前使用者底下，不需要系統管理員權限；可以自選安裝位置，並建立開始功能表與桌面捷徑。
-- 第一版沒有程式碼簽章，Windows SmartScreen 可能顯示警告；也沒有自動更新，新版本需要手動下載安裝。
+- 安裝檔沒有程式碼簽章，Windows SmartScreen 可能顯示警告；也沒有自動更新，新版本需要手動下載安裝。
 - 資料、設定與紀錄都放在 `%APPDATA%\CaseGraph\CaseGraph\`：
   - `settings.json`：設定；
   - `projects\default\wall.db`：預設專案的資料庫；
@@ -41,20 +43,21 @@ CaseGraph 是一款個人研究用的關係白板，讓你用卡片記錄資料�
 
 ### 瀏覽器版與開發環境需求
 
-- **Node.js 24 以上**（既有開發與測試基準為 v24.11.1）。
-- **Firefox**：主要驗證的瀏覽器。
+- **Rust 工具鏈與 Cargo**：用來建置 HTTP／MCP 服務；Windows 桌面開發另需 MSVC、Visual Studio C++ Build Tools／Windows SDK 與 WebView2，詳見 [建置需求](docs/TAURI.md)。
+- **Node.js 24 以上**：供 npm 建置指令與測試使用，產品服務本身使用 Rust。外部 AI CLI 依各自的安裝需求使用 Node.js。
+- **瀏覽器**：可使用 Chromium 或 Firefox；自動測試預設 Chromium。
 - **AI CLI（選用）**：要使用 AI 功能，需至少安裝並登入 [Claude Code](https://claude.com/claude-code) 或 Codex CLI 其中一個；桌面版也一樣需要。測試版本為 Claude Code 2.1.314、codex-cli 0.153.4；較舊版本可能不支援本專案使用的旗標。
 
 ### 瀏覽器版啟動方式
 
-macOS／Linux 可以執行 `./start.sh`。也可以在專案目錄手動執行（Windows 也適用）：
+macOS／Linux 可以執行 `./start.sh`，直接使用 Cargo 建置與啟動。也可以在專案目錄執行 npm 指令（Windows 也適用，仍需 Rust 工具鏈）：
 
 ```sh
 npm ci
 npm start
 ```
 
-看到 `WALL_READY 3000` 後，用 Firefox 開啟 [CaseGraph 本機頁面](http://127.0.0.1:3000/)。第一次啟動會建立 `data/wall.db`，並放入 7 張示例卡片；之後啟動會沿用既有資料。服務只監聽本機位址 `127.0.0.1`。開發時也可以用 `npm run app` 直接開啟桌面版。
+看到 `WALL_READY 3000` 後，用瀏覽器開啟 [CaseGraph 本機頁面](http://127.0.0.1:3000/)。第一次啟動會建立 `data/wall.db`，並放入 7 張示例卡片；之後啟動會沿用既有資料。服務只監聽本機位址 `127.0.0.1`。開發時也可以用 `npm run app` 直接開啟桌面版。
 
 ## 基本操作
 
@@ -123,14 +126,14 @@ AI 先提出修改，再由你在審核面板逐項勾選套用。未套用的�
 
 ### 用其他 AI 客戶端（選用）
 
-桌面版可從「啟動器設定」開啟已接好 MCP 的 CLI。原始碼使用者也可在支援 MCP 的客戶端設定下列 stdio 服務（需要 Node.js 24 以上）：
+桌面版可從「啟動器設定」開啟已接好 MCP 的 CLI。原始碼使用者先執行 `npm run build:server`，再於支援 MCP 的客戶端設定下列 Rust stdio 服務：
 
 ```json
 {
   "mcpServers": {
     "detective-wall": {
-      "command": "node",
-      "args": ["<專案絕對路徑>/server/mcp.js"],
+      "command": "<專案絕對路徑>/src-tauri/target/debug/casegraph-mcp.exe",
+      "args": [],
       "env": {
         "WALL_DB": "<專案絕對路徑>/data/wall.db",
         "WALL_PORT": "3000"
@@ -140,7 +143,7 @@ AI 先提出修改，再由你在審核面板逐項勾選套用。未套用的�
 }
 ```
 
-`WALL_DB` 必須指向實際資料庫，`WALL_PORT` 必須對應正在執行的服務。上例使用瀏覽器版預設位置；桌面版請先在「啟動器設定」確認資料庫與埠。路徑只是範例，Windows JSON 路徑可使用 `/` 或跳脫的 `\\`。
+`WALL_DB` 必須指向實際資料庫，`WALL_PORT` 必須對應正在執行的服務。上例使用 Windows 開發執行檔與瀏覽器版預設資料位置；macOS／Linux 的執行檔沒有 `.exe` 副檔名。桌面版請先在「啟動器設定」確認資料庫與埠。路徑只是範例，Windows JSON 路徑可使用 `/` 或跳脫的 `\\`。
 
 工具有九個：
 
@@ -219,38 +222,61 @@ WALL_DB=/path/to/my-research/wall.db npm start
 
 ## 開發與測試
 
+桌面、HTTP 與 MCP 均使用 Rust；Node.js 用於 npm 開發工具與測試。
+
 ```sh
 npm ci
 npm run typecheck
-npx playwright-core install firefox  # Linux 可加 --with-deps
+npx playwright-core install chromium  # Linux 可加 --with-deps
 npm test
 ```
 
-- `npm test` 會替每組測試啟動獨立的服務、暫存資料庫與空閒埠，不會碰到 `data/wall.db`。
-- 測試 runner 預設依 CPU 使用 2–4 個並行工作；需要限制並行時可用 `npm test -- --jobs 2`。
-- 單組測試：`npm test -- tabs`。
-- 測試結果預設寫在 `test-results/`，可用 `WALL_TEST_ROOT` 改位置；可用 `WALL_TEST_BROWSER` 換瀏覽器，預設 Firefox。Linux 可用 `WALL_TEST_BROWSER=chromium`。
-- 測試通過後，會刪掉該組的暫存資料庫與 Firefox 設定檔，只留截圖與紀錄；失敗的那組會保留這些檔案，方便除錯。
+- `npm test` 執行 Rust 整合測試與瀏覽器測試；使用獨立服務、資料庫與空閒埠，不會碰到 `data/wall.db`。
+- 瀏覽器測試 runner 預設依 CPU 使用 2–4 個並行工作；可用 `npm run test:ui -- --jobs 2` 限制並行。
+- 單組瀏覽器測試：`npm run test:ui -- tabs`。
+- 瀏覽器測試結果保留在 `test-results/<suite>/run-*`，可用 `WALL_TEST_ROOT` 改根目錄；每輪使用新資料夾，不會自動刪除資料庫、截圖與紀錄。`WALL_TEST_BROWSER` 可換瀏覽器，預設 Chromium。
 - AI 對話的測試用假的 CLI，不會呼叫真模型。
 - Markdown 測試需要連 cdnjs；離線時這組測試會明確失敗，畫布本身仍可用。
+
+### 常用指令
+
+在專案根目錄使用；Windows 建置需求見 [桌面版說明](docs/TAURI.md)。
+
+| 指令 | 用途 |
+| --- | --- |
+| `npm run app` | 建置 Rust helper，啟動 Tauri 開發版 |
+| `npm start` | 建置 HTTP／MCP 執行檔，啟動瀏覽器版服務 |
+| `npm run mcp` | 啟動 Rust stdio MCP，資料庫與埠需對應正在使用的專案 |
+| `npm run dist` | 建置 Rust helper 與 Tauri Windows 安裝包 |
+| `npm run test:rust` | 執行 Rust 函式庫及 MCP／HTTP／聊天整合測試，會先建置所需的測試執行檔 |
+| `npm run test:ui` | 建置測試執行檔，執行瀏覽器介面測試 |
+| `npm run test:desktop` | 測試實際 WebView2 桌面程式，使用隔離資料；不會自行建置程式 |
+
+清理建置產物後，桌面測試必須先重建正式版：
+
+```powershell
+npm run dist
+npm run test:desktop
+```
+
+`test:desktop` 預設讀取 `src-tauri/target/release/casegraph.exe`；`npm test` 不包含這組桌面測試。結果保留在 `test-results/rust-*`，以當次執行紀錄為準。
 
 ### 專案架構
 
 - 介面是單一 `index.html`（原生 JavaScript），透過同源 API 讀寫。
-- `server/layout.js`：Node 與瀏覽器共用的確定性線索牆布局引擎，供提案預覽、套用與「整理版面」使用。
-- `server/server.js`：網頁與 API 服務，以及網頁內 AI 對話。
-- `server/db.js`：SQLite 資料層。
-- `server/mcp.js`：MCP 伺服器。
-- `electron/`：Windows 桌面視窗、系統匣、設定與 CLI 啟動。
+- `assets/layout.js`：瀏覽器端確定性線索牆布局，供提案預覽與「整理版面」使用。
+- `src-tauri/src/layout.rs`：後端對應的確定性布局，供提案套用使用。
+- `src-tauri/src/server.rs`、`db.rs`、`mcp.rs`、`chat.rs`：HTTP API、SQLite、MCP 與 AI CLI 整合。
+- `src-tauri/src/desktop.rs`：Tauri 視窗、系統匣、設定與服務生命週期。
 
-Windows 打包使用 `npm run dist`。打包後執行 `npm test -- electron-packaged`；產物缺少時會回報 `SKIP`，不代表安裝包已驗證。其他桌面版檢查見 [Electron 桌面版](docs/ELECTRON.md)。
+桌面與安裝包的驗證範圍見 [桌面版開發與打包](docs/TAURI.md)。桌面自動測試不等於已在全新 Windows 完成安裝驗收。
 
 ## 文件
 
 - [目前已有功能及限制](docs/FEATURES.md)
 - [發布現況與後續方向](docs/ROADMAP.md)
 - [搬移與資料保存](docs/MIGRATION.md)
-- [Windows 桌面版、設定與打包](docs/ELECTRON.md)
+- [Tauri／Rust 桌面版、設定、建置與驗證](docs/TAURI.md)
 - [第三方依賴說明](THIRD_PARTY_NOTICES.md)
 
 ## 授權

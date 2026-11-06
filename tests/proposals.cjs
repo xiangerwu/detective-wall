@@ -6,6 +6,7 @@ const {spawn} = require('node:child_process');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
+const {serverBin, mcpBin} = require('./runtime.cjs');
 const {openSidebar} = require('./wall-ready.cjs');
 
 const out = process.env.WALL_TEST_OUT || path.join(__dirname, '..', 'test-results', 'proposals');
@@ -36,7 +37,7 @@ function request(pathname, method = 'GET', value) {
 
 function startServer(dbPath) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: dbPath, WALL_PORT: '0'},
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -64,8 +65,8 @@ function stopServer(server) {
 
 async function connect(scope) {
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+    command: mcpBin,
+    args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(base).port, ...(scope ? {WALL_MCP_WALLS: scope} : {})},
     stderr: 'pipe',
   });

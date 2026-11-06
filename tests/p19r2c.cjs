@@ -3,7 +3,9 @@ const fs = require('node:fs');
 const path = require('node:path');
 const playwright = require('playwright-core');
 const {ready, reload} = require('./wall-ready.cjs');
-const {normalizeProposalOps} = require('../server/db.js');
+const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
+const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
+const {mcpBin} = require('./runtime.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
 const OUT = process.env.WALL_TEST_OUT || path.resolve(__dirname, '..', 'test-results', 'p19r2c');
@@ -160,12 +162,23 @@ async function cardContrast(page, id) {
     }, '#fedcba');
     ok(proposalText.includes('#fedcba'), 'AI proposal review shows a proposed custom colour');
 
-    const proposalOps = normalizeProposalOps([
-      {op: 'add_card', tempId: 'custom-add', kind: 'card', title: 'AI 色卡', note: '', tags: [], links: [], color: '#ABCDEF'},
-      {op: 'update_card', cardId: 'custom-card', color: 'purple'},
-    ]);
-    ok(proposalOps[0].color === '#abcdef' && proposalOps[1].color === 'purple',
-      'AI proposal normalization carries preset and custom card colours');
+    const wallId = await page.evaluate(async () => {
+      await save(true); await store.flushWrites(); await store.setMeta('aiProposals', true); return currentWall.id;
+    });
+    const client = new Client({name: 'p19r2c-colours', version: '1.0.0'});
+    try {
+      await client.connect(new StdioClientTransport({command: mcpBin, args: [],
+        env: {...process.env, WALL_DB: path.join(process.env.TEMP, 'wall.db'), WALL_PORT: new URL(PAGE).port}, stderr: 'pipe'}));
+      const result = await client.callTool({name: 'propose_changes', arguments: {wallId, idempotencyKey: 'p19r2c-colours', ops: [
+        {op: 'add_card', tempId: 'custom-add', kind: 'card', title: 'AI 色卡', note: '', tags: [], links: [], color: '#ABCDEF'},
+        {op: 'update_card', cardId: 'custom-card', color: 'purple'},
+      ]}});
+      assert.ok(!result.isError, JSON.stringify(result));
+      const proposal = result.structuredContent || JSON.parse(result.content[0].text);
+      const proposalOps = await page.evaluate(async id => (await store.getProposal(id)).ops, proposal.proposalId);
+      ok(proposalOps[0].color === '#abcdef' && proposalOps[1].color === 'purple',
+        'real MCP proposal normalization carries preset and custom card colours');
+    } finally { await client.close(); }
 
     for (const color of ['#fffbe6', '#121212']) {
       await page.evaluate(value => { const card = byId('custom-card'); card.color = value; card.note = '對比測試'; render(); }, color);

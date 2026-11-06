@@ -4,22 +4,24 @@
 
 [繁體中文](README.md) | **English**
 
-![Release 0.1.0](https://img.shields.io/badge/release-0.1.0-2EA44F) ![Windows](https://img.shields.io/badge/desktop-Windows-0078D4) ![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Release 0.2.0](https://img.shields.io/badge/release-0.2.0-2EA44F) ![Windows](https://img.shields.io/badge/desktop-Windows-0078D4) ![SQLite](https://img.shields.io/badge/SQLite-local-003B57?logo=sqlite&logoColor=white) ![MCP](https://img.shields.io/badge/MCP-stdio-6E56CF) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 A relationship whiteboard for personal research. Organize clues with cards, question sticky notes, and connections; data is stored in local SQLite. AI (Claude Code or codex) can read the board and folders you authorize, and propose changes; each change takes effect only after you confirm it on screen.
 
-**[Download for Windows](https://github.com/xiangerwu/detective-wall/releases/download/v0.1.0/CaseGraph-Setup-0.1.0.exe)** · [Release notes](https://github.com/xiangerwu/detective-wall/releases/tag/v0.1.0) · [Features and limits](docs/FEATURES.md) · [Backup and migration](docs/MIGRATION.md)
+**[Download for Windows](https://github.com/xiangerwu/detective-wall/releases/download/v0.2.0/CaseGraph_0.2.0_x64-setup.exe)** · [Release notes](https://github.com/xiangerwu/detective-wall/releases/tag/v0.2.0) · [Features and limits](docs/FEATURES.md) · [Backup and migration](docs/MIGRATION.md)
 
-The published version is **v0.1.0**. This documentation describes the repository as of 2026-11-05; later changes on the main branch do not automatically update installed copies. The interface is currently in Traditional Chinese.
+v0.2.0 uses a Tauri desktop and Rust backend, retaining the existing whiteboard interface and SQLite data format. The interface is currently in Traditional Chinese.
 
 ## Installation
 
+See [Desktop instructions](docs/TAURI.md) for build requirements, desktop settings, and isolated testing.
+
 ### Windows desktop app
 
-Download `CaseGraph-Setup-0.1.0.exe` using the link above and follow the installer. The app bundles its runtime, so you do not need Node.js or Firefox. For building from source, see [Desktop development and packaging](docs/ELECTRON.md).
+Download `CaseGraph_0.2.0_x64-setup.exe` using the link above and follow the installer. The app uses WebView2; the installer downloads its runtime if missing. You do not need to install Node.js or a browser separately. For building from source, see [Desktop development and packaging](docs/TAURI.md).
 
 - It installs for the current user without administrator rights. You can choose the folder, and it creates Start Menu and desktop shortcuts.
-- The first version is unsigned, so Windows SmartScreen may warn. It also has no automatic updates; download and install new versions by hand.
+- The installer is unsigned, so Windows SmartScreen may warn. It also has no automatic updates; download and install new versions by hand.
 - Data, settings and logs live in `%APPDATA%\CaseGraph\CaseGraph\`:
   - `settings.json`: the settings;
   - `projects\default\wall.db`: the default project's database;
@@ -39,19 +41,20 @@ The project folder determines the database location. The AI working folder sets 
 
 Requirements:
 
-- **Node.js 24 or later** (the existing development/test baseline is v24.11.1).
-- **Firefox**: the primary validation browser.
+- **Rust toolchain and Cargo**: required to build the HTTP/MCP services. Windows desktop development also needs MSVC, Visual Studio C++ Build Tools/Windows SDK, and WebView2; see [Build requirements](docs/TAURI.md).
+- **Node.js 24 or later**: used by npm development commands and tests. Product services run in Rust; external AI CLIs may need Node.js according to their own installation requirements.
+- **Browser**: Chromium or Firefox; automated tests default to Chromium.
 - **CLI (optional)**: tested with Claude Code 2.1.314 and codex-cli 0.153.4; older versions may not recognize the flags used here.
 - Optional, only needed when having AI help: a logged-in [Claude Code](https://claude.com/claude-code) or codex CLI, at least one.
 
-On macOS/Linux run `./start.sh`, or run it by hand on any platform:
+On macOS/Linux, `./start.sh` builds and starts the service directly with Cargo. Alternatively, use npm on any platform; the Rust toolchain is still required:
 
 ```sh
 npm ci
 npm start
 ```
 
-After seeing `WALL_READY 3000`, open http://127.0.0.1:3000/ in Firefox. The first startup creates `data/wall.db` and adds 7 sample cards.
+After seeing `WALL_READY 3000`, open http://127.0.0.1:3000/ in your browser. The first startup creates `data/wall.db` and adds 7 sample cards.
 
 The service listens only on the local machine (127.0.0.1), and the database in `data/wall.db` is reused next time. During development, `npm run app` opens the desktop app directly.
 
@@ -115,14 +118,14 @@ Ask directly in the right sidebar 「AI 對話」(AI conversation), for example,
 
 ### Using other AI clients (optional)
 
-Desktop users can open a CLI with MCP already configured from Launcher settings. Source users can also configure this stdio server in an MCP-compatible client (Node.js 24 or later required):
+Desktop users can open a CLI with MCP already configured from Launcher settings. Source users can run `npm run build:server`, then configure this Rust stdio server in an MCP-compatible client:
 
 ```json
 {
   "mcpServers": {
     "detective-wall": {
-      "command": "node",
-      "args": ["<absolute project path>/server/mcp.js"],
+      "command": "<absolute project path>/src-tauri/target/debug/casegraph-mcp.exe",
+      "args": [],
       "env": {
         "WALL_DB": "<absolute project path>/data/wall.db",
         "WALL_PORT": "3000"
@@ -132,7 +135,7 @@ Desktop users can open a CLI with MCP already configured from Launcher settings.
 }
 ```
 
-`WALL_DB` must point to the actual database and `WALL_PORT` must match the running service. This example uses the browser version's location; for desktop, check Launcher settings first. Replace the placeholder paths; Windows JSON paths may use `/` or escaped `\\`.
+`WALL_DB` must point to the actual database and `WALL_PORT` must match the running service. This example uses the Windows development executable and browser mode's default data location; omit `.exe` on macOS/Linux. For desktop, check Launcher settings first. Replace the placeholder paths; Windows JSON paths may use `/` or escaped `\\`.
 
 There are nine tools:
 
@@ -211,38 +214,61 @@ WALL_DB=/path/to/my-research/wall.db npm start
 
 ## Development and testing
 
+Desktop, HTTP, and MCP all use Rust. Node.js runs npm development tools and tests.
+
 ```sh
 npm ci
 npm run typecheck
-npx playwright-core install firefox  # add --with-deps on Linux
+npx playwright-core install chromium  # add --with-deps on Linux
 npm test
 ```
 
-- `npm test` starts an independent service, temporary database, and free port for each test group, and does not touch `data/wall.db`.
-- The test runner uses 2–4 workers based on CPU count by default; use `npm test -- --jobs 2` to cap concurrency.
-- Run one test group: `npm test -- tabs`.
-- Test results are written to `test-results/` by default; use `WALL_TEST_ROOT` to change the location. Use `WALL_TEST_BROWSER` to switch browsers; Firefox is the default.
-- After tests pass, the temporary database and Firefox profile for that group are deleted, leaving only screenshots and logs; a failed group keeps these files for debugging.
+- `npm test` runs Rust integration and browser tests, using independent services, databases, and free ports without touching `data/wall.db`.
+- The browser test runner uses 2–4 workers based on CPU count by default; use `npm run test:ui -- --jobs 2` to cap concurrency.
+- Run one browser test group: `npm run test:ui -- tabs`.
+- Browser test results remain in `test-results/<suite>/run-*`; use `WALL_TEST_ROOT` to change the root. Each run uses a new directory and retains databases, screenshots, and logs. Use `WALL_TEST_BROWSER` to switch browsers; Chromium is the default.
 - AI conversation tests use a fake CLI and do not call a real model.
 - Markdown tests require cdnjs; offline, this test group fails explicitly, while the canvas itself remains usable.
+
+### Common commands
+
+Run these commands from the project root. See [Desktop instructions](docs/TAURI.md) for Windows build requirements.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run app` | Build the Rust helpers, then start the Tauri development app |
+| `npm start` | Build the HTTP/MCP executables and start the browser-mode service |
+| `npm run mcp` | Start the Rust stdio MCP server; its database and port must match the active project |
+| `npm run dist` | Build the Rust helpers and Tauri Windows installer |
+| `npm run test:rust` | Run Rust library and MCP/HTTP/chat integration tests, building their required test executables first |
+| `npm run test:ui` | Build test executables and run browser interface tests |
+| `npm run test:desktop` | Test the actual WebView2 desktop app with isolated data; does not build the app |
+
+After cleaning build artifacts, rebuild the release app before running the desktop tests:
+
+```powershell
+npm run dist
+npm run test:desktop
+```
+
+`test:desktop` uses `src-tauri/target/release/casegraph.exe` by default. `npm test` does not include this desktop suite. Results remain in `test-results/rust-*`; use the logs from the actual run to determine its outcome.
 
 Architecture:
 
 - The interface is a single `index.html` (native JavaScript) that reads and writes through a same-origin API. The interface is currently Traditional Chinese only.
-- `server/layout.js`: deterministic clue-wall layout engine shared by Node and the browser for proposal previews, application, and 「整理版面」.
-- `server/server.js`: web and API service, plus in-page AI conversations.
-- `server/db.js`: SQLite data layer.
-- `server/mcp.js`: MCP server.
-- `electron/`: desktop window, tray, settings, and CLI launch integration.
+- `assets/layout.js`: deterministic browser layout for proposal previews and 「整理版面」.
+- `src-tauri/src/layout.rs`: corresponding backend layout for applying proposals.
+- `src-tauri/src/server.rs`, `db.rs`, `mcp.rs`, and `chat.rs`: HTTP API, SQLite, MCP, and AI CLI integration.
+- `src-tauri/src/desktop.rs`: Tauri windows, tray, settings, and service lifecycle.
 
-Build the Windows installer with `npm run dist`, then run `npm test -- electron-packaged`. An absent build reports `SKIP`; that is not a successful package verification. See [Desktop development and packaging](docs/ELECTRON.md) for the other checks.
+See [Desktop development and packaging](docs/TAURI.md) for desktop and installer verification coverage. Automated desktop tests do not establish that installation has passed on a clean Windows machine.
 
 ## Documentation
 
 - [Existing features and limitations](docs/FEATURES.md) (Chinese)
 - [Release status and future directions](docs/ROADMAP.md) (Chinese)
 - [Migration and data preservation](docs/MIGRATION.md) (Chinese)
-- [Windows desktop settings and packaging](docs/ELECTRON.md) (Chinese)
+- [Tauri/Rust desktop settings, building, and verification](docs/TAURI.md) (Chinese)
 - [Third-party dependency notices](THIRD_PARTY_NOTICES.md) (Chinese)
 
 ## License

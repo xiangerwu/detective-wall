@@ -3,6 +3,7 @@ const path = require('node:path');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
+const {mcpBin} = require('./runtime.cjs');
 const {ready, settled, openActivity, openSidebar, renameWall} = require('./wall-ready.cjs');
 
 const PAGE = process.env.WALL_TEST_URL;
@@ -605,7 +606,7 @@ function writeReport() {
 
 async function connectMcp() {
   const db = path.join(process.env.TEMP || path.join(OUT, 'temp'), 'wall.db');
-  const transport = new StdioClientTransport({command: process.execPath, args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+  const transport = new StdioClientTransport({command: mcpBin, args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(PAGE).port}});
   const client = new Client({name: 'detective-wall-p15-tour', version: '1.0.0'});
   await client.connect(transport);

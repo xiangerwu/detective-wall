@@ -5,7 +5,7 @@ const path = require('node:path');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
-const {openMcpDatabase} = require('../server/mcp.js');
+const {mcpBin} = require('./runtime.cjs');
 const {openActivity} = require('./wall-ready.cjs');
 
 const base = process.env.WALL_TEST_URL;
@@ -33,8 +33,8 @@ function request(pathname, method = 'GET', value) {
 
 async function connect() {
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+    command: mcpBin,
+    args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(base).port},
     stderr: 'pipe',
   });
@@ -107,9 +107,8 @@ const call = (client, name, args) => client.callTool({name, arguments: args});
     assert.deepEqual(setting.body.value, [root]);
     console.log('PASS UI writes sourceFolders through the HTTP meta API');
 
-    const readOnly = openMcpDatabase(db);
-    assert.throws(() => readOnly.setMeta('sourceFolders', [outside]), /readonly|read-only/i);
-    readOnly.close();
+    const tools = (await connection.client.listTools()).tools;
+    assert.equal(tools.some(tool => /set.*meta|set.*folder/i.test(tool.name)), false, 'MCP exposes no authorization-setting tool');
 
     const files = [], first = dataOf(await call(connection.client, 'list_files', {}));
     assert.ok(first.files.length <= 100);

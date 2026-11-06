@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "maxNodeModuleJsDepth": 0
   },
-  "include": ["server/*.js"]
+  "include": ["assets/layout.js", "src-tauri/hidden-console.js"]
 }

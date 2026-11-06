@@ -1,18 +1,20 @@
 # 搬移與資料保存
 
-[回 README](../README.md) · [Windows 桌面版](ELECTRON.md)
+[回 README](../README.md) · [Tauri／Rust 桌面版](TAURI.md)
 
-適用於 v0.1.0 與目前儲存庫；核對日期：2026-11-05。
+適用於 CaseGraph v0.2.0 Tauri／Rust 版，並包含從 v0.1.0 升級的注意事項；核對日期：2026-11-06。乾淨 Windows 的完整安裝／升級／解除安裝矩陣尚未完成，請先保存原資料。
 
 ## 先確認資料位置
 
 | 啟動方式 | 預設資料庫 |
 | --- | --- |
-| Windows 安裝版 | `%APPDATA%\CaseGraph\CaseGraph\projects\default\wall.db` |
+| Windows 安裝版／release 模式桌面程式 | `%APPDATA%\CaseGraph\CaseGraph\projects\default\wall.db` |
 | 原始碼桌面版（`npm run app`） | `%APPDATA%\detective-wall\CaseGraph\projects\default\wall.db` |
-| 瀏覽器版（`npm start`） | 儲存庫的 `data/wall.db`，可用 `WALL_DB` 改位置 |
+| 瀏覽器版（`npm start`，於專案根目錄執行） | 儲存庫的 `data/wall.db`，可用 `WALL_DB` 改位置 |
 
 桌面版若已切換專案，實際位置是所選專案資料夾中的 `wall.db`，請從齒輪選單「啟動器設定」核對。安裝版不會自動讀取或搬移瀏覽器版資料。
+
+桌面版可用 `CASEGRAPH_USER_DATA` 指定隔離位置，並在其下建立 `CaseGraph` 子目錄放置設定與預設專案。Release EXE 即使尚未安裝，也使用正式資料位置；測試前請明確指定隔離位置，不要假設建置目錄代表測試資料目錄。
 
 ## 選擇保存方式
 
@@ -42,16 +44,28 @@ JSON Canvas 用於交換，存在降級限制，不作為完整備份格式，�
 需要資料庫內所有狀態時，停機複製 SQLite：
 
 1. 等待保存完成，停止 AI 對話，關閉使用該資料庫的外部 MCP／CLI 客戶端。
-2. 完整停止來源與目的地服務。桌面版從系統匣選「結束」，只關視窗仍會在背景執行；瀏覽器版停止執行 `npm start` 的終端服務。
+2. 完整停止來源與目的地服務。桌面版從系統匣選「結束」，只關視窗仍會在背景執行；瀏覽器版停止執行 `npm start` 或 `./start.sh` 的終端服務。
 3. 保留目的地原有資料庫備份，將來源 `wall.db` 複製到新的專案資料夾。若停機後仍有 `wall.db-wal`／`wall.db-shm`，同批保留；不要只複製主檔，也不要混用不同時間或不同專案的 WAL／SHM。
 4. 桌面版在「啟動器設定」選取新專案資料夾；瀏覽器版將資料庫放到 `data/wall.db`，或用 `WALL_DB` 指定絕對路徑後啟動。
 5. 核對牆、圖片、備份、AI 紀錄與授權資料夾，再從目前專案重新開啟 CLI。
 
 複製資料庫保留的是紀錄，不保證另一台電腦的 CLI 能接續原 session；需要時開新對話。
 
+## 從 v0.1.0 升級與回退
+
+v0.2.0 保留現有白板介面、SQLite schema 和 `settings.json` 格式，正式版資料位置與 v0.1.0 相同。現行測試以舊格式 fixture 檢查未知白板欄位、提案套用與回復、交易回滾；這不等於所有使用者資料及安裝環境都已驗收。舊版原始碼與安裝檔保留於 [v0.1.0 tag／release](https://github.com/xiangerwu/detective-wall/releases/tag/v0.1.0)，目前原始碼不再保留 Electron／Node 後端入口。
+
+1. 依上述停機流程備份資料庫與桌面 `settings.json`。若要保留切換後的新修改，回退前也先另存備份。
+2. 完整結束目前桌面版與使用該資料庫的外部 MCP／CLI，再啟動另一版本。不要讓 Electron 與 Rust 同時開啟同一份資料庫；開發模式與 release 模式的預設資料位置不同，切換時先核對實際專案。
+3. v0.2.0 桌面內建啟動的 CLI 會產生新 MCP 設定。自行配置的外部客戶端，將 `command` 改成實際安裝位置中的 `casegraph-mcp.exe`，`args` 設為 `[]`，移除原本指向 `server/mcp.js` 的參數與 `ELECTRON_RUN_AS_NODE`；保留正確的 `WALL_DB`、`WALL_PORT` 及選用的 `WALL_MCP_WALLS`。
+4. 核對牆、圖片、備份、提案、對話與授權資料夾。從目前版本重新開啟 CLI，避免沿用舊服務埠或 MCP 命令。
+5. 如需回退，先停止 v0.2.0 與其 MCP 客戶端，從 v0.1.0 release 重新取得舊版安裝檔，或使用該 tag 的原始碼。只開啟已確認相容的資料庫；若需恢復升級前狀態，使用先前備份，但會失去備份後的修改。手動 MCP 設定也恢復為舊版命令；從舊版設定頁重新開啟 CLI 會重建其設定。
+
+Electron、WebView2 與一般瀏覽器的 localStorage 各自獨立，主題、面板與桌寵偏好不隨 SQLite 搬移。建置／測試產物清理後的重建方式見 [Tauri／Rust 文件](TAURI.md#清理產物後重建)，不要將使用者資料庫或設定當成建置快取處理。
+
 ## 設定、來源與升級
 
 - 桌面 `settings.json` 位於 `userData/CaseGraph/`，記錄埠、目前／最近專案與各專案 AI 工作資料夾。換電腦後原絕對路徑可能無效，請在設定重新選取，勿直接假設複製設定即可使用。
 - 授權資料夾和來源連結不會把原始檔案打包進專案。外部材料需另行搬移；相對來源以資料庫所在目錄為基準。
 - 主題、卡片風格、面板與桌寵等 localStorage 偏好需在目的地重新設定；CLI 登入也由各客戶端處理。
-- v0.1.0 沒有自動更新。安裝新版前先備份並從系統匣結束，下載新版安裝檔後手動安裝；啟動後確認目前專案與資料。
+- 目前沒有自動更新。安裝新版前先備份並從系統匣結束，下載新版安裝檔後手動安裝；啟動後確認目前專案與資料。

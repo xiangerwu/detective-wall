@@ -46,7 +46,8 @@ const waitMotion = page => page.waitForTimeout(260);
     assert.equal(await gear.getAttribute('aria-expanded'), 'false');
     assert.equal(await page.locator('#activity-files').getAttribute('aria-hidden'), 'true');
     assert.ok(await page.locator('#activity-files').getAttribute('inert') !== null, 'collapsed activity bubbles are not tabbable');
-    assert.equal(await page.locator('#activity-launcher-settings').isHidden(), true, 'launcher settings bubble is hidden without Electron caseGraph');
+    assert.equal(await page.evaluate(() => window.caseGraph), undefined, 'a normal browser has no desktop bridge');
+    assert.equal(await page.locator('#activity-launcher-settings').isHidden(), true, 'launcher settings bubble is hidden without the desktop bridge');
 
     await gear.click(); await waitMotion(page);
     assert.equal(await gear.getAttribute('aria-expanded'), 'true');

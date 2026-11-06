@@ -8,7 +8,7 @@ const {DatabaseSync} = require('node:sqlite');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
-const {createDatabase, safeSourceHref} = require('../server/db.js');
+const {serverBin, mcpBin} = require('./runtime.cjs');
 const {openActivity, ready} = require('./wall-ready.cjs');
 
 const base = process.env.WALL_TEST_URL;
@@ -61,8 +61,8 @@ function waitForExit(child) {
 
 function startMcp() {
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+    command: mcpBin,
+    args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(base).port},
     stderr: 'pipe',
   });
@@ -75,11 +75,11 @@ function seedWall(id, title = id) {
     data: {bands: [], tags: [], cards: [{id: id + '-card', kind: 'card', x: 20, y: 20, title, note: '', tags: [], links: []}], edges: []}};
 }
 
-function insertProposal(store, id, wallId) {
-  return store.insertProposal({id, wallId, baseVersion: 1, created: Date.now(), client: 'P12',
-    idempotencyKey: id + '-key', rationale: 'P12 cleanup',
-    ops: [{type: 'add_card', tempId: id + '-card', kind: 'card', title: id, note: '', tags: [], links: []}],
-    baseCards: {cards: [], edges: []}});
+async function insertProposal(client, id, wallId) {
+  const result = await call(client, 'propose_changes', {wallId, idempotencyKey: id + '-key', rationale: 'P12 cleanup',
+    ops: [{op: 'add_card', tempId: id + '-card', kind: 'card', title: id, note: '', tags: [], links: []}]});
+  assert.ok(!result.isError, JSON.stringify(result));
+  return dataOf(result);
 }
 
 async function sourceExclusionTest(client) {
@@ -123,48 +123,57 @@ async function sourceExclusionTest(client) {
 }
 
 async function cleanupTest() {
-  const store = createDatabase(db);
   const wallA = seedWall('cleanup-a'), wallB = seedWall('cleanup-b');
+  const client = await startMcp();
+  // Historical chat rows are a persistence fixture, not a simulated chat provider.
+  const seedChat = (wall, clientName, session, text) => {
+    const sql = new DatabaseSync(db);
+    try {
+      sql.prepare('INSERT INTO chat_sessions(wall_id,client,session_id,updated) VALUES (?,?,?,?)').run(wall, clientName, session, Date.now());
+      sql.prepare('INSERT INTO chat_messages(wall_id,client,role,text,at) VALUES (?,?,?,?,?)').run(wall, clientName, 'user', text, Date.now());
+    } finally { sql.close(); }
+  };
+  const chatRows = wall => {
+    const sql = new DatabaseSync(db, {readOnly: true});
+    try { return ['chat_sessions', 'chat_messages'].map(table => sql.prepare(`SELECT count(*) AS n FROM ${table} WHERE wall_id=?`).get(wall).n); }
+    finally { sql.close(); }
+  };
   try {
-    store.putWall(wallA.id, wallA.name, wallA.data, null);
-    store.putWall(wallB.id, wallB.name, wallB.data, null);
-    const proposal = insertProposal(store, 'cleanup-proposal', wallA.id);
-    store.applyProposal(proposal.proposalId, [0]);
-    store.setChatSession(wallA.id, 'claude', 'cleanup-session-a');
-    store.addChatMessage(wallA.id, 'claude', 'user', 'old chat');
-    store.setChatSession(wallB.id, 'claude', 'cleanup-session-b');
-    store.addChatMessage(wallB.id, 'claude', 'user', 'other wall chat');
-    store.replaceProject({format: 'detective-wall-project', formatVersion: 1, exportedAt: new Date().toISOString(),
-      walls: [wallB], images: [], meta: {}});
-    assert.equal(store.listProposals('all').total, 0);
-    assert.deepEqual(store.listAudit(), []);
-    assert.deepEqual(store.getChatHistory(wallA.id, 'claude').messages, []);
-    assert.equal(store.getChatHistory(wallA.id, 'claude').sessionId, null);
-    assert.equal(store.getWall(wallA.id), undefined);
-    store.putWall(wallA.id, wallA.name, wallA.data, null);
-    insertProposal(store, 'delete-proposal-a', wallA.id);
-    insertProposal(store, 'delete-proposal-b', wallB.id);
-    store.setChatSession(wallA.id, 'codex', 'delete-session-a');
-    store.addChatMessage(wallA.id, 'codex', 'user', 'delete me');
-    store.setChatSession(wallB.id, 'codex', 'keep-session-b');
-    store.addChatMessage(wallB.id, 'codex', 'user', 'keep me');
-    store.deleteWall(wallA.id);
-    assert.equal(store.listProposals('all', wallA.id).total, 0);
-    assert.deepEqual(store.listAudit(wallA.id), []);
-    assert.deepEqual(store.getChatHistory(wallA.id, 'codex').messages, []);
-    assert.equal(store.listProposals('all', wallB.id).total, 1);
-    assert.equal(store.getChatHistory(wallB.id, 'codex').sessionId, 'keep-session-b');
+    for (const wall of [wallA, wallB]) assert.equal((await request('/api/walls/' + wall.id, 'PUT', {...wall, version: null})).status, 200);
+    await request('/api/meta/aiProposals', 'PUT', {value: true});
+    const proposal = await insertProposal(client, 'cleanup-proposal', wallA.id);
+    assert.equal((await request('/api/proposals/' + proposal.proposalId + '/apply', 'POST', {opIndexes: [0]})).status, 200);
+    seedChat(wallA.id, 'claude', 'cleanup-session-a', 'old chat');
+    seedChat(wallB.id, 'claude', 'cleanup-session-b', 'other wall chat');
+    assert.equal((await request('/api/project', 'PUT', {format: 'detective-wall-project', formatVersion: 1, exportedAt: new Date().toISOString(),
+      walls: [wallB], images: [], meta: {}})).status, 200);
+    assert.equal((await request('/api/proposals?status=all')).body.total, 0);
+    assert.deepEqual((await request('/api/audit')).body, []);
+    assert.deepEqual(chatRows(wallA.id), [0, 0]);
+    assert.deepEqual(chatRows(wallB.id), [0, 0]);
+    assert.equal((await request('/api/walls/' + wallA.id)).status, 404);
+    assert.equal((await request('/api/walls/' + wallA.id, 'PUT', {...wallA, version: null})).status, 200);
+    await request('/api/meta/aiProposals', 'PUT', {value: true});
+    await insertProposal(client, 'delete-proposal-a', wallA.id);
+    await insertProposal(client, 'delete-proposal-b', wallB.id);
+    seedChat(wallA.id, 'codex', 'delete-session-a', 'delete me');
+    seedChat(wallB.id, 'codex', 'keep-session-b', 'keep me');
+    assert.equal((await request('/api/walls/' + wallA.id, 'DELETE')).status, 204);
+    assert.equal((await request('/api/proposals?status=all&wallId=' + wallA.id)).body.total, 0);
+    assert.deepEqual((await request('/api/audit?wallId=' + wallA.id)).body, []);
+    assert.deepEqual(chatRows(wallA.id), [0, 0]);
+    assert.equal((await request('/api/proposals?status=all&wallId=' + wallB.id)).body.total, 1);
+    assert.equal((await request('/api/chat/' + wallB.id + '?client=codex')).body.sessionId, 'keep-session-b');
     console.log('PASS P12 project restore clears proposals, audit, sessions, and messages; deleting one wall leaves another wall intact');
-  } finally { store.close(); }
+  } finally { await client.close(); }
 }
 
 async function startupFailureTests() {
-  const serverScript = path.join(__dirname, '..', 'server', 'server.js');
   const badRoot = path.join(out, 'chat-workdir-file');
   fs.mkdirSync(badRoot, {recursive: true});
   const badDb = path.join(badRoot, 'wall.db');
   fs.writeFileSync(path.join(badRoot, 'chat-workdir'), 'not a directory');
-  const bad = await waitForExit(spawn(process.execPath, [serverScript], {
+  const bad = await waitForExit(spawn(serverBin, [], {
     cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: badDb, WALL_PORT: '0'}, stdio: ['ignore', 'pipe', 'pipe'],
   }));
   assert.notEqual(bad.code, 0);
@@ -174,7 +183,7 @@ async function startupFailureTests() {
   const blocker = net.createServer();
   await new Promise((resolve, reject) => { blocker.once('error', reject); blocker.listen(0, '127.0.0.1', resolve); });
   const port = blocker.address().port;
-  const conflict = await waitForExit(spawn(process.execPath, [serverScript], {
+  const conflict = await waitForExit(spawn(serverBin, [], {
     cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: path.join(out, 'port-conflict.db'), WALL_PORT: String(port)}, stdio: ['ignore', 'pipe', 'pipe'],
   }));
   await new Promise(resolve => blocker.close(resolve));
@@ -189,15 +198,7 @@ async function startupFailureTests() {
   assert.equal(packageJson.license, 'MIT');
   assert.equal(packageJson.engines.node, '>=24');
   assert.equal(fs.readFileSync(path.join(__dirname, '..', 'LICENSE'), 'utf8').includes('Copyright (c) 2026 xiangerwu'), true);
-  assert.equal(safeSourceHref('https://example.test/source'), true);
-  assert.equal(safeSourceHref('file:///tmp/source.txt'), true);
-  assert.equal(safeSourceHref('mailto:research@example.test'), true);
-  assert.equal(safeSourceHref('C:\\Users\\me\\source.txt'), true);
-  assert.equal(safeSourceHref('relative/source.txt'), true);
-  for (const href of ['javascript:alert(1)', ' JaVaScRiPt:', 'java\tscript:', 'data:text/html,<b>x</b>', 'blob:https://example.test/id', 'java%73cript:alert(1)']) {
-    assert.equal(safeSourceHref(href), false, href);
-  }
-  console.log('PASS P12 MIT metadata, Node engine, license file, and source href allowlist are present');
+  console.log('PASS P12 MIT metadata, development Node engine, and license file');
 
   let response = await request('/api/walls/p12-main', 'PUT', {id: 'p12-main', name: 'P12', data: {
     bands: [], tags: [], cards: [{id: 'danger', kind: 'card', x: 20, y: 20, title: 'Danger', note: '', tags: [], links: []}], edges: [],
@@ -206,7 +207,7 @@ async function startupFailureTests() {
   assert.equal((await request('/api/meta/aiProposals', 'PUT', {value: true})).status, 200);
   const client = await startMcp();
   try {
-    for (const [index, href] of ['javascript:alert(1)', ' JaVaScRiPt:', 'java\tscript:', 'data:text/html,<b>x</b>'].entries()) {
+    for (const [index, href] of ['javascript:alert(1)', ' JaVaScRiPt:', 'java\tscript:', 'data:text/html,<b>x</b>', 'blob:https://example.test/id', 'java%73cript:alert(1)'].entries()) {
       assert.match(errorOf(await call(client, 'propose_changes', {wallId: 'p12-main', idempotencyKey: 'p12-danger-' + index,
         ops: [{op: 'add_card', tempId: 'danger-' + index, kind: 'card', title: 'Danger', note: '', tags: [], links: [{label: 'bad', href}]}]})), /invalid proposal link href/);
     }
@@ -234,6 +235,15 @@ async function startupFailureTests() {
     try {
       const page = await browser.newPage({viewport: {width: 1400, height: 900}});
       await page.goto(base + '/#wall=p12-main'); await ready(page);
+      assert.equal(await page.evaluate(href => safeSourceHref(href), 'https://example.test/source'), true);
+      assert.equal(await page.evaluate(href => safeSourceHref(href), 'file:///tmp/source.txt'), true);
+      assert.equal(await page.evaluate(href => safeSourceHref(href), 'mailto:research@example.test'), true);
+      assert.equal(await page.evaluate(href => safeSourceHref(href), 'C:\\Users\\me\\source.txt'), true);
+      assert.equal(await page.evaluate(href => safeSourceHref(href), 'relative/source.txt'), true);
+      for (const href of ['javascript:alert(1)', ' JaVaScRiPt:', 'java\tscript:', 'data:text/html,<b>x</b>', 'blob:https://example.test/id', 'java%73cript:alert(1)']) {
+        assert.equal(await page.evaluate(href => safeSourceHref(href), href), false, href);
+      }
+      console.log('PASS P12 actual frontend source href allowlist');
       assert.equal(await page.locator('.card[data-id="danger"] a[href]').count(), 1);
       await page.evaluate(() => openPanel('danger'));
       assert.doesNotMatch(await page.inputValue('#f-links'), /javascript:|data:/i);

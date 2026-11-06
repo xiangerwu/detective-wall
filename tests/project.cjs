@@ -5,14 +5,16 @@ const path = require('node:path');
 const {spawn} = require('node:child_process');
 const playwright = require('playwright-core');
 const {openActivity} = require('./wall-ready.cjs');
+const {serverBin} = require('./runtime.cjs');
 
 const out = process.env.WALL_TEST_OUT || path.join(__dirname, '..', 'test-results', 'project');
 fs.mkdirSync(out, {recursive: true});
 
 function start(db) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: db, WALL_PORT: '0'}, stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
     });
     let output = '', timer;
     const done = (error, value) => { clearTimeout(timer); error ? reject(error) : resolve(value); };
@@ -97,7 +99,7 @@ const seed = {bands: [], tags: [], cards: [{id: 'card', kind: 'card', x: 100, y:
     const restore = structuredClone(exported);
     restore.exportedAt = new Date().toISOString();
     restore.walls[0].data.cards[0].title = '還原後';
-    const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
+    const browser = await playwright[process.env.WALL_TEST_BROWSER || 'chromium'].launch();
     try {
       const page = await browser.newPage({viewport: {width: 1400, height: 900}});
       await page.goto(server.url); await page.waitForFunction(() => window.wallReady === true); await openActivity(page, 'files');

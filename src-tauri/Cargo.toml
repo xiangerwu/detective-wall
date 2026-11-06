@@ -1,0 +1,59 @@
+[package]
+name = "casegraph"
+version = "0.2.0"
+edition = "2021"
+default-run = "casegraph"
+
+[lib]
+name = "casegraph"
+
+[[bin]]
+name = "casegraph"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[[bin]]
+name = "casegraph-server"
+path = "src/bin/casegraph-server.rs"
+
+[[bin]]
+name = "casegraph-mcp"
+path = "src/bin/casegraph-mcp.rs"
+
+[features]
+default = ["desktop"]
+desktop = ["dep:tauri", "dep:tauri-plugin-single-instance", "dep:tauri-plugin-opener", "dep:tauri-plugin-notification", "dep:rfd"]
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures-util = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+rusqlite = { version = "0.38", features = ["bundled", "hooks"] }
+sha2 = "0.10"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+percent-encoding = "2"
+url = "2"
+regex = "1"
+base64 = "0.22"
+rmcp = { version = "3.9.0", default-features = false, features = ["server", "transport-io"] }
+include_dir = "0.7"
+tauri = { version = "2", features = ["tray-icon", "image-ico"], optional = true }
+tauri-plugin-single-instance = { version = "2", optional = true }
+tauri-plugin-opener = { version = "2", optional = true }
+tauri-plugin-notification = { version = "2", optional = true }
+rfd = { version = "0.17", optional = true }
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

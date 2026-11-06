@@ -2,7 +2,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
-const all = fs.readdirSync(__dirname).filter(name => name.endsWith('.cjs') && !['run.cjs', 'wall-ready.cjs'].includes(name)).sort();
+const {serverBin} = require('./runtime.cjs');
+// Standalone Rust suites manage their own servers and run separately.
+const all = fs.readdirSync(__dirname).filter(name => name.endsWith('.cjs') && !name.startsWith('rust-') && !['run.cjs', 'runtime.cjs', 'wall-ready.cjs'].includes(name)).sort();
 const args = process.argv.slice(2);
 const selected = [];
 let jobs = Math.min(4, Math.max(2, Math.floor(os.cpus().length / 2)));
@@ -24,9 +26,10 @@ const root = path.resolve(process.env.WALL_TEST_ROOT || path.join(__dirname, '..
 
 function startServer(db, extraEnv = {}) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'server.js')], {
+    const child = spawn(serverBin, [], {
       cwd: path.join(__dirname, '..'),
       env: {...process.env, ...extraEnv, WALL_DB: db, WALL_PORT: '0'},
+      windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     let output = '', timer, settled = false;
@@ -46,15 +49,6 @@ function startServer(db, extraEnv = {}) {
     child.once('exit', code => done(new Error('wall server exited before ready: ' + code)));
     timer = setTimeout(() => done(new Error('wall server did not start')), 30000);
   });
-}
-
-// Each suite's temp DB and Firefox profiles are scratch: cleared before a run so no old wall.db leaks in,
-// and after a passing run so repeated runs do not pile up tens of MB each. A failing run keeps them for debugging.
-function clearScratch(out) {
-  if (!fs.existsSync(out)) return;
-  for (const name of fs.readdirSync(out)) {
-    if (name === 'temp' || name.startsWith('wall-ffprof-')) fs.rmSync(path.join(out, name), {recursive: true, force: true});
-  }
 }
 
 function stopServer(child) {
@@ -90,16 +84,17 @@ function runChild(command, args, options, timeout) {
 
 async function runSuite(suite) {
   const startedAt = Date.now();
-  const out = path.join(root, suite.replace('.cjs', ''));
+  const suiteRoot = path.join(root, suite.replace('.cjs', ''));
+  fs.mkdirSync(suiteRoot, {recursive: true});
+  const out = fs.mkdtempSync(path.join(suiteRoot, 'run-'));
   const temp = path.join(out, 'temp');
-  clearScratch(out);
   fs.mkdirSync(temp, {recursive: true});
   const chatEnv = (suite === 'chat.cjs' || suite.startsWith('tour')) ? {
     WALL_CLAUDE_BIN: path.join(__dirname, 'fake-chat-cli.js'),
     WALL_CODEX_BIN: path.join(__dirname, 'fake-chat-cli.js'),
     WALL_FAKE_CLI_LOG: path.join(out, 'fake-cli.jsonl'),
     WALL_FAKE_HEARTBEAT: path.join(out, 'fake-heartbeat.log'),
-    // Long enough for a fake CLI to start and for Firefox to click 停止 before the timeout fires; 150 ms raced on a busy machine.
+    // Long enough for a fake CLI to start and for the browser to click 停止 before the timeout fires; 150 ms raced on a busy machine.
     WALL_CHAT_TIMEOUT_MS: '2000',
   } : {};
   const pickerEnv = suite === 'picker.cjs' ? {
@@ -114,7 +109,8 @@ async function runSuite(suite) {
     server = await startServer(path.join(temp, 'wall.db'), suiteEnv);
     run = await runChild(process.execPath, [path.join(__dirname, suite)], {
       cwd: path.join(__dirname, '..'),
-      env: {...process.env, ...suiteEnv, WALL_TEST_OUT: out, WALL_TEST_URL: server.url, TEMP: temp, TMP: temp, TMPDIR: temp},
+      env: {...process.env, ...suiteEnv, WALL_TEST_BROWSER: process.env.WALL_TEST_BROWSER || 'chromium', WALL_TEST_OUT: out, WALL_TEST_URL: server.url, TEMP: temp, TMP: temp, TMPDIR: temp},
+      windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     }, 180000);
   } catch (error) {
@@ -126,8 +122,7 @@ async function runSuite(suite) {
   fs.writeFileSync(path.join(out, 'execution.log'), output);
   const result = {suite, passed: run.code === 0 && !run.timedOut, exitCode: run.code,
     signal: run.signal || null, timedOut: run.timedOut, checks: (output.match(/^PASS /gm) || []).length,
-    failures: (output.match(/^FAIL /gm) || []).length, durationMs: Date.now() - startedAt};
-  if (result.passed) clearScratch(out);
+    failures: (output.match(/^FAIL /gm) || []).length, durationMs: Date.now() - startedAt, artifacts: out};
   return result;
 }
 

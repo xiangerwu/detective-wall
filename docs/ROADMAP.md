@@ -1,40 +1,33 @@
 # 發布現況與後續方向
 
-[回 README](../README.md) · [功能與限制](FEATURES.md) · [Windows 桌面版](ELECTRON.md)
+[回 README](../README.md) · [功能與限制](FEATURES.md) · [Tauri／Rust 桌面版](TAURI.md)
 
-更新日期：2026-11-05。CaseGraph **v0.1.0 已發布**，安裝檔及版本說明見 [GitHub Release](https://github.com/xiangerwu/detective-wall/releases/tag/v0.1.0)。
+更新日期：2026-11-06。CaseGraph **v0.2.0** 改用 Tauri 2 與 Rust，安裝檔見 [GitHub Release](https://github.com/xiangerwu/detective-wall/releases/tag/v0.2.0)。Electron／Node 後端與專用測試已移除，舊版保留於 `v0.1.0` tag／release。
 
-本文件不再把初版交付項目列為發布前待辦。以下分開記錄現有功能與尚未完成的方向；後續項目沒有承諾時程，也不代表已授權開發。
+## 已提供
 
-## 已交付
-
-- Windows 桌面版：Electron 視窗、本機服務、系統匣、單一實例、專案切換、AI 工作資料夾、CLI 啟動、紀錄與 NSIS 安裝檔。
-- 線索牆：卡片、圖片、疑問便利貼、連線、分層、錨點、標籤、多牆、搜尋、框選與批次操作、三種版面整理模式。
-- AI 工作流程：Claude Code／Codex CLI 對話、MCP 讀牆與授權讀檔、待審提案、逐項套用、衝突檢查與回復。
-- 保存與搬移：SQLite、自動保存、內部備份、單牆／專案 JSON、JSON Canvas 匯入匯出。
-- 介面：六種背景、兩種卡片風格、浮動新增泡泡與齒輪選單、AI 案件夾、互動桌寵與減少動畫。
-
-操作入口以 [README](../README.md) 為準，支援範圍和已知限制見 [FEATURES](FEATURES.md)。
+- Windows 桌面：Tauri 視窗、Rust 本機服務與 MCP、系統匣、單一實例、專案切換、AI 工作資料夾、CLI 啟動、紀錄與 NSIS 安裝檔。
+- 白板：卡片、圖片、疑問便利貼、連線、分層、錨點、標籤、多牆、搜尋、框選、批次操作與版面整理。
+- AI：Claude Code／Codex CLI 對話、MCP 讀牆與授權讀檔、待審提案、逐項套用、衝突檢查與回復。
+- 保存：SQLite、自動保存、內部備份、單牆／專案 JSON、JSON Canvas 匯入匯出；沿用既有資料格式。
+- 外觀：六種背景、兩種卡片風格、浮動新增泡泡與齒輪選單、AI 案件夾、桌寵與減少動畫。
 
 ## 後續方向與驗證缺口
 
+以下沒有承諾時程，也不代表已授權開發。
+
 | 方向 | 現況與待處理事項 |
 | --- | --- |
-| 自訂關係 | 目前固定三種類型。自訂名稱、線型與方向仍未提供，若開發需同步處理匯入、匯出與 MCP。 |
-| JSON Canvas 互通 | 已可匯入匯出；其他工具的正式往返驗證、私有欄位文字優先順序與降級項目仍待處理。 |
-| 真實 AI 客戶端相容性 | 自動化測試使用 fake CLI；不能據此宣稱所有真實登入狀態、CLI 版本與訂閱情境都通過。更新 CLI 後需依實際使用結果核對。 |
-| AI 回答品質 | 引用正確性與事實／推論區分仍由使用者判斷，沒有自動模型品質評估。 |
-| 發布素材與版本核對 | 原有通用示例、乾淨截圖、完整版本核對與發布流程規劃，改為後續發版時的維護工作；不再作為初版尚未發布的依據。 |
-| 程式碼簽章與自動更新 | v0.1.0 未簽章，使用手動下載安裝；後續方案尚未決定。 |
-| macOS／Linux 桌面安裝包 | 目前打包設定僅有 Windows。其他平台保留原始碼／瀏覽器啟動方式，桌面包尚未交付。 |
-| 跨電腦服務 | 目前服務只綁本機，沒有帳號或遠端同步；需先確認需求再評估。 |
+| Windows 安裝與效能 | 已提供 NSIS 安裝包；乾淨 Windows 的完整安裝、升級、解除安裝矩陣及同條件 RAM／啟動速度量測尚未完成。 |
+| 真實 AI 客戶端 | 自動化使用 fake CLI，真實登入狀態、CLI 版本、訂閱情境須依實際使用核對；引用與模型回答品質由使用者判斷。 |
+| 自訂關係 | 目前三種固定類型；新增自訂功能需同步處理匯入、匯出與 MCP。 |
+| JSON Canvas 互通 | 正式跨工具往返驗證、私有欄位文字優先順序與降級限制仍待處理。 |
+| 簽章與自動更新 | 安裝檔未簽章，使用手動下載安裝；後續方案未決定。 |
+| macOS／Linux 桌面包 | 目前只提供 Windows 打包設定；其他平台的桌面包尚未交付。 |
+| 跨電腦服務 | 目前服務僅綁本機，沒有帳號或遠端同步。 |
 
-## 如何解讀驗證結果
+## 驗證入口
 
-既有測試涵蓋 MCP 讀取、提案、審核、拒絕、授權範圍、衝突、重複套用、回復與資料保存等行為。測試檔存在不等於目前版本全數通過，應以該次執行的 `test-results/summary.json` 與各組 `execution.log` 為準。
+`npm test` 執行 Rust 單元、HTTP／MCP／fake CLI 整合及瀏覽器測試，全部使用 Rust 後端。`npm run typecheck` 檢查 Rust targets 和共用 JavaScript。`npm run dist` 後執行 `npm run test:desktop`，測試實際 Tauri release EXE；這不等於安裝精靈或真實 AI 服務驗收。
 
-- `npm test` 與 `npm run typecheck`：原始碼檢查入口。
-- `npm test -- electron-packaged`：已打包 Windows 程式的檢查；沒有產物時會 `SKIP`。
-- 真實 CLI 登入、模型品質及乾淨 Windows 安裝體驗，不能由 fake CLI 或未打包程式測試代替。
-
-內部 P／R／U／M 編號是歷史工作項目，不再作為使用者操作說明或下一版交付承諾。
+測試檔存在不代表目前全數通過，請依該次執行輸出與 `test-results/` 紀錄判讀。詳細步驟見 [TAURI.md](TAURI.md)，操作與支援範圍見 [README](../README.md) 和 [FEATURES](FEATURES.md)。

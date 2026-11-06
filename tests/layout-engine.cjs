@@ -1,5 +1,5 @@
 const assert = require('node:assert/strict');
-const layout = require('../server/layout.js');
+const layout = require('../assets/layout.js');
 
 const {gap, edgeMin, edgeMax} = layout.constants;
 const card = (id, fixed = false, x = 0, y = 0) => ({id, width: 200, height: 140, fixed, x, y});

@@ -5,7 +5,7 @@ const {spawn} = require('node:child_process');
 const playwright = require('playwright-core');
 const {Client} = require('@modelcontextprotocol/sdk/client/index.js');
 const {StdioClientTransport} = require('@modelcontextprotocol/sdk/client/stdio.js');
-const {openMcpDatabase} = require('../server/mcp.js');
+const {mcpBin} = require('./runtime.cjs');
 
 const base = process.env.WALL_TEST_URL;
 const db = path.join(process.env.TEMP, 'wall.db');
@@ -28,8 +28,8 @@ const request = (pathname, method = 'GET', value) => new Promise((resolve, rejec
 
 async function connect(scope) {
   const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [path.join(__dirname, '..', 'server', 'mcp.js')],
+    command: mcpBin,
+    args: [],
     env: {...process.env, WALL_DB: db, WALL_PORT: new URL(base).port, ...(scope ? {WALL_MCP_WALLS: scope} : {})},
     stderr: 'pipe',
   });
@@ -77,15 +77,7 @@ const wallB = {
   response = await request('/api/walls/wall-b', 'PUT', {id: 'wall-b', name: 'Wall B', data: wallB, version: null});
   assert.equal(response.status, 200);
 
-  const beforeDb = openMcpDatabase(db);
-  const before = beforeDb.listWalls(true);
-  beforeDb.close();
-  const readOnly = openMcpDatabase(db);
-  assert.throws(() => readOnly.putWall('wall-a', 'changed', wallA, version), /readonly|read-only/i);
-  readOnly.close();
-  const afterReadOnlyDb = openMcpDatabase(db);
-  assert.deepEqual(afterReadOnlyDb.listWalls(true), before);
-  afterReadOnlyDb.close();
+  const {exportedAt: beforeExportedAt, ...before} = (await request('/api/project')).body;
 
   let connection = await connect();
   try {
@@ -169,6 +161,10 @@ const wallB = {
     await connection.client.close();
   }
 
+  const {exportedAt: afterExportedAt, ...afterReads} = (await request('/api/project')).body;
+  assert.deepEqual(afterReads, before, 'MCP read tools must not modify persisted data');
+  console.log('PASS MCP reads preserve all persisted project data');
+
   let current = wallA;
   const readers = Array.from({length: 8}, async () => {
     const live = await connect();
@@ -195,7 +191,7 @@ const wallB = {
   console.log('PASS MCP reads alongside HTTP writes without SQLITE_BUSY and sees the new version');
 
   const missingPath = path.join(process.env.WALL_TEST_OUT, 'missing-wall.db');
-  const missingProcess = spawn(process.execPath, [path.join(__dirname, '..', 'server', 'mcp.js')], {
+  const missingProcess = spawn(mcpBin, [], {
     cwd: path.join(__dirname, '..'), env: {...process.env, WALL_DB: missingPath}, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stderr = '';
@@ -203,6 +199,7 @@ const wallB = {
   const missingExit = await new Promise(resolve => missingProcess.once('exit', resolve));
   assert.notEqual(missingExit, 0);
   assert.match(stderr, /MCP database not found/);
+  assert.equal(require('node:fs').existsSync(missingPath), false, 'MCP must not create a missing database');
   console.log('PASS missing DB exits non-zero with clear stderr');
 
   const browser = await playwright[process.env.WALL_TEST_BROWSER || 'firefox'].launch();
