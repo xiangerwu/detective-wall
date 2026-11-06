@@ -129,6 +129,13 @@ impl Desktop {
             .map(|s| s.parse::<u16>())
             .transpose()
             .map_err(|_| AppError::new(400, "WALL_PORT must be an integer from 0 to 65535"))?;
+        for (client, key) in [("claude", "WALL_CLAUDE_BIN"), ("codex", "WALL_CODEX_BIN")] {
+            if std::env::var_os(key).is_none() {
+                if let Some(path) = settings["cliPaths"][client].as_str().filter(|p| !p.is_empty()) {
+                    std::env::set_var(key, path);
+                }
+            }
+        }
         Ok(Self {
             settings,
             root,
@@ -394,7 +401,9 @@ impl Desktop {
         if self.settings["port"] != port {
             self.env_port = None;
         }
-        self.settings = json!({"schemaVersion":1,"port":port,"activeProjectFolder":project,"recentProjects":recent});
+        self.settings["port"] = json!(port);
+        self.settings["activeProjectFolder"] = json!(project);
+        self.settings["recentProjects"] = json!(recent);
         self.repair = false;
         self.override_port = None;
         let result = self.start(app, false).await.and_then(|_| self.persist());
@@ -681,18 +690,7 @@ pub fn run() {
             renderer_ready
         ])
         .setup(move |app| {
-            let root = std::env::var_os("CASEGRAPH_USER_DATA")
-                .map(PathBuf::from)
-                .unwrap_or_else(|| {
-                    PathBuf::from(std::env::var_os("APPDATA").unwrap_or_default()).join(
-                        if cfg!(debug_assertions) {
-                            "detective-wall"
-                        } else {
-                            "CaseGraph"
-                        },
-                    )
-                })
-                .join("CaseGraph");
+            let root = crate::setup::data_root(std::env::current_exe()?.parent().unwrap())?;
             let beside = std::env::current_exe()?.with_file_name("casegraph-mcp.exe");
             let mcp = if beside.is_file() {
                 beside
@@ -700,17 +698,34 @@ pub fn run() {
                 app.path().resource_dir()?.join("casegraph-mcp.exe")
             };
             let allowed = Arc::new(AtomicU16::new(0));
-            app.manage(DesktopState(Mutex::new(Desktop::new(
+            let desktop = Desktop::new(
                 root,
                 mcp,
                 allowed.clone(),
-            )?)));
+            )?;
+            let appearance = desktop.settings["appearance"].clone();
+            app.manage(DesktopState(Mutex::new(desktop)));
             let navigation_app = app.handle().clone();
             let external_app = app.handle().clone();
             let window =
                 WebviewWindowBuilder::new(app, "main", WebviewUrl::App("status.html".into()))
                     .title("CaseGraph 案件圖譜")
                     .inner_size(1280.0, 800.0)
+                    .initialization_script(format!(r#"
+                        (() => {{
+                            if (location.hostname !== '127.0.0.1') return;
+                            const a = {appearance};
+                            if (!a || !a.id || localStorage.getItem('casegraph-install-appearance') === a.id) return;
+                            const values = {{'thesis-detective-wall-theme':a.theme,
+                                'thesis-detective-wall-card-style':a.cardStyle,
+                                'thesis-detective-wall-mascot-visible':a.mascotVisible ? '1' : '0',
+                                'casegraph-reduce-motion':a.reduceMotion ? '1' : '0'}};
+                            for (const [key, value] of Object.entries(values)) {{
+                                if (a.replace || localStorage.getItem(key) === null) localStorage.setItem(key, value);
+                            }}
+                            localStorage.setItem('casegraph-install-appearance', a.id);
+                        }})();
+                    "#))
                     .on_navigation(move |url| {
                         let status = (url.host_str() == Some("tauri.localhost")
                             || url.scheme() == "tauri")

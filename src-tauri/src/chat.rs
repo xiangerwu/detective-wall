@@ -103,6 +103,20 @@ pub fn mcp_toml_args(db: &Path, port: u16, wall: Option<&str>, executable: &Path
     ]
 }
 
+pub async fn register_mcp(command: &Path, executable: &Path, db: &Path, port: u16, scope: &str) -> Result<()> {
+    let mut args = vec!["mcp".into(), "add".into(), "detective-wall".into(),
+        "--env".into(), format!("WALL_DB={}", db.display()), "--env".into(), format!("WALL_PORT={port}")];
+    if !scope.trim().is_empty() { args.extend(["--env".into(), format!("WALL_MCP_WALLS={scope}")]); }
+    args.extend(["--".into(), executable.to_string_lossy().into_owned()]);
+    let (_cancel, rx) = watch::channel(false);
+    let directory = executable.parent().ok_or_else(|| AppError::new(400, "MCP 路徑無效"))?;
+    let result = run_cli(spawn_spec(command, args, Some(directory))?, "", directory, Duration::from_secs(30), rx, None).await?;
+    if result.code != Some(0) {
+        return Err(AppError::new(500, format!("Codex MCP 設定失敗：{}", if result.timed_out { "操作逾時".into() } else { excerpt(&result.stderr, 1500) })));
+    }
+    Ok(())
+}
+
 fn system_prompt(wall: &Value) -> String {
     [
         "你是案件圖譜（CaseGraph）的助手。".to_string(),

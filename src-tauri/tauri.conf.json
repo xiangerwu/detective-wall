@@ -1,25 +1,44 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "CaseGraph",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "identifier": "tw.casegraph.app",
-  "build": { "frontendDist": "web" },
+  "build": {
+    "frontendDist": "web"
+  },
   "app": {
     "withGlobalTauri": true,
     "windows": [],
-    "security": { "csp": null }
+    "security": {
+      "csp": null
+    }
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
-    "icon": ["../assets/icon/icon.ico"],
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "../assets/icon/icon.ico"
+    ],
     "resources": {
       "target/release/casegraph-mcp.exe": "casegraph-mcp.exe",
       "hidden-console.js": "hidden-console.js"
     },
     "windows": {
-      "webviewInstallMode": { "type": "downloadBootstrapper", "silent": true },
-      "nsis": { "installMode": "currentUser", "displayLanguageSelector": false }
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": false
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "displayLanguageSelector": false,
+        "template": "installer.nsi",
+        "installerHooks": "installer-pages.nsh",
+        "languages": [
+          "TradChinese"
+        ]
+      }
     }
   }
 }

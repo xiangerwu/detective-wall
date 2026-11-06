@@ -1,6 +1,6 @@
 # Tauri／Rust 桌面版
 
-CaseGraph 0.2.0 使用 Tauri 2 與 Rust 後端，保留白板介面、SQLite 格式、HTTP API 和九個 stdio MCP 工具。Electron 與 Node 後端已移除；Node.js 僅供開發、測試和部分外部 AI CLI 使用。
+CaseGraph 0.3.1 在 Tauri 2 與 Rust 後端上新增安裝設定精靈，保留白板介面、SQLite 格式、HTTP API 和九個 stdio MCP 工具。Electron 與 Node 後端已移除；Node.js 僅供開發、測試和部分外部 AI CLI 使用。此版本目前供安裝驗收，公開下載連結仍指向既有正式 release。
 
 ## Windows 建置與啟動
 
@@ -11,7 +11,7 @@ npm ci
 npm run app
 ```
 
-`app` 先建置 release 模式的 Rust helper，再啟動 Tauri 開發版。開發版使用 `%APPDATA%\detective-wall\CaseGraph\`；release 桌面程式使用 `%APPDATA%\CaseGraph\CaseGraph\`，直接執行 EXE 也相同。`CASEGRAPH_USER_DATA` 可指定隔離位置，程式在其下建立 `CaseGraph` 子目錄。
+`app` 先建置 release 模式的 Rust helper，再啟動 Tauri 開發版。開發版使用 `%APPDATA%\detective-wall\CaseGraph\`。安裝版從 EXE 旁的 `casegraph-install.json` 讀取資料根目錄，首次安裝預設為 `<安裝目錄>\data`，可另選 AppData 或自訂位置；白板資料夾可獨立選擇。沒有安裝設定的 release EXE 會優先沿用舊版 AppData 設定，否則使用 EXE 旁的 `data`。`CASEGRAPH_USER_DATA` 仍可指定測試隔離位置，程式在其下建立 `CaseGraph` 子目錄。
 
 ```powershell
 npm start
@@ -19,13 +19,19 @@ npm run dist
 ```
 
 - `start` 建置並啟動 Rust HTTP 服務與 MCP，預設資料庫 `data/wall.db`、埠 3000；可用 `WALL_DB`／`WALL_PORT` 調整。就緒後輸出 `WALL_READY <port>`。
-- `dist` 產生 `src-tauri/target/release/bundle/nsis/CaseGraph_0.2.0_x64-setup.exe`。
-- 缺少 WebView2 時，安裝精靈會下載 bootstrapper，因此需要網路。
+- `dist` 產生 `src-tauri/target/release/bundle/nsis/CaseGraph_0.3.1_x64-setup.exe`。
+- 安裝精靈固定繁體中文、目前使用者模式。缺少 WebView2 時會下載 bootstrapper 並顯示安裝介面，因此需要網路。
 - 安裝版不附帶 Node.js。Claude／Codex CLI 須另裝並登入，也可能需要自己的 Node.js。
 
 ## 資料相容與升級
 
-正式桌面版沿用 `%APPDATA%\CaseGraph\CaseGraph\settings.json` 和 `projects\default\wall.db`，自選專案位置沿用原設定；瀏覽器版資料不會自動搬移。SQLite schema 未變更，測試以舊格式 fixture 驗證未知白板欄位、提案套用與回復及交易回滾。
+安裝精靈會偵測目前安裝設定或舊版 `%APPDATA%\CaseGraph\CaseGraph\`，提供沿用、搬移目前專案與設定、建立新資料。搬移使用 SQLite `VACUUM INTO` 一致性快照，包含已提交的 WAL 資料並保留未知資料表；來源完整保留作為備份。其他最近專案仍指向原位置，外部來源檔案與 AI 工作資料夾不搬移。目的地已有資料庫或設定時拒絕覆寫；瀏覽器版資料不會自動搬移。
+
+基本頁面提供 AI 修改提案開關與 Codex MCP 連線勾選（預設均關閉）。進階頁可設定服務埠、Claude／Codex CLI 路徑與 AI 工作資料夾。選擇連接 Codex 時會詢問 MCP 白板範圍，透過既有 Codex CLI 建立或更新 `detective-wall`；CLI 必須已安裝。來源資料夾仍需在程式內明確授權。
+
+外觀頁可略過；新安裝預設書頁黃、擬真便利貼、顯示桌寵且不減少動畫。明確選擇的外觀只在首次讀取該次安裝設定時套用，之後使用者調整不會在每次啟動時被覆蓋。升級略過外觀頁會保留已有偏好。
+
+解除安裝預設保留資料與 `casegraph-install.json`，方便重新安裝沿用。明確勾選刪除並再次確認時，僅逐檔移除設定中最近專案的 `wall.db`／WAL／SHM、`settings.json`、`logs/main.log` 與安裝定位檔；不遞迴刪除自訂資料夾，不刪除來源檔案、CLI 工作檔或搬移來源備份。移除前需完整結束 CaseGraph。外部用戶端啟動的 MCP 不會隨白板退出；安裝／解除安裝會先提示，確認後僅終止執行檔完整路徑符合本次安裝的 MCP。若用戶端立即重新連線，需先停用該 MCP 再重試。
 
 升級前完整結束舊程式與 MCP 客戶端，依 [搬移與資料保存](MIGRATION.md) 備份。不要讓兩版同時開啟同一份資料庫。舊版原始碼及安裝檔保留於 Git tag／release `v0.1.0`；目前分支不提供 Electron 執行入口。WebView2 與 Electron 的 localStorage 不共用，外觀偏好需重新設定。
 
@@ -51,11 +57,17 @@ npm run typecheck
 cargo test --manifest-path src-tauri/Cargo.toml --lib
 npm run dist
 npm run test:desktop
+node src-tauri/installer-test.cjs
+node src-tauri/installer-mcp-test.cjs
 ```
 
 - `test:rust`：Rust 程式庫、HTTP、MCP 與 fake CLI 測試；自行建置 debug server／MCP。
 - `test:ui`：瀏覽器互動測試，連接真實 Rust 服務，預設 Chromium。可用 `node tests/run.cjs chat picker --jobs=1` 選擇套件。
 - `test:desktop`：先完成 `npm run dist`；操作 release EXE 的實際 WebView2、桌面橋接與設定。缺少 EXE 會失敗，不以 SKIP 當通過。
+- `installer-test.cjs`：將實際 release EXE 放進隔離安裝路徑，執行安裝 helper，再驗證 WebView2 讀取的路徑、埠、外觀、AI 提案與設定保存。使用 `src-tauri/target/installer-checks/`，不改動正式安裝或登錄檔。
+- `installer-mcp-test.cjs`：使用真正的 NSIS 巨集與隔離 MCP 連線，驗證終止本次安裝的 MCP、刪除已解鎖的執行檔、保留資料庫，且另一個安裝目錄的同名 MCP 不受影響。預設讀取 `target/installer-build/release`，可用 `CASEGRAPH_RELEASE_DIR` 指定其他建置目錄；需要本機 Tauri NSIS 工具鏈。
+
+新增安裝來源集中於 `src-tauri/`：`installer.nsi` 基於 Tauri CLI 2.12.4 官方模板，`installer-pages.nsh` 定義選項頁，`setup.rs` 處理設定與資料。不可直接修改 `target/release/nsis/` 的生成檔；升級 Tauri CLI 時應對照官方模板的變更。
 
 桌面測試使用獨立資料及瀏覽器設定目錄、私有除錯埠，只關閉自己啟動的程序。它不執行 NSIS 安裝精靈，也不接觸正式資料。瀏覽器 runner 保留每次的 `test-results/<suite>/run-*` 紀錄；測試結論以該次輸出為準。
 

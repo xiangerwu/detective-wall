@@ -12,6 +12,8 @@ A relationship whiteboard for personal research. Organize clues with cards, ques
 
 v0.2.0 uses a Tauri desktop and Rust backend, retaining the existing whiteboard interface and SQLite data format. The interface is currently in Traditional Chinese.
 
+This branch contains the **0.3.1 installer preview**, with data location, AI, appearance, and migration choices. Fresh installations default to data beneath the installation directory. The download link above still points to the published 0.2.0 release; see [the new installation flow](docs/TAURI.md).
+
 ## Installation
 
 See [Desktop instructions](docs/TAURI.md) for build requirements, desktop settings, and isolated testing.

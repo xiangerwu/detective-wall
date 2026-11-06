@@ -6,6 +6,8 @@ pub mod layout;
 pub mod mcp;
 mod proposals;
 pub mod server;
+#[path = "../setup.rs"]
+pub mod setup;
 
 pub type Result<T> = std::result::Result<T, AppError>;
 

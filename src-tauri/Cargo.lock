@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "casegraph"
-version = "0.2.0"
+version = "0.3.1"
 dependencies = [
  "axum",
  "base64 0.22.1",

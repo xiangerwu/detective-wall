@@ -2,19 +2,30 @@
 
 [回 README](../README.md) · [Tauri／Rust 桌面版](TAURI.md)
 
-適用於 CaseGraph v0.2.0 Tauri／Rust 版，並包含從 v0.1.0 升級的注意事項；核對日期：2026-11-06。乾淨 Windows 的完整安裝／升級／解除安裝矩陣尚未完成，請先保存原資料。
+適用於 CaseGraph v0.3.1 安裝驗收版，並包含從 v0.1.0／v0.2.0 升級的注意事項；核對日期：2026-11-07。乾淨 Windows 的完整安裝／升級／解除安裝矩陣尚未完成，請先保存原資料。
 
 ## 先確認資料位置
 
 | 啟動方式 | 預設資料庫 |
 | --- | --- |
-| Windows 安裝版／release 模式桌面程式 | `%APPDATA%\CaseGraph\CaseGraph\projects\default\wall.db` |
+| v0.3.1 全新 Windows 安裝 | `<安裝目錄>\data\projects\default\wall.db`，可於安裝時另選位置 |
+| v0.1.0／v0.2.0 或選擇沿用舊資料 | `%APPDATA%\CaseGraph\CaseGraph\projects\default\wall.db`，或原本自訂位置 |
 | 原始碼桌面版（`npm run app`） | `%APPDATA%\detective-wall\CaseGraph\projects\default\wall.db` |
 | 瀏覽器版（`npm start`，於專案根目錄執行） | 儲存庫的 `data/wall.db`，可用 `WALL_DB` 改位置 |
 
 桌面版若已切換專案，實際位置是所選專案資料夾中的 `wall.db`，請從齒輪選單「啟動器設定」核對。安裝版不會自動讀取或搬移瀏覽器版資料。
 
-桌面版可用 `CASEGRAPH_USER_DATA` 指定隔離位置，並在其下建立 `CaseGraph` 子目錄放置設定與預設專案。Release EXE 即使尚未安裝，也使用正式資料位置；測試前請明確指定隔離位置，不要假設建置目錄代表測試資料目錄。
+桌面版可用 `CASEGRAPH_USER_DATA` 指定隔離位置，並在其下建立 `CaseGraph` 子目錄放置設定與預設專案。Release EXE 優先讀取旁邊的 `casegraph-install.json`；沒有定位檔時沿用存在的舊版 AppData 設定，否則使用 EXE 旁的 `data`。測試仍須明確指定隔離位置，不要假設建置目錄代表測試資料目錄。
+
+## v0.3.1 安裝時的資料選擇
+
+- **沿用**：不搬移資料，保留既有設定與專案位置。
+- **搬移**：將目前專案 SQLite 的一致性快照、設定及主日誌放到選定位置，保留原檔作為備份；其他最近專案、外部來源與 AI 工作檔仍留原處。
+- **建立新資料**：建立新的空白資料庫與設定，不覆蓋或刪除舊資料。首次啟動白板會沿用既有示例初始化行為。
+
+目的地已有資料或設定時，安裝程式會要求另選資料夾，不會合併或覆蓋。選擇搬移後，確認白板與歷史紀錄完整，再自行決定舊備份是否保留。若勾選替 Codex 設定 MCP，會更新其 `detective-wall` 連線；其他手動設定的客戶端需自行更新資料庫與執行檔路徑。
+
+解除安裝預設保留資料；只有明確勾選並再次確認，才移除設定中最近專案的資料庫、設定與主日誌。外部來源檔案、AI 工作檔與搬移來源備份不會被刪除。
 
 ## 選擇保存方式
 
