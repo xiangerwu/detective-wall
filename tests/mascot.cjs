@@ -50,6 +50,47 @@ for (const client of ['claude', 'codex']) {
       'mascot starts immediately left of the open clipboard with aligned feet');
     await page.screenshot({path: path.join(out, 'mascot-left-of-clipboard.png')});
 
+    const sidebarBefore = await page.locator('#sidebar').boundingBox();
+    const sidebarHandle = await page.locator('#sidebar-resize').boundingBox();
+    assert.equal(await page.locator('#sidebar-resize').getAttribute('role'), 'separator');
+    assert.equal(await page.locator('#sidebar-resize').getAttribute('aria-orientation'), 'vertical');
+    await page.mouse.move(sidebarHandle.x + sidebarHandle.width / 2, sidebarHandle.y + sidebarHandle.height / 2);
+    await page.mouse.down(); await page.mouse.move(sidebarHandle.x - 100, sidebarHandle.y + sidebarHandle.height / 2, {steps: 5}); await page.mouse.up();
+    const sidebarAfter = await page.locator('#sidebar').boundingBox();
+    ok(sidebarBefore && sidebarAfter && sidebarAfter.width > sidebarBefore.width, 'dragging the folder handle widens the folder');
+    const savedSidebarWidth = await page.evaluate(() => Number(localStorage.getItem(SIDEBAR_WIDTH_KEY)));
+    ok(Math.abs(savedSidebarWidth - sidebarAfter.width) <= 2, 'folder width is saved');
+    const sidebarMascotAfterResize = await page.evaluate(() => {
+      const mascot = $('#mascot').getBoundingClientRect(), board = $('#sidebar').getBoundingClientRect();
+      return {rightGap: board.left - mascot.right, bottomGap: board.bottom - mascot.bottom};
+    });
+    ok(sidebarMascotAfterResize.rightGap >= 6 && sidebarMascotAfterResize.rightGap <= 12
+      && Math.abs(sidebarMascotAfterResize.bottomGap) <= 2, `mascot follows the resized folder ${JSON.stringify(sidebarMascotAfterResize)}`);
+    await page.reload(); await ready(page); await openSidebar(page); await page.waitForTimeout(650);
+    const restoredSidebar = await page.locator('#sidebar').boundingBox();
+    ok(restoredSidebar && Math.abs(restoredSidebar.width - sidebarAfter.width) <= 2, 'folder width survives reload');
+    const restoredMascot = await page.evaluate(() => {
+      const mascot = $('#mascot').getBoundingClientRect(), board = $('#sidebar').getBoundingClientRect();
+      return {rightGap: board.left - mascot.right, bottomGap: board.bottom - mascot.bottom};
+    });
+    ok(restoredMascot.rightGap >= 6 && restoredMascot.rightGap <= 12 && Math.abs(restoredMascot.bottomGap) <= 2,
+      'mascot remains left of the folder after width reload');
+
+    for (const size of [144, 288]) {
+      await page.evaluate(height => setMascotSize(height), size);
+      await page.waitForTimeout(650);
+      const beforeClick = await page.locator('#mascot').boundingBox();
+      await page.locator('#mascot-image').click();
+      await page.waitForTimeout(650);
+      const afterClick = await page.locator('#mascot').boundingBox();
+      ok(beforeClick && afterClick
+        && Math.abs(afterClick.x - beforeClick.x) <= 1
+        && Math.abs(afterClick.y - beforeClick.y) <= 1
+        && Math.abs(afterClick.width - beforeClick.width) <= 1
+        && Math.abs(afterClick.height - beforeClick.height) <= 1,
+      `clicking the open-folder mascot keeps its ${size}px bounding box fixed`);
+    }
+
     const beforeDrag = await page.locator('#mascot').boundingBox();
     const start = await page.locator('#mascot-image').boundingBox();
     const target = await page.evaluate(() => { const r = vp.getBoundingClientRect(); return {x: r.left + 40, y: r.top + 40}; });

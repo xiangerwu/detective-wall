@@ -168,6 +168,24 @@ const wallB = {bands: [], tags: [], cards: [{id: 'outside', kind: 'card', x: 20,
     assert.equal(await page.locator('#ai-review-open').isDisabled(), false);
     await page.locator('#ai-proposal-list .ai-row button').first().evaluate(button => button.click());
     await page.waitForSelector('#proposal-review:not([hidden])');
+    assert.equal(await page.locator('#mascot').isVisible(), true);
+    const reviewActionHits = await page.evaluate(() => {
+      const mascot = document.querySelector('#mascot'), previousStyle = mascot.getAttribute('style');
+      mascot.style.transition = 'none';
+      const hits = ['#review-reject', '#review-apply'].map(selector => {
+        const button = document.querySelector(selector), rect = button.getBoundingClientRect();
+        mascot.style.left = rect.left + 'px'; mascot.style.top = rect.top + 'px';
+        const hit = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        return {button: selector.slice(1), hit: hit?.closest('button')?.id, mascot: Boolean(hit?.closest('#mascot'))};
+      });
+      if (previousStyle === null) mascot.removeAttribute('style'); else mascot.setAttribute('style', previousStyle);
+      return hits;
+    });
+    assert.deepEqual(reviewActionHits, [
+      {button: 'review-reject', hit: 'review-reject', mascot: false},
+      {button: 'review-apply', hit: 'review-apply', mascot: false},
+    ]);
+    console.log('PASS proposal review action buttons remain hit-testable with the mascot visible');
     const proposalRows = page.locator('#review-list .review-check');
     assert.equal(await proposalRows.count(), 3);
     assert.ok(await page.locator('.review-nested-row[data-op-index="2"]').count(), 'new-card edge is nested under its card');

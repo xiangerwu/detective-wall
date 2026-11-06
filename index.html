@@ -183,7 +183,7 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
   #rail .rail-activity{transition-property:opacity,visibility;transition-duration:.14s}
 }
 #viewport{position:relative;flex:1;min-width:0;overflow:hidden;cursor:grab;touch-action:none}
-#sidebar{position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:min(440px,calc(100vw - 112px));height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 78px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
+#sidebar{--sidebar-w:min(440px,calc(100vw - 112px));position:fixed;z-index:40;top:clamp(108px,13.8vh,124px);right:18px;width:var(--sidebar-w);height:calc(100vh - clamp(124px,16vh,144px));min-width:0;min-height:0;overflow:visible;padding:0;background:transparent;border:0;pointer-events:auto;will-change:transform;transform:translateX(calc(100% - 78px));transition:transform .56s cubic-bezier(.22,.85,.25,1)}
 #sidebar.is-open{transform:none}
 #sidebar:focus-visible{outline:3px solid var(--ui-accent);outline-offset:4px}
 #sidebar.clipboard-window{display:block}
@@ -192,6 +192,9 @@ button.danger:hover{border-color:var(--ui-danger-strong);color:var(--ui-danger)}
 #clipboard-peek:focus-visible{outline:3px solid var(--ui-accent);outline-offset:-4px}
 #sidebar.is-open #clipboard-peek{pointer-events:none;cursor:default}
 #sidebar.is-open #clipboard-peek:focus-visible{outline:0}
+#sidebar-resize{position:absolute;z-index:30;top:18px;bottom:18px;left:-8px;width:16px;background:linear-gradient(90deg,transparent 6px,var(--ui-accent) 6px,var(--ui-accent) 10px,transparent 10px);border-radius:4px;cursor:ew-resize;opacity:0;visibility:hidden;pointer-events:none;touch-action:none;user-select:none}
+#sidebar.is-open #sidebar-resize{opacity:.8;visibility:visible;pointer-events:auto}
+#sidebar-resize:focus-visible{outline:3px solid var(--ui-accent);outline-offset:1px}
 #viewport.panning{cursor:grabbing}
 /* #bg, .band and #strings are resized to the visible area in applyView, so the board has no edge */
 #wall{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
@@ -396,12 +399,12 @@ button.swatch.on{outline:2px solid var(--ui-text);outline-offset:2px}
 .chat-message.stopped{border-color:var(--ui-warning);background:color-mix(in srgb,var(--ui-warning) 12%,transparent)}
 .chat-message small{display:block;margin-bottom:2px;color:var(--ui-muted);font-size:11px}
 #chat-form{display:flex;flex-direction:column;gap:6px;flex:1;min-height:0}
-#chat-input{width:100%;flex:1;min-height:70px;resize:none}  /* the panel grip sets its height */
+#chat-input{width:100%;min-height:70px}
 #chat-progress{display:flex;flex-direction:column;gap:4px;padding:7px 8px;border:1px solid var(--ui-border);border-radius:var(--radius-sm);background:color-mix(in srgb,var(--ui-active) 65%,transparent)}
 #chat-progress-list{display:flex;flex-direction:column;gap:2px;flex:1;min-height:0;overflow:auto;margin:0;padding-left:1.2em;color:var(--ui-muted);font-size:12px;overflow-wrap:anywhere}
 #chat-stop{padding:3px 8px}
 #chat-section{height:260px}
-#mascot{position:fixed;z-index:1000;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none;will-change:left,top;transition:left .56s cubic-bezier(.22,.85,.25,1),top .56s cubic-bezier(.22,.85,.25,1)}
+#mascot{position:fixed;z-index:43;width:calc(var(--mascot-h,180px) * .72);height:var(--mascot-h,180px);pointer-events:none;touch-action:none;user-select:none;will-change:left,top;transition:left .56s cubic-bezier(.22,.85,.25,1),top .56s cubic-bezier(.22,.85,.25,1)}
 #mascot[hidden]{display:none}
 #mascot-image,#mascot-blink,#mascot-transition{position:absolute;inset:0;display:block;width:100%;height:100%;object-position:center bottom}
 #mascot-image{overflow:visible;cursor:pointer;pointer-events:auto}
@@ -776,7 +779,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
 #sidebar .chat-message.assistant .md pre code{padding:0;background:none}
 #sidebar .input-panel{display:flex;flex-direction:column}  /* the form takes what the content leaves, so the status line never overlaps 送出 */
 #sidebar .input-panel #chat-form{display:flex;flex-direction:column;gap:8px;flex:1 1 auto}
-#sidebar #chat-input{width:100%;min-height:44px;flex:1;resize:none;line-height:1.45}
+#sidebar #chat-input{width:100%;height:25vh;min-height:44px;max-height:60vh;flex:none;resize:vertical;line-height:1.45}  /* default quarter of the window; drag the corner to resize */
 #sidebar .input-actions{display:flex;align-items:center;justify-content:space-between;gap:8px}
 #sidebar .input-hint{color:var(--ui-muted);font-size:11px}
 #sidebar #chat-status:empty{display:none}
@@ -1256,6 +1259,7 @@ input:not([type=checkbox]):not([type=radio]),select,textarea,
    <button id="clipboard-peek" type="button" aria-label="開啟 AI 案件夾" title="開啟 AI 案件夾">
      <span aria-hidden="true">AI</span>
    </button>
+   <span id="sidebar-resize" role="separator" aria-orientation="vertical" aria-label="調整案件夾寬度" aria-valuemin="320" aria-valuemax="440" tabindex="-1"></span>
    <div id="case-folder">
      <div class="clipboard-clip" data-clip-design="K2" aria-hidden="true">
        <svg class="clipboard-clip-art" viewBox="0 0 360 150" focusable="false">
@@ -1915,7 +1919,7 @@ const TYPES = {
 };  // colors come from the theme's --builds / --uses / --question
 // Per-edge line weight; an edge without `weight` draws at its type's width.
 const WEIGHTS = {thin: {label: '細', width: 1.25}, normal: {label: '標準', width: 2}, thick: {label: '粗', width: 3.5}, heavy: {label: '特粗', width: 5}};
-const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size', MASCOT_VISIBLE_KEY = 'thesis-detective-wall-mascot-visible';
+const THEMES = ['whiteboard', 'wood', 'paper', 'cork', 'moon', 'cyber'], CARD_STYLES = ['tech', 'paper'], THEME_KEY = 'thesis-detective-wall-theme', CARD_STYLE_KEY = 'thesis-detective-wall-card-style', LAYOUT_MODE_KEY = 'thesis-detective-wall-layout-mode', LAST_TYPE_KEY = 'thesis-detective-wall-last-type', CLIPBOARD_KEY = 'thesis-detective-wall-clipboard', SIDEBAR_WIDTH_KEY = 'thesis-detective-wall-sidebar-width', PANEL_POS_KEY = 'thesis-detective-wall-panel-position', PANEL_SIZE_KEY = 'thesis-detective-wall-panel-size', MASCOT_SIZE_KEY = 'thesis-detective-wall-mascot-size', MASCOT_VISIBLE_KEY = 'thesis-detective-wall-mascot-visible';
 const LAYOUT_MODES = Object.freeze({overlap: '推開重疊', grid: '對齊格線', full: '全部重排'});
 let layoutMode = 'overlap';
 try {
@@ -2567,7 +2571,7 @@ function safeEndpointPoint(card, at, box, element, automatic = false) {
       top = pin.y - STRING_PIN_RADIUS, bottom = pin.y + STRING_PIN_RADIUS;
     const screen = {left: wallBox.left + left * view.s, right: wallBox.left + right * view.s,
       top: wallBox.top + top * view.s, bottom: wallBox.top + bottom * view.s};
-    return [...element.querySelectorAll('h3, .anchor-badge, .fold')].some(node => {
+    return [...element.querySelectorAll('h3, .pin, .anchor-badge, .fold')].some(node => {
       const rect = node.getBoundingClientRect();
       return screen.left < rect.right && rect.left < screen.right && screen.top < rect.bottom && rect.top < screen.bottom;
     });
@@ -5523,7 +5527,8 @@ aiTabs.forEach((tab, index) => {
 showAiTab('chat');
 
 const sidebar = $('#sidebar');
-const clipboardPeek = $('#clipboard-peek'), clipboardClose = $('#clipboard-close');
+const clipboardPeek = $('#clipboard-peek'), clipboardClose = $('#clipboard-close'), sidebarResize = $('#sidebar-resize');
+const SIDEBAR_MIN_WIDTH = 320, SIDEBAR_WIDTH_STEP = 24;
 let clipboardOpen = false, clipboardOpener = null;
 const MASCOT_BOARD_GAP = 8;
 function positionMascot() {
@@ -5537,12 +5542,48 @@ function positionMascot() {
   pet.style.left = Math.max(0, boardLeft - pet.offsetWidth - MASCOT_BOARD_GAP) + 'px';
   pet.style.top = Math.max(0, board.bottom - pet.offsetHeight) + 'px';
 }
+function sidebarMaxWidth() { return Math.max(SIDEBAR_MIN_WIDTH, innerWidth - 112); }
+function setSidebarWidth(width, persist = true) {
+  const max = sidebarMaxWidth(), value = clamp(width, SIDEBAR_MIN_WIDTH, max);
+  sidebar.style.setProperty('--sidebar-w', value + 'px');
+  sidebarResize.setAttribute('aria-valuemax', String(max));
+  sidebarResize.setAttribute('aria-valuenow', String(value));
+  positionMascot();
+  if (persist) try { localStorage.setItem(SIDEBAR_WIDTH_KEY, String(value)); } catch {}
+}
+let savedSidebarWidth = 0;
+try { savedSidebarWidth = Number(localStorage.getItem(SIDEBAR_WIDTH_KEY)) || 0; } catch {}
+setSidebarWidth(savedSidebarWidth || sidebar.offsetWidth, false);
+let sidebarResizeDrag = null;
+sidebarResize.onpointerdown = ev => {
+  if (!clipboardOpen || ev.button !== 0) return;
+  ev.preventDefault(); ev.stopPropagation(); document.querySelector('#mascot')?.classList.add('resizing'); sidebarResize.setPointerCapture(ev.pointerId);
+  sidebarResizeDrag = {id: ev.pointerId, sx: ev.clientX, width: sidebar.offsetWidth};
+};
+sidebarResize.onpointermove = ev => {
+  if (!sidebarResizeDrag || sidebarResizeDrag.id !== ev.pointerId) return;
+  const drag = sidebarResizeDrag;
+  setSidebarWidth(drag.width + drag.sx - ev.clientX, false);
+};
+sidebarResize.onpointerup = sidebarResize.onpointercancel = ev => {
+  if (!sidebarResizeDrag || sidebarResizeDrag.id !== ev.pointerId) return;
+  const drag = sidebarResizeDrag;
+  sidebarResizeDrag = null; try { sidebarResize.releasePointerCapture(ev.pointerId); } catch {}
+  setSidebarWidth(drag.width + drag.sx - ev.clientX);
+  document.querySelector('#mascot')?.classList.remove('resizing');
+};
+sidebarResize.onkeydown = ev => {
+  if (!clipboardOpen || !['ArrowLeft', 'ArrowRight'].includes(ev.key)) return;
+  ev.preventDefault();
+  setSidebarWidth(sidebar.offsetWidth + (ev.key === 'ArrowLeft' ? SIDEBAR_WIDTH_STEP : -SIDEBAR_WIDTH_STEP));
+};
 function focusClipboardSheet() {
   const selected = document.querySelector('#case-folder-tabs [aria-selected=true]');
   (selected || $('#case-folder')).focus({preventScroll: true});
 }
 function showClipboard(open, focus = true) {
   open = !!open;
+  const stateChanged = clipboardOpen !== open;
   if (open) clipboardOpener = document.activeElement;
   clipboardOpen = open;
   document.body.classList.toggle('clipboard-open', open);
@@ -5550,7 +5591,8 @@ function showClipboard(open, focus = true) {
   sidebar.setAttribute('aria-expanded', String(open));
   clipboardPeek.tabIndex = open ? -1 : 0;
   clipboardPeek.setAttribute('aria-hidden', String(open));
-  positionMascot();
+  sidebarResize.tabIndex = open ? 0 : -1;
+  if (stateChanged) positionMascot();
   try { localStorage.setItem(CLIPBOARD_KEY, open ? '1' : '0'); } catch {}
   if (open && window.wallReady && !wallBusy) void refreshAiProposals();  // polling pauses while it is closed
   if (!focus) return;
@@ -5577,7 +5619,7 @@ document.addEventListener('pointerdown', ev => {
 let savedClipboard = null;
 try { savedClipboard = localStorage.getItem(CLIPBOARD_KEY); } catch {}
 showClipboard(savedClipboard === '1', false);
-addEventListener('resize', positionMascot);
+addEventListener('resize', () => setSidebarWidth(sidebar.offsetWidth, false));
 
 // Tab order and colors describe the workspace, not a wall's content, so they live in meta.
 let tabMeta = {order: [], colors: {}};
@@ -6105,9 +6147,11 @@ $('#chat-form').onsubmit = async ev => {
   wakeMascot();
   chatStatus('');  // the progress box already says it is running
   updateChatControls();
+  // Show the message right away; the server history replaces it once the reply lands.
+  renderChat({messages: [...chatMessages, {role: 'user', text: message}]});
+  $('#chat-input').value = '';
   try {
     await store.sendChat(currentWall.id, chatClient, message, {onEvent: chatProgressEvent});
-    $('#chat-input').value = '';
     await loadChatHistory();
     await refreshAiProposals();
     stopChatProgress();
@@ -6116,7 +6160,10 @@ $('#chat-form').onsubmit = async ev => {
     cancelMascotHappyReturn();
     await loadChatHistory();
     if (chatStopRequested || error?.status === 499) { chatStopRequested = true; chatStatus('已停止'); }
-    else { stopChatProgress(); chatStatus('錯誤：' + chatError(error), true); }
+    else {
+      stopChatProgress(); chatStatus('錯誤：' + chatError(error), true);
+      if (!$('#chat-input').value) $('#chat-input').value = message;  // let the user retry without retyping
+    }
   } finally {
     if (chatProgressTimer) stopChatProgress(false);
     chatBusy = false;

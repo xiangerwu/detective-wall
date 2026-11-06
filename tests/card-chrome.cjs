@@ -53,7 +53,8 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
           && pinBox.top >= box.top && pinBox.bottom <= box.bottom),
           coversTitle: Boolean(card && hit(pinBox, card.querySelector('h3')?.getBoundingClientRect())),
           coversBadge: Boolean(card && hit(pinBox, card.querySelector('.anchor-badge')?.getBoundingClientRect())),
-          coversFold: Boolean(card && hit(pinBox, card.querySelector('.fold')?.getBoundingClientRect()))};
+          coversFold: Boolean(card && hit(pinBox, card.querySelector('.fold')?.getBoundingClientRect())),
+          coversPin: Boolean(card && hit(pinBox, card.querySelector('.pin')?.getBoundingClientRect()))};
       });
       return {pins: pins.length, edges: data.edges.length, above: layer(document.querySelector('#string-ends')) > layer(document.querySelector('.card')), details};
     });
@@ -64,9 +65,9 @@ const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!
         const problems = await overlaps();
         ok(problems.length === 0, `${theme}/${style}: level badges clear the fold button and title ${problems.join(', ')}`);
         const e = await ends();
-        const badPins = e.details.filter(pin => !pin.card || !pin.inside || pin.coversTitle || pin.coversBadge || pin.coversFold);
+        const badPins = e.details.filter(pin => !pin.card || !pin.inside || pin.coversTitle || pin.coversBadge || pin.coversFold || pin.coversPin);
         ok(e.pins === e.edges * 2 && e.above && badPins.length === 0,
-          `${theme}/${style}: one smaller pin per edge end stays inside its card and clear of title/badge/fold (${e.pins}/${e.edges * 2})`);
+          `${theme}/${style}: one smaller pin per edge end stays inside its card and clear of title/badge/fold/main pin (${e.pins}/${e.edges * 2})`);
         // Every selected new-edge type keeps its line sample readable against the selection colour.
         // The button background animates (.15s), so measure only after it settles.
         const samples = [];

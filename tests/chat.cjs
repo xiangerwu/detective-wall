@@ -255,6 +255,8 @@ const wall = {bands: [], tags: [], cards: [{id: 'chat-card', kind: 'card', x: 20
     await send();
     await page.waitForFunction(() => document.querySelectorAll('#chat-progress-list li').length >= 3);
     assert.equal(await page.locator('#chat-progress-track').isVisible(), false, 'progress bar stays hidden without percentage data');
+    assert.equal(await page.locator('#chat-messages .chat-line.user').last().textContent(), '你progress sleep', 'the sent message shows before the reply');
+    assert.equal(await page.inputValue('#chat-input'), '', 'the input clears as soon as the message is sent');
     assert.equal(await page.locator('#mascot-image .rig').getAttribute('data-mood'), 'thinking');
     assert.ok(await page.locator('#mascot-image .rig > img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0)));
     assert.match(await page.locator('#chat-progress-avatar').getAttribute('src'), /\/assets\/avatars\/claude-thinking\.webp$/);
